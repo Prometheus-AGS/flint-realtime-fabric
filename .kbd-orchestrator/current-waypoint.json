@@ -1,12 +1,13 @@
 {
   "phase": "phase-0-realtime-fabric-foundations",
   "previousPhase": null,
-  "status": "phase_gate_halt",
-  "exactNextCommand": "/kbd-reflect phase-0-realtime-fabric-foundations",
-  "updatedAt": "2026-06-17T16:30:00Z",
+  "status": "complete",
+  "exactNextCommand": "/kbd-new-phase phase-1-core-infrastructure-adapters",
+  "updatedAt": "2026-06-17T17:00:00Z",
   "planComplete": true,
   "assessmentComplete": true,
   "executeComplete": true,
-  "reflectComplete": false,
-  "phaseGateNote": "All 6 changes complete. All exit criteria met. Halted for operator approval before Phase 1."
+  "reflectComplete": true,
+  "recommendedNextPhase": "phase-1-core-infrastructure-adapters",
+  "recommendedNextPhaseRationale": "LogBroker (frf-broker-iggy) must come first to unlock the durable spine; then AuthzProvider + IdentityVerifier; then gateway subscription mux. No open decisions block Phase 1."
 }
