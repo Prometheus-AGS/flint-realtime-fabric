@@ -1,10 +1,10 @@
 {
   "phase": "phase-1-core-infrastructure-adapters",
   "previousPhase": "phase-0-realtime-fabric-foundations",
-  "status": "plan_ready",
-  "exactNextCommand": "/kbd-plan phase-1-core-infrastructure-adapters",
-  "updatedAt": "2026-06-17T17:30:00Z",
-  "planComplete": false,
+  "status": "execute_ready",
+  "exactNextCommand": "/kbd-execute phase-1-core-infrastructure-adapters p1-c001-workspace-expansion",
+  "updatedAt": "2026-06-17T18:00:00Z",
+  "planComplete": true,
   "assessmentComplete": true,
   "executeComplete": false,
   "reflectComplete": false

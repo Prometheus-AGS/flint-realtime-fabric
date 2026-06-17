@@ -4,15 +4,15 @@
   "childPhases": [],
   "childPointer": null,
   "assessment_complete": true,
-  "plan_complete": false,
+  "plan_complete": true,
   "execute_complete": false,
   "reflect_complete": false,
-  "changes_total": 0,
+  "changes_total": 7,
   "changes_completed": 0,
   "completed_changes": [],
   "active_change": null,
   "blocked_changes": [],
-  "sourceTool": "kbd-assess",
+  "sourceTool": "kbd-plan",
   "createdBy": "kbd-new-phase",
-  "updatedAt": "2026-06-17T17:30:00Z"
+  "updatedAt": "2026-06-17T18:00:00Z"
 }

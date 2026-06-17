@@ -1,0 +1,17 @@
+{
+  "stage": "plan",
+  "phase": "phase-1-core-infrastructure-adapters",
+  "completedAt": "2026-06-17T18:00:00Z",
+  "summary": "7 ordered changes produced (p1-c001 through p1-c007); ordering rationale: workspace expansion first, then use-cases, then 3 adapter crates in parallel (Iggy/Keto/Ory), then CDC, then gateway as composition root; first change to apply is p1-c001-workspace-expansion.",
+  "artifactPath": ".kbd-orchestrator/phases/phase-1-core-infrastructure-adapters/plan.md",
+  "changesTotal": 7,
+  "changeIds": [
+    "p1-c001-workspace-expansion",
+    "p1-c002-frf-app",
+    "p1-c003-frf-broker-iggy",
+    "p1-c004-frf-authz-keto",
+    "p1-c005-frf-identity-ory",
+    "p1-c006-frf-postgres-cdc",
+    "p1-c007-gateway-subscription-mux"
+  ]
+}
