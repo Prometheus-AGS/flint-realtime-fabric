@@ -1,0 +1,17 @@
+[package]
+name = "frf-app"
+description = "Layer 1 use-cases: SubscribePipeline and PublishUseCase"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+frf-domain = { path = "../frf-domain" }
+frf-ports = { path = "../frf-ports" }
+thiserror.workspace = true
+tracing.workspace = true
+async-trait.workspace = true
+futures-util.workspace = true
+tokio = { workspace = true, features = ["sync"] }
