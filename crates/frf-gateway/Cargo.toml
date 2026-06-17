@@ -1,0 +1,32 @@
+[package]
+name = "frf-gateway"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Axum 0.8.8 gateway: HTTP + WebSocket mux + gRPC stub for Flint Realtime Fabric"
+
+[lib]
+name = "frf_gateway"
+path = "src/lib.rs"
+
+[[bin]]
+name = "frf-gateway"
+path = "src/main.rs"
+
+[dependencies]
+frf-domain = { path = "../frf-domain" }
+frf-proto = { path = "../frf-proto" }
+axum = { workspace = true }
+tokio = { workspace = true }
+tonic = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+serde_json = { workspace = true }
+tower-http = { workspace = true }
+
+[dev-dependencies]
+axum-test = "17"
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

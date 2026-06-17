@@ -4,7 +4,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Resolve paths relative to workspace root (two levels up from crates/frf-proto).
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let workspace_root = manifest_dir
-        .parent()   // crates/
+        .parent() // crates/
         .and_then(|p| p.parent()) // workspace root
         .expect("workspace root");
 

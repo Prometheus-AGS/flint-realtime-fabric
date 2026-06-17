@@ -4,6 +4,7 @@ members = [
     "crates/frf-domain",
     "crates/frf-ports",
     "crates/frf-proto",
+    "crates/frf-gateway",
 ]
 
 [workspace.package]

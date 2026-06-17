@@ -9,7 +9,9 @@ use frf_domain::{
     sync::{SyncOp, SyncOpKind},
 };
 
-fn roundtrip<T: serde::Serialize + for<'de> serde::Deserialize<'de> + PartialEq + std::fmt::Debug>(
+fn roundtrip<
+    T: serde::Serialize + for<'de> serde::Deserialize<'de> + PartialEq + std::fmt::Debug,
+>(
     value: &T,
 ) {
     let json = serde_json::to_string(value).expect("serialize");

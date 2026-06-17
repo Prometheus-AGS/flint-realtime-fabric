@@ -39,10 +39,19 @@ macro_rules! uuid_newtype {
     };
 }
 
-uuid_newtype!(ChannelId, "Unique identifier for a pub/sub channel on the event spine.");
+uuid_newtype!(
+    ChannelId,
+    "Unique identifier for a pub/sub channel on the event spine."
+);
 uuid_newtype!(EventId, "Unique identifier for a single event envelope.");
-uuid_newtype!(CursorId, "Unique identifier for a read cursor on a channel.");
+uuid_newtype!(
+    CursorId,
+    "Unique identifier for a read cursor on a channel."
+);
 uuid_newtype!(EntityId, "Unique identifier for a domain entity.");
 uuid_newtype!(AgentId, "Unique identifier for an agent (AG-UI / A2A).");
 uuid_newtype!(SessionId, "Unique identifier for a client session.");
-uuid_newtype!(TenantId, "Unique identifier for a tenant (top-level isolation boundary).");
+uuid_newtype!(
+    TenantId,
+    "Unique identifier for a tenant (top-level isolation boundary)."
+);

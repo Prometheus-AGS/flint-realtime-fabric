@@ -13,7 +13,7 @@ pub mod media;
 pub use authz::{AuthzProvider, RelationTuple};
 pub use crdt_store::{CrdtSnapshot, CrdtStore};
 pub use error::PortError;
-pub use federation::{FederationBridge, FederationProtocol, FederatedEvent};
+pub use federation::{FederatedEvent, FederationBridge, FederationProtocol};
 pub use identity::{IdentityVerifier, VerifiedClaims};
 pub use log_broker::{EventStream, LogBroker};
 pub use media::{MediaSignaler, SignalStream};

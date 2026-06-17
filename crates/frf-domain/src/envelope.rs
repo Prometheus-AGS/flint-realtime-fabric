@@ -63,7 +63,12 @@ pub struct EventEnvelope {
 
 impl EventEnvelope {
     #[must_use]
-    pub fn new(channel: Channel, offset: Offset, kind: EventKind, payload: serde_json::Value) -> Self {
+    pub fn new(
+        channel: Channel,
+        offset: Offset,
+        kind: EventKind,
+        payload: serde_json::Value,
+    ) -> Self {
         Self {
             id: EventId::new(),
             channel,
