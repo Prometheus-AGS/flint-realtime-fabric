@@ -1,0 +1,8 @@
+{
+  "stage": "assess",
+  "phase": "phase-1-core-infrastructure-adapters",
+  "createdAt": "2026-06-17T17:30:00Z",
+  "summary": "5 crates missing (frf-broker-iggy, frf-authz-keto, frf-identity-ory, frf-app, frf-postgres-cdc); gateway has no subscription wiring. tonic 0.14 confirmed current; Iggy fork must be audited at kickoff. Per-event Keto latency is the critical scaling risk — subscribe-time DashMap cache required in Phase 1. Plan should order: frf-app first (no deps), then adapters in parallel, then gateway mux last.",
+  "artifacts": ["assessment.md"],
+  "status": "complete"
+}
