@@ -1,0 +1,18 @@
+{
+  "stage": "plan",
+  "phase": "phase-0-realtime-fabric-foundations",
+  "status": "complete",
+  "completedAt": "2026-06-17T14:30:00Z",
+  "summary": "6 OpenSpec changes emitted in strict topological order (workspace → domain → ports → proto → gateway → CI). Ordering is compiler-determined by the absolute dependency rule. First change to apply: p0-c001-workspace-restructure.",
+  "artifact": ".kbd-orchestrator/phases/phase-0-realtime-fabric-foundations/plan.md",
+  "changeBackend": "openspec",
+  "changes": [
+    "p0-c001-workspace-restructure",
+    "p0-c002-frf-domain",
+    "p0-c003-frf-ports",
+    "p0-c004-frf-proto",
+    "p0-c005-frf-gateway-stub",
+    "p0-c006-dagger-ci"
+  ],
+  "firstChange": "p0-c001-workspace-restructure"
+}

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flint Realtime Fabric — Implementation Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B0F14; --surface:#131C2D; --surface-2:#1A2438; --surface-3:#212E47;
+  --tint-spine:#1C1410; --tint-sync:#101C1E; --tint-media:#1A1320; --tint-fed:#101A14;
+  --tint-sec:#1B1410;
+  --text:#E8EDF4; --text-2:#AEBCD0; --text-3:#7E8DA6;
+  --fire:#CE3012; --ember:#E96A12; --ember-2:#E04E28; --gold:#F49E12; --neural:#00C2DC;
+  --good:#3FB97E; --warn:#E0A92E; --bad:#E0573B; --maxw:1180px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:"DM Sans",system-ui,sans-serif;font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 32px}
+code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.mast{padding:78px 0 50px;background:
+  radial-gradient(1100px 420px at 18% -10%,rgba(206,48,18,.16),transparent 60%),
+  radial-gradient(900px 380px at 92% 0%,rgba(0,194,220,.10),transparent 60%)}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.32em;
+  text-transform:uppercase;color:var(--neural);margin:0 0 18px}
+h1{font-family:"Cinzel",serif;font-weight:700;font-size:clamp(32px,5vw,56px);
+  line-height:1.05;margin:0 0 18px}
+h1 .b{color:var(--ember)}
+.lede{font-family:"Syne",sans-serif;font-size:clamp(17px,2.1vw,22px);line-height:1.5;
+  color:var(--text-2);max-width:780px;margin:0}
+.meta{margin-top:24px;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--text-3)}
+.meta b{color:var(--text-2);font-weight:500}
+.shell{display:grid;grid-template-columns:236px 1fr;gap:46px;padding:54px 0 96px}
+.toc{position:sticky;top:24px;align-self:start;background:var(--surface);border-radius:14px;padding:22px 20px}
+.toc h4{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--text-3);margin:0 0 14px}
+.toc a{display:block;color:var(--text-2);text-decoration:none;font-size:13.5px;padding:7px 0;line-height:1.35}
+.toc a:hover{color:var(--ember)}
+.toc a .n{font-family:"JetBrains Mono",monospace;color:var(--neural);font-size:11px;margin-right:8px}
+section{margin:0 0 58px;scroll-margin-top:24px}
+h2{font-family:"Cinzel",serif;font-weight:600;font-size:clamp(22px,2.9vw,30px);margin:0 0 8px}
+.h2n{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--neural);letter-spacing:.2em;display:block;margin-bottom:6px}
+.sub{color:var(--text-2);font-size:16.5px;margin:0 0 24px;max-width:760px}
+h3{font-family:"Syne",sans-serif;font-weight:700;font-size:19px;margin:28px 0 12px;color:var(--text)}
+p{margin:0 0 16px;color:var(--text-2)}
+p.body{color:var(--text)}
+strong{color:var(--text);font-weight:600}
+a.inline{color:var(--ember);text-decoration:none;border-bottom:1px solid rgba(233,106,18,.35)}
+.verdict{background:linear-gradient(180deg,var(--surface-2),var(--surface));border-radius:18px;padding:32px 32px 28px}
+.verdict .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin:0 0 14px}
+.verdict h2{margin:0 0 14px}
+.verdict .one{font-family:"Syne",sans-serif;font-size:17px;color:var(--text);background:var(--surface-3);
+  border-radius:12px;padding:16px 20px;margin:18px 0 0;line-height:1.5}
+.verdict .one b{color:var(--ember)}
+.tablewrap{overflow-x:auto;border-radius:14px;background:var(--surface);margin:18px 0}
+table{width:100%;border-collapse:collapse;min-width:620px}
+th,td{text-align:left;padding:12px 18px;font-size:14px;vertical-align:top}
+thead th{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--neural);background:var(--surface-2)}
+tbody tr:nth-child(odd){background:var(--surface)}
+tbody tr:nth-child(even){background:var(--surface-2)}
+td.mono,th.mono{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--text)}
+td .y{color:var(--good);font-weight:600}.td .n{color:var(--bad)}
+td .n{color:var(--bad);font-weight:600}td .m{color:var(--warn);font-weight:600}
+pre{background:var(--surface);border-radius:14px;padding:20px 22px;overflow-x:auto;font-size:13px;line-height:1.6;color:var(--text);margin:18px 0}
+pre.tree{font-size:12.5px;line-height:1.55}
+pre .c{color:var(--text-3)}pre .k{color:var(--neural)}pre .s{color:var(--gold)}pre .f{color:var(--ember)}pre .d{color:var(--good)}
+.note{border-radius:12px;padding:18px 22px;margin:18px 0;background:var(--surface-2)}
+.note.warn{background:#231A0E}.note.key{background:#0E1C20}
+.note .lbl{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;margin:0 0 8px}
+.note.warn .lbl{color:var(--warn)}.note.key .lbl{color:var(--neural)}
+.note p{margin:0;color:var(--text);font-size:14.5px}
+.phase{display:grid;grid-template-columns:60px 1fr;gap:18px;background:var(--surface);border-radius:14px;margin:10px 0;padding:20px 22px}
+.phase .pn{font-family:"Cinzel",serif;font-size:24px;color:var(--ember);line-height:1}
+.phase h4{font-family:"Syne",sans-serif;font-size:16.5px;margin:0 0 6px;color:var(--text)}
+.phase p{margin:0 0 8px;font-size:14px;color:var(--text-2)}
+.phase .ex{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--good);display:block;margin-top:6px}
+.phase .cr{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--text-3);display:block;margin-top:4px}
+.layer{border-radius:12px;padding:16px 20px;margin:10px 0}
+.layer.l0{background:var(--surface-3)}.layer.l1{background:var(--surface-2)}.layer.l2{background:var(--surface)}
+.layer .lk{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--neural);margin:0 0 6px}
+.layer p{margin:0;font-size:14px}
+.foot{padding:38px 0 70px;color:var(--text-3);font-family:"JetBrains Mono",monospace;font-size:12px;line-height:1.7}
+.foot b{color:var(--text-2);font-weight:500}
+@media (max-width:860px){.shell{grid-template-columns:1fr;gap:0}.toc{position:static;margin-bottom:30px}.wrap{padding:0 22px}.mast{padding:54px 0 38px}}
+@media (max-width:540px){body{font-size:15px}.verdict{padding:22px 18px}th,td{padding:10px 12px;font-size:13px}.phase{grid-template-columns:40px 1fr;gap:12px;padding:16px}}
+</style></head><body>
+
+<header class="mast"><div class="wrap">
+<p class="eyebrow">Prometheus AGS · Implementation Plan · RFC-FRF-002</p>
+<h1>Flint Realtime Fabric<br><span class="b">Build Plan &amp; Repository Strategy</span></h1>
+<p class="lede">Contract-first, feature-based clean architecture in Rust. Nine SDKs collapsed into three maintenance patterns. Eight phases, each independently shippable.</p>
+<p class="meta"><b>Core:</b> Rust workspace (hexagonal) · <b>Contract:</b> protobuf + tonic gRPC · <b>SDKs:</b> native / generated / FFI · <b>AuthZ:</b> Ory Kratos + Keto (Zanzibar) + Cedar</p>
+</div></header>
+
+<div class="wrap"><div class="shell">
+<nav class="toc"><h4>Plan</h4>
+<a href="#frame"><span class="n">00</span>Framing &amp; scope</a>
+<a href="#repo"><span class="n">01</span>Repository strategy</a>
+<a href="#arch"><span class="n">02</span>Clean architecture</a>
+<a href="#contract"><span class="n">03</span>Protobuf / gRPC contract</a>
+<a href="#sdk"><span class="n">04</span>SDK strategy</a>
+<a href="#behaviors"><span class="n">05</span>Realtime behavior map</a>
+<a href="#crdt"><span class="n">06</span>CRDT &amp; offline persistence</a>
+<a href="#security"><span class="n">07</span>Identity, authz &amp; rights</a>
+<a href="#phases"><span class="n">08</span>Phased build plan</a>
+<a href="#risks"><span class="n">09</span>Risks &amp; decisions</a>
+</nav>
+
+<main>
+
+<section id="frame">
+<div class="verdict">
+<p class="tag">Framing</p>
+<h2>The plan is shaped by one constraint, not ten</h2>
+<p class="body">The technical scope — Postgres CDC, WebRTC, CRDT, pub/sub, AG-UI / A2A / A2UI, Matrix, ATProto, BossFang — is large but each item is a bounded adapter behind a port. The genuine program risk is the <strong>nine-language SDK surface</strong>. Hand-writing nine clients is what kills small teams. The entire plan is organized so that surface collapses into three repeatable patterns.</p>
+<div class="one">Freeze the protobuf contract first. Hand-write only Rust. Generate Go / C# / browser-TS from the contract. Bind Swift / Kotlin / Dart to the <b>same Rust core</b> over FFI — which also delivers identical offline CRDT merge to every device for free.</div>
+</div>
+</section>
+
+<section id="repo">
+<span class="h2n">01 · REPOSITORY STRATEGY</span>
+<h2>One core monorepo, automated fan-out to registries</h2>
+<p class="sub">A single Cargo workspace is the source of truth: domain, ports, adapters, gateway, the proto contract, and the Rust-core SDK bindings. Per-language packages are generated or bound inside it and published to their native registries by CI — not maintained as separate hand-edited repos.</p>
+<pre class="tree"><span class="d">flint-realtime-fabric/</span>            <span class="c"># Cargo workspace, source of truth</span>
+├── <span class="d">proto/</span>                       <span class="c"># THE CONTRACT — freeze before SDK gen</span>
+│   └── flint/v1/{envelope,entity,agent,signal,sync,authz}.proto
+├── <span class="d">crates/</span>
+│   ├── frf-domain/             <span class="c"># pure types, serde only, zero infra deps</span>
+│   ├── frf-ports/              <span class="c"># trait seams: LogBroker, AuthzProvider, ...</span>
+│   ├── frf-app/                <span class="c"># use-cases: subscribe, publish, RLS pipeline</span>
+│   ├── frf-proto/              <span class="c"># tonic-generated from proto/</span>
+│   │   <span class="c"># ── infrastructure adapters (one crate each, impl a port) ──</span>
+│   ├── frf-broker-iggy/        <span class="c"># LogBroker  -> Apache Iggy (GQAdonis fork)</span>
+│   ├── frf-authz-keto/         <span class="c"># AuthzProvider -> Ory Keto (Zanzibar)</span>
+│   ├── frf-identity-ory/       <span class="c"># IdentityVerifier -> Kratos/Oathkeeper JWT</span>
+│   ├── frf-policy-cedar/       <span class="c"># action policy -> Cedar (existing PAUX-1)</span>
+│   ├── frf-postgres-cdc/       <span class="c"># WAL logical replication -> spine</span>
+│   ├── frf-crdt/               <span class="c"># Loro/automerge engine + CrdtStore</span>
+│   ├── frf-store-surreal/      <span class="c"># server persistence (checkpoints, presence)</span>
+│   ├── frf-store-redb/         <span class="c"># on-device durable op-log + snapshots</span>
+│   ├── frf-media-str0m/        <span class="c"># sovereign SFU signaling adapter</span>
+│   ├── frf-media-livekit/      <span class="c"># hosted conferencing signaling adapter</span>
+│   ├── frf-bridge-matrix/      <span class="c"># Tuwunel projection</span>
+│   ├── frf-bridge-atproto/     <span class="c"># Tranquil firehose projection + AppView feed</span>
+│   ├── frf-agentproto/         <span class="c"># AG-UI / A2A / A2UI event schemas + ContentBlock</span>
+│   ├── frf-librefang/          <span class="c"># ractor publish/consume actors (BossFang)</span>
+│   │   <span class="c"># ── interface / deployable ──</span>
+│   ├── frf-gateway/            <span class="c"># Axum 0.8.8: WS mux + tonic gRPC + Connect</span>
+│   ├── frf-cli/                <span class="c"># ops + dev CLI</span>
+│   │   <span class="c"># ── SDK surface ──</span>
+│   ├── frf-sdk-rust/           <span class="c"># idiomatic Rust client (hand-written)</span>
+│   ├── frf-ffi/                <span class="c"># UniFFI scaffold -> Swift, Kotlin, JVM</span>
+│   └── frf-wasm/               <span class="c"># wasm-bindgen core for browser TS</span>
+├── <span class="d">sdks/</span>                       <span class="c"># generated/bound, published by CI — not hand-edited</span>
+│   ├── go/        ts/        csharp/
+│   ├── swift/     kotlin/    dart/          <span class="c"># flutter_rust_bridge over frf-ffi/core</span>
+│   └── entity-management/     <span class="c"># thin RealtimeAdapter on the TS SDK</span>
+├── <span class="d">dagger/</span>                     <span class="c"># CI pipelines (replaces GitHub Actions)</span>
+└── Cargo.toml                  <span class="c"># [workspace] + shared deps + per-plane features</span></pre>
+<div class="note key"><p class="lbl">Why monorepo</p>
+<p>Contract-first generation only works if the <code>.proto</code> and every generated/bound SDK move atomically. A monorepo makes a contract change + regenerate + bind a single commit. CI publishes to crates.io, npm, pub.dev, Maven Central, NuGet, and CocoaPods/SPM on tagged release. Native package managers see proper packages; you maintain one tree.</p></div>
+</section>
+
+<section id="arch">
+<span class="h2n">02 · CLEAN ARCHITECTURE</span>
+<h2>Feature-based hexagonal, dependencies point inward</h2>
+<p class="sub">Each realtime behavior is a <em>feature</em> expressed as a port (trait) plus one or more adapters. The dependency rule is absolute: domain knows nothing; application depends only on domain + ports; infrastructure and interface depend inward and are selected by Cargo features so a deployment compiles only the planes it runs.</p>
+<div class="layer l0"><p class="lk">Layer 0 · Domain</p><p><code>frf-domain</code> — <code>EventEnvelope</code>, <code>Channel</code>, <code>Offset</code>, <code>Cursor</code>, <code>EntityChange</code>, <code>AgentEvent</code>, <code>SyncOp</code>, <code>Presence</code>, <code>SignalEnvelope</code>, typed newtype IDs (<code>#[repr(transparent)]</code>). Serde only. No tokio, no I/O.</p></div>
+<div class="layer l1"><p class="lk">Layer 1 · Application (ports + use-cases)</p><p><code>frf-ports</code> defines the seams; <code>frf-app</code> orchestrates them: subscribe/publish, the RLS filter pipeline, the 16ms coalescing window, checkpoint logic. Testable with mock adapters, no network.</p></div>
+<div class="layer l2"><p class="lk">Layer 2 · Infrastructure + Interface (adapters)</p><p>Every <code>frf-*</code> adapter crate implements exactly one port. <code>frf-gateway</code> wires selected adapters behind WS + gRPC. Swapping Iggy for NATS, or Keto for a stub, is a feature flag — never a refactor.</p></div>
+<h3>The port seams</h3>
+<pre><span class="k">pub trait</span> <span class="f">LogBroker</span> { <span class="c">/* publish, subscribe, checkpoint */</span> }
+<span class="k">pub trait</span> <span class="f">AuthzProvider</span> { <span class="c">/* check(subject, relation, object), expand, write_tuple */</span> }
+<span class="k">pub trait</span> <span class="f">IdentityVerifier</span> { <span class="c">/* verify(jwt) -> Subject + claims */</span> }
+<span class="k">pub trait</span> <span class="f">CrdtStore</span> { <span class="c">/* load/save snapshot, append ops, version vector */</span> }
+<span class="k">pub trait</span> <span class="f">MediaSignaler</span> { <span class="c">/* offer/answer/ice relay, session lifecycle */</span> }
+<span class="k">pub trait</span> <span class="f">FederationBridge</span> { <span class="c">/* project external stream -> spine, inject back */</span> }</pre>
+<h3>Rust discipline (enforced in CI)</h3>
+<p class="body"><code>thiserror</code> in libraries, <code>anyhow</code> only at binary edges · <code>#[non_exhaustive]</code> on public enums · no <code>unwrap()/expect()</code> in library crates (clippy-denied) · <code>clippy::pedantic</code> + <code>deny(warnings)</code> gate · pinned MSRV · sans-I/O cores where the dependency allows it (str0m is sans-I/O) · <code>tracing</code> spans across every port boundary · newtype IDs over bare strings · semver discipline on <code>frf-domain</code> and every SDK.</p>
+</section>
+
+<section id="contract">
+<span class="h2n">03 · CONTRACT</span>
+<h2>Protobuf + tonic gRPC, frozen before SDK generation</h2>
+<p class="sub">The proto is the optimization layer the constraints call for and the contract every non-Rust SDK is generated from. Streaming RPCs for subscribe; unary for publish, checkpoint, and authz. CRDT ops are already binary (automerge/Loro) — they ride as <code>bytes</code>, never re-encoded.</p>
+<pre><span class="k">service</span> <span class="f">FlintRealtime</span> {
+  <span class="c">// server-streaming: the subscribe fan-out</span>
+  <span class="k">rpc</span> Subscribe(SubscribeRequest) <span class="k">returns</span> (stream EventEnvelope);
+  <span class="k">rpc</span> Publish(PublishRequest)     <span class="k">returns</span> (PublishAck);
+  <span class="k">rpc</span> Checkpoint(CheckpointReq)    <span class="k">returns</span> (CheckpointAck);
+  <span class="c">// bidi: CRDT sync + WebRTC signaling envelopes</span>
+  <span class="k">rpc</span> SyncStream(stream SyncFrame) <span class="k">returns</span> (stream SyncFrame);
+  <span class="k">rpc</span> Signal(stream SignalFrame)   <span class="k">returns</span> (stream SignalFrame);
+}
+<span class="k">message</span> <span class="f">EventEnvelope</span> {
+  uint32 v=1; Op op=2; string type=3; string id=4;
+  bytes  data=5;            <span class="c">// JSON or CRDT-binary, opaque</span>
+  string ts=6; string tenant=7; string origin=8; string trace=9;
+}</pre>
+<div class="note key"><p class="lbl">Transport tiers from one contract</p>
+<p>gRPC (HTTP/2) for native + server-to-server SDKs. Browsers can't speak raw gRPC streaming reliably, so the gateway also serves the <strong>Connect protocol</strong> (Connect-ES) and the existing Phoenix-style WebSocket mux for <code>prometheus-entity-management</code>. One contract, three wire surfaces — no second schema.</p></div>
+</section>
+
+<section id="sdk">
+<span class="h2n">04 · SDK STRATEGY</span>
+<h2>Nine languages, three patterns</h2>
+<p class="sub">This is the table that makes the program survivable. Only Rust is hand-written. Everything else is generated from the frozen contract or bound to the shared Rust core — so business logic, CRDT merge, and reconnection live in exactly one place.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>SDK</th><th>Pattern</th><th>Mechanism</th><th>Gets CRDT core?</th></tr></thead>
+<tbody>
+<tr><td class="mono">Rust</td><td>Hand-written</td><td><code>frf-sdk-rust</code> — full protocol, gRPC + WS</td><td><span class="y">native</span></td></tr>
+<tr><td class="mono">Go</td><td>Generated</td><td>connect-go / tonic-compatible from proto + thin shim</td><td><span class="m">via gateway relay</span></td></tr>
+<tr><td class="mono">C#</td><td>Generated</td><td>grpc-dotnet from proto + idiomatic wrapper</td><td><span class="m">via gateway relay</span></td></tr>
+<tr><td class="mono">TS/JS (browser)</td><td>Generated + WASM</td><td>Connect-ES; optional <code>frf-wasm</code> for in-browser CRDT</td><td><span class="m">optional WASM</span></td></tr>
+<tr><td class="mono">entity-management</td><td>Adapter</td><td>thin <code>RealtimeAdapter</code> on the TS SDK — not a new SDK</td><td><span class="m">inherits TS</span></td></tr>
+<tr><td class="mono">Swift (iOS/macOS)</td><td>FFI bind</td><td>UniFFI over <code>frf-ffi</code> / Rust core</td><td><span class="y">shared core</span></td></tr>
+<tr><td class="mono">Kotlin (Android+JVM)</td><td>FFI bind</td><td>UniFFI over <code>frf-ffi</code> / Rust core</td><td><span class="y">shared core</span></td></tr>
+<tr><td class="mono">Java (Android)</td><td>FFI bind</td><td>consumes the UniFFI <em>Kotlin</em> binding — no separate hand-write</td><td><span class="y">shared core</span></td></tr>
+<tr><td class="mono">Dart / Flutter</td><td>FFI bind</td><td>flutter_rust_bridge over the Rust core</td><td><span class="y">shared core</span></td></tr>
+</tbody></table></div>
+<div class="note warn"><p class="lbl">Honest overlap</p>
+<p>Java-for-Android and Kotlin are not two builds. Kotlin is Android's language; the UniFFI-generated Kotlin binding is callable from Java directly. Build the Kotlin binding; expose a Java-friendly facade only if a pure-JVM-server consumer actually appears. Treating these as separate hand-written SDKs is wasted effort.</p></div>
+</section>
+
+<section id="behaviors">
+<span class="h2n">05 · BEHAVIOR MAP</span>
+<h2>Every realtime behavior, mapped to a crate and a transport</h2>
+<p class="sub">Each requested behavior is a feature behind a port. None of them is special infrastructure — they all publish facts to, or consume facts from, the spine, with media and live-CRDT bypassing it per the Fabric separation contract.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Behavior</th><th>Crate</th><th>On spine?</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>Supabase-like Postgres realtime</td><td class="mono">frf-postgres-cdc</td><td><span class="y">yes</span></td><td>Logical replication slot → decode → spine → Keto RLS → fan-out.</td></tr>
+<tr><td>Pub/sub + broadcast</td><td class="mono">frf-app</td><td><span class="m">opt</span></td><td>Durable on spine; ephemeral broadcast may use relay-direct fast path.</td></tr>
+<tr><td>Presence</td><td class="mono">frf-app + store</td><td><span class="m">thin</span></td><td>Heartbeat + state; short-retention spine topic.</td></tr>
+<tr><td>CRDT sync</td><td class="mono">frf-crdt</td><td><span class="n">live no</span></td><td>P2P over WebRTC; checkpoints + announce on spine.</td></tr>
+<tr><td>WebRTC media / conferencing</td><td class="mono">frf-media-*</td><td><span class="n">never</span></td><td>str0m sovereign; LiveKit hosted; signaling-only on spine.</td></tr>
+<tr><td>AG-UI events</td><td class="mono">frf-agentproto</td><td><span class="y">yes</span></td><td>Agent→UI ContentBlock stream on <code>flint:agent</code>.</td></tr>
+<tr><td>A2A (agent-to-agent)</td><td class="mono">frf-agentproto</td><td><span class="y">yes</span></td><td>Inter-agent envelopes; durable + replayable.</td></tr>
+<tr><td>A2UI</td><td class="mono">frf-agentproto</td><td><span class="y">yes</span></td><td>Structured UI-intent events; same channel family.</td></tr>
+<tr><td>Matrix protocol events</td><td class="mono">frf-bridge-matrix</td><td><span class="m">projected</span></td><td>Tuwunel owns room DAG; spine indexes a copy.</td></tr>
+<tr><td>AT Protocol</td><td class="mono">frf-bridge-atproto</td><td><span class="m">projected</span></td><td>Tranquil firehose → spine → custom AppView consumers.</td></tr>
+<tr><td>BossFang / LibreFang</td><td class="mono">frf-librefang</td><td><span class="y">yes</span></td><td>ractor publish + consume actors into app state.</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="crdt">
+<span class="h2n">06 · CRDT &amp; PERSISTENCE</span>
+<h2>Offline-first across devices coming on and off line</h2>
+<p class="sub">The persistence design is what lets a device work offline, accumulate changes, and converge cleanly on reconnect. Because the CRDT engine lives in the Rust core, on-device durability is identical on every native platform.</p>
+<h3>Three storage tiers</h3>
+<pre>ON-DEVICE   <span class="f">frf-store-redb</span>   pure-Rust embedded op-log + snapshots (all native platforms)
+            browser              IndexedDB via frf-wasm
+SERVER      <span class="f">frf-store-surreal</span> CRDT checkpoints, op history, presence, version vectors
+SOURCE      Postgres             entity source-of-truth feeding frf-postgres-cdc</pre>
+<h3>Online / offline lifecycle</h3>
+<p class="body">Offline, a device appends ops to its local redb op-log and applies them optimistically. On reconnect it sends its version vector; the gateway (or a peer over WebRTC) computes the delta and exchanges only missing ops — incremental, not full-state. The spine carries the <em>checkpoint</em> and an <em>announce</em> so a cold device knows where to resume. Co-present devices skip the server entirely and reconcile peer-to-peer, then one of them checkpoints the merged state back.</p>
+<div class="note warn"><p class="lbl">Engine decision — still open</p>
+<p><strong>Loro</strong> vs <strong>automerge-rs</strong> for structured entity state; both are mature Rust CRDTs with binary encodings and incremental sync. Loro tends to win on memory/perf and rich-document range ops; automerge has the longer-running ecosystem and automerge-repo sync patterns. Decide before Phase 3 and commit — this choice is load-bearing for every FFI SDK. diamond-types remains text-only.</p></div>
+</section>
+
+<section id="security">
+<span class="h2n">07 · IDENTITY, AUTHZ &amp; RIGHTS</span>
+<h2>JWT authN, Zanzibar authZ, RLS at fan-out, user-controlled rights</h2>
+<p class="sub">Four concerns, placed deliberately rather than piled together. Identity proves who; Keto decides who-can-see-what as a relationship graph; Cedar governs which-actions-under-what-conditions; rights management is users writing their own relation tuples.</p>
+<h3>The pipeline</h3>
+<pre><span class="c">// authN — at connect</span>
+client JWT (Kratos-issued) → Oathkeeper/verify → <span class="f">Subject</span> + claims
+<span class="c">// authZ — at subscribe (coarse, cached)</span>
+Subscribe(realtime:entity:Order, tenant) → Keto.check(subject, "view", topic) → allow/deny
+<span class="c">// RLS — at fan-out (per object)</span>
+for each EventEnvelope: Keto.check(subject, "view", object_id) before delivery
+<span class="c">// action policy — orthogonal</span>
+mutating ops → Cedar.is_authorized(principal, action, resource, context)</pre>
+<h3>Placement: Keto vs Cedar</h3>
+<p class="body"><strong>Keto (Zanzibar / ReBAC)</strong> owns realtime visibility — "can subject see object" is exactly relation-tuple checking, with the check-cache and userset expansion Zanzibar was built for. <strong>Cedar (policy / ABAC)</strong> stays where PAUX-1 already uses it: action authorization and threshold policy. Don't force one to do the other's job; they compose at the gateway.</p>
+<h3>User-controlled rights management</h3>
+<p class="body">A resource owner grants or revokes access by writing/deleting Keto relation tuples on objects they own — delegation is native to Zanzibar. Expose this through a guarded API (<code>owner</code> meta-permission gates who may grant). Revocation is a tuple delete; the gateway's check-cache invalidates and in-flight subscriptions are re-evaluated. This is genuine user-held control, not an admin console.</p>
+<div class="note warn"><p class="lbl">The real scaling hazard</p>
+<p>Per-event, per-subscriber Keto checks do <em>not</em> scale to high fan-out naively. Mitigations are mandatory, not optional: scope visibility at <em>subscribe</em> time so topics are pre-filtered by tenant/relation; partition spine topics along the relation graph; cache check results keyed by <code>(subject, relation, object)</code> with tuple-delete invalidation. Design this in Phase 1, not after a load test surprises you.</p></div>
+</section>
+
+<section id="phases">
+<span class="h2n">08 · PHASED BUILD</span>
+<h2>Eight phases, each shippable, contract frozen early</h2>
+<p class="sub">The ordering protects two things: the proto contract freezes before any generated SDK exists (or they churn endlessly), and the authz scaling design lands in Phase 1 (or it's retrofitted painfully). Mobile/FFI waits for the CRDT engine decision.</p>
+
+<div class="phase"><div class="pn">0</div><div><h4>Foundations &amp; contract freeze</h4><p>Workspace, <code>frf-domain</code> + <code>frf-ports</code>, the <code>proto/</code> contract, tonic codegen, Dagger CI with clippy-pedantic / MSRV / deny-warnings gates.</p><span class="ex">EXIT: compiling skeleton; proto v1 tagged frozen; CI green</span><span class="cr">crates: domain, ports, proto, gateway-stub</span></div></div>
+
+<div class="phase"><div class="pn">1</div><div><h4>Spine + Postgres CDC + RLS + Rust SDK</h4><p>IggyBroker, Axum gateway (WS+gRPC), <code>frf-postgres-cdc</code> logical replication, Ory identity + Keto check pipeline with caching, <code>frf-sdk-rust</code>.</p><span class="ex">EXIT: Supabase-like entity sync end-to-end with RLS; Rust client; cache invalidation working</span><span class="cr">crates: broker-iggy, identity-ory, authz-keto, postgres-cdc, gateway, sdk-rust</span></div></div>
+
+<div class="phase"><div class="pn">2</div><div><h4>Generated SDKs + entity-management adapter</h4><p>Go, C#, browser-TS (Connect-ES) generated from frozen proto; the <code>prometheus-entity-management</code> RealtimeAdapter on the TS SDK.</p><span class="ex">EXIT: four SDKs hitting one gateway; entity graph updates live in a React app</span><span class="cr">sdks: go, csharp, ts, entity-management</span></div></div>
+
+<div class="phase"><div class="pn">3</div><div><h4>CRDT core + offline persistence + FFI tier</h4><p>Engine decision (Loro/automerge) committed; <code>frf-crdt</code>, <code>frf-store-redb</code>; UniFFI (Swift, Kotlin) + flutter_rust_bridge (Dart) over the core; offline op-log + incremental reconnect.</p><span class="ex">EXIT: mobile app edits offline, reconnects, converges; identical merge on all three platforms</span><span class="cr">crates: crdt, store-redb, ffi; sdks: swift, kotlin, dart</span></div></div>
+
+<div class="phase"><div class="pn">4</div><div><h4>WebRTC media + signaling</h4><p>str0m sovereign SFU + LiveKit hosted, both signaling over the spine; AI-voice session wiring (OpenAI Realtime on the media plane, agent events on the spine).</p><span class="ex">EXIT: P2P + SFU calls; signaling auditable as spine facts; media never on the log</span><span class="cr">crates: media-str0m, media-livekit</span></div></div>
+
+<div class="phase"><div class="pn">5</div><div><h4>Agent protocols + BossFang</h4><p><code>frf-agentproto</code> for AG-UI / A2A / A2UI event schemas + ContentBlock emission; <code>frf-librefang</code> ractor publish/consume actors.</p><span class="ex">EXIT: agent events stream to UI via SDKs; LibreFang publishes + consumes spine facts</span><span class="cr">crates: agentproto, librefang</span></div></div>
+
+<div class="phase"><div class="pn">6</div><div><h4>Federation bridges</h4><p>Matrix (Tuwunel) projection; ATProto (Tranquil) firehose → spine → custom AppView consumers with durable offsets. Last because they integrate systems you already run.</p><span class="ex">EXIT: Matrix room + ATProto records surface through the unified socket; AppView serves queries</span><span class="cr">crates: bridge-matrix, bridge-atproto</span></div></div>
+
+<div class="phase"><div class="pn">7</div><div><h4>Hardening &amp; release automation</h4><p>AuthZ fan-out load test + cache tuning, user-controlled rights API, observability (tracing/metrics), release automation publishing every SDK to its registry on tag.</p><span class="ex">EXIT: load targets met; rights delegation live; one tag → all registries</span><span class="cr">all crates; dagger release pipelines</span></div></div>
+</section>
+
+<section id="risks">
+<span class="h2n">09 · RISKS &amp; DECISIONS</span>
+<h2>Where this goes wrong, and the open calls</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Item</th><th>Position</th></tr></thead>
+<tbody>
+<tr><td>Nine-SDK surface (dominant risk)</td><td>Collapsed to three patterns; only Rust hand-written. Do not deviate — every hand-written SDK is a permanent tax.</td></tr>
+<tr><td>Proto stability</td><td>Freeze v1 in Phase 0. Generated SDKs built before freeze will churn. Breaking changes are a new proto version, not an edit.</td></tr>
+<tr><td>CRDT engine</td><td><span class="m">OPEN.</span> Loro vs automerge-rs — decide before Phase 3; it propagates into every FFI binding.</td></tr>
+<tr><td>AuthZ at fan-out</td><td>Per-event Keto checks don't scale naively. Subscribe-time scoping + topic partitioning + check-cache designed in Phase 1.</td></tr>
+<tr><td>Iggy maturity (pre-1.0)</td><td>Accepted. LogBroker trait keeps NATS/Redpanda a swap; Sync-Mesh P2P is the availability fallback.</td></tr>
+<tr><td>Tooling currency (UniFFI, flutter_rust_bridge, Connect, tonic)</td><td>Confirm current versions + language coverage at Phase 0 kickoff before committing the FFI/codegen approach.</td></tr>
+<tr><td>Java vs Kotlin</td><td>One UniFFI Kotlin binding serves both. Don't double-build.</td></tr>
+<tr><td>Team scale</td><td>This is multi-quarter for a small team. Phases are sequenced so each one is independently useful — ship and harvest before advancing.</td></tr>
+</tbody></table></div>
+</section>
+
+</main></div></div>
+
+<footer class="foot"><div class="wrap">
+<b>Flint Realtime Fabric — Implementation Plan</b> · RFC-FRF-002 · Prometheus AGS<br>
+Core: Rust workspace (hexagonal, feature-gated) · Contract: protobuf + tonic · SDKs: native / generated / FFI<br>
+Identity: Ory Kratos + Oathkeeper · AuthZ: Keto (Zanzibar) + Cedar · CRDT: Loro|automerge + redb/SurrealDB<br>
+Status: plan drafted · contract-freeze is the first gate · 2026-06-17
+</div></footer>
+</body></html>

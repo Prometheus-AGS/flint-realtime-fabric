@@ -1,0 +1,66 @@
+schema: spec-driven
+
+context: |
+  Project: Flint Realtime Fabric (FRF) — RFC-FRF-002 · Prometheus AGS
+  A unified, sovereign realtime substrate in Rust: durable event spine (Apache Iggy),
+  multiplexed client socket, WebRTC media, CRDT offline sync, and federation bridges
+  (Matrix/ATProto). Single Cargo workspace, contract-first (protobuf), hexagonal architecture.
+
+  Tech stack:
+  - Language: Rust (edition 2024, MSRV pinned)
+  - Web gateway: Axum 0.8.8
+  - gRPC: tonic + prost (proto-generated)
+  - Actors: ractor (BossFang/LibreFang)
+  - Event spine: Apache Iggy (GQAdonis fork) behind LogBroker trait
+  - Identity: Ory Kratos + Oathkeeper (JWT)
+  - AuthZ: Ory Keto (Zanzibar/ReBAC) + Cedar (action policy)
+  - CRDT: Loro or automerge-rs (OPEN — decide before Phase 3)
+  - On-device store: redb
+  - Server store: SurrealDB 3.x
+  - Postgres: PostgreSQL 17 with logical replication CDC
+  - Media SFU: str0m (sovereign) / LiveKit (hosted)
+  - Federation: Tuwunel (Matrix), Tranquil (ATProto)
+  - FFI: UniFFI (Swift/Kotlin), flutter_rust_bridge (Dart)
+  - Browser: Connect-ES + WebSocket mux
+  - CI: Dagger
+  - Admin UI: React 19 + Vite 7 + shadcn-ui + Base UI (served by Axum static files)
+
+  Architecture (absolute dependency rule — enforced by compiler):
+    frf-domain (serde only, no I/O)
+    ↑ frf-ports (trait seams, no implementations)
+    ↑ frf-app (use-cases against ports only)
+    ↑ infrastructure adapters (one crate = one port)
+    ↑ frf-gateway (Axum: wires all adapters)
+
+  Code quality gates (all enforced in CI):
+  - No unwrap()/expect() in library crates (clippy-denied)
+  - clippy::pedantic + deny(warnings)
+  - #[non_exhaustive] on public enums
+  - Newtype IDs with #[repr(transparent)] over bare String
+  - tracing spans across every port boundary
+  - thiserror in libs; anyhow only at binary edges (frf-gateway, frf-cli)
+  - MSRV pinned in workspace manifest
+  - File size limit: 500 lines max per file
+
+  Naming:
+  - Crate dirs: kebab-case (frf-broker-iggy)
+  - Rust modules: snake_case
+  - TS components: PascalCase; hooks: use prefix; TSX over JSX everywhere
+
+  Phase gate protocol: halt at each phase boundary for explicit operator approval.
+  Read CLAUDE.md and docs/IMPLEMENTATION-PLAN.md before generating code.
+  Read docs/PROMETHEUS-BASE-RULES.md for the 40 canonical agent rules.
+
+rules:
+  proposal:
+    - Proposals must reference the affected crate(s) by exact name (e.g. frf-domain, frf-gateway)
+    - Include the dependency-rule impact: which layers are touched and why it is safe
+    - State the Phase 0 exit criterion this change satisfies
+    - Keep proposals under 400 words
+    - Include a "Non-goals" section listing what this change deliberately does NOT do
+  tasks:
+    - Each task must be independently verifiable (runnable test or cargo check output)
+    - Reference exact file paths relative to workspace root
+    - No task may violate the one-port-per-adapter rule
+    - No task may add unwrap()/expect() to a library crate
+    - Tasks that touch frf-domain or frf-ports must note the semver impact

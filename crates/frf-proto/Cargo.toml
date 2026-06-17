@@ -1,0 +1,16 @@
+[package]
+name = "frf-proto"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Generated protobuf/gRPC types for Flint Realtime Fabric (proto/flint/v1)"
+
+[dependencies]
+prost = { workspace = true }
+prost-types = { workspace = true }
+tonic = { workspace = true }
+
+[build-dependencies]
+prost-build = "0.14"

@@ -1,0 +1,11 @@
+{
+  "phase": "phase-0-realtime-fabric-foundations",
+  "previousPhase": null,
+  "status": "execute_ready",
+  "exactNextCommand": "/kbd-execute phase-0-realtime-fabric-foundations p0-c001-workspace-restructure",
+  "updatedAt": "2026-06-17T14:30:00Z",
+  "planComplete": true,
+  "assessmentComplete": true,
+  "executeComplete": false,
+  "reflectComplete": false
+}

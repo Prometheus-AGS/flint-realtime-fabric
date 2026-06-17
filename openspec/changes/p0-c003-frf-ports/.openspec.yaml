@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-06-17
+goal: frf-ports compiles; frf-app can depend on it without adapter crates

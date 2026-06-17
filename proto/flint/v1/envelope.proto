@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package flint.v1;
+
+option go_package = "github.com/prometheusags/frf/proto/flint/v1;flintv1";
+
+import "google/protobuf/timestamp.proto";
+
+// Logical channel on the event spine.
+message Channel {
+  string id = 1;
+  string tenant_id = 2;
+  // Hierarchical path, e.g. "entity/user/updates".
+  string path = 3;
+}
+
+// Monotonic read position within a Channel.
+message Offset {
+  uint64 value = 1;
+}
+
+// Named, persistent read position for a consumer on a Channel.
+message Cursor {
+  string channel_id = 1;
+  string consumer_id = 2;
+  Offset offset = 3;
+  google.protobuf.Timestamp updated_at = 4;
+}
+
+// The payload kind carried inside EventEnvelope.
+enum EventKind {
+  EVENT_KIND_UNSPECIFIED = 0;
+  EVENT_KIND_ENTITY_CHANGE = 1;
+  EVENT_KIND_AGENT_EVENT = 2;
+  EVENT_KIND_SYNC_OP = 3;
+  EVENT_KIND_PRESENCE = 4;
+  EVENT_KIND_SIGNAL = 5;
+  EVENT_KIND_CUSTOM = 6;
+}
+
+// Universal stamped envelope for every event on the spine.
+message EventEnvelope {
+  string id = 1;
+  Channel channel = 2;
+  Offset offset = 3;
+  EventKind kind = 4;
+  // JSON-encoded inner payload.
+  bytes payload = 5;
+  google.protobuf.Timestamp timestamp = 6;
+  string correlation_id = 7;
+}
+
+// --- Spine service ---
+
+message PublishRequest {
+  EventEnvelope envelope = 1;
+}
+
+message PublishResponse {
+  Offset offset = 1;
+}
+
+message SubscribeRequest {
+  string channel_id = 1;
+  string consumer_id = 2;
+  Offset from = 3;
+}
+
+message AckRequest {
+  string channel_id = 1;
+  string consumer_id = 2;
+  Offset offset = 3;
+}
+
+message AckResponse {}
+
+service SpineService {
+  rpc Publish(PublishRequest) returns (PublishResponse);
+  rpc Subscribe(SubscribeRequest) returns (stream EventEnvelope);
+  rpc Ack(AckRequest) returns (AckResponse);
+}

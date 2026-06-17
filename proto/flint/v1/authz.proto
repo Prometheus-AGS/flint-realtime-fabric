@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package flint.v1;
+
+option go_package = "github.com/prometheusags/frf/proto/flint/v1;flintv1";
+
+// Zanzibar-style relation tuple.
+message RelationTuple {
+  string tenant_id = 1;
+  string subject = 2;
+  string relation = 3;
+  string object = 4;
+}
+
+message CheckRequest {
+  RelationTuple tuple = 1;
+}
+
+message CheckResponse {
+  bool allowed = 1;
+}
+
+message WriteRelationRequest {
+  RelationTuple tuple = 1;
+}
+
+message WriteRelationResponse {}
+
+message DeleteRelationRequest {
+  RelationTuple tuple = 1;
+}
+
+message DeleteRelationResponse {}
+
+// --- AuthZ service ---
+
+service AuthzService {
+  rpc Check(CheckRequest) returns (CheckResponse);
+  rpc WriteRelation(WriteRelationRequest) returns (WriteRelationResponse);
+  rpc DeleteRelation(DeleteRelationRequest) returns (DeleteRelationResponse);
+}

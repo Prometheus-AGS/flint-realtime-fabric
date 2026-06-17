@@ -1,0 +1,16 @@
+[package]
+name = "frf-ports"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Port trait seams for Flint Realtime Fabric — no implementations"
+
+[dependencies]
+frf-domain = { path = "../frf-domain" }
+async-trait = "0.1"
+thiserror = { workspace = true }
+bytes = { workspace = true }
+tracing = { workspace = true }
+futures-core = "0.3"

@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package flint.v1;
+
+option go_package = "github.com/prometheusags/frf/proto/flint/v1;flintv1";
+
+import "google/protobuf/timestamp.proto";
+
+enum SyncOpKind {
+  SYNC_OP_KIND_UNSPECIFIED = 0;
+  SYNC_OP_KIND_INSERT = 1;
+  SYNC_OP_KIND_DELETE = 2;
+  SYNC_OP_KIND_UPDATE = 3;
+  SYNC_OP_KIND_MOVE = 4;
+  SYNC_OP_KIND_MERGE = 5;
+}
+
+// A single CRDT operation for offline sync.
+// Engine-agnostic: payload carries engine-specific encoded delta.
+message SyncOp {
+  string entity_id = 1;
+  string tenant_id = 2;
+  string session_id = 3;
+  SyncOpKind kind = 4;
+  // Engine-specific CRDT delta bytes.
+  bytes payload = 5;
+  uint64 lamport = 6;
+  google.protobuf.Timestamp timestamp = 7;
+}
+
+message SyncCheckpoint {
+  string entity_id = 1;
+  string tenant_id = 2;
+  bytes encoded = 3;
+  uint64 version = 4;
+}
+
+// --- Sync service (bidi for CRDT sync) ---
+
+message SyncRequest {
+  repeated SyncOp ops = 1;
+}
+
+message SyncResponse {
+  repeated SyncOp merged_ops = 1;
+  SyncCheckpoint checkpoint = 2;
+}
+
+service SyncService {
+  rpc Sync(stream SyncRequest) returns (stream SyncResponse);
+  rpc GetCheckpoint(SyncCheckpoint) returns (SyncCheckpoint);
+}
