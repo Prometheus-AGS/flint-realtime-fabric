@@ -2,13 +2,13 @@
   "phase": "phase-1-core-infrastructure-adapters",
   "previousPhase": "phase-0-realtime-fabric-foundations",
   "status": "execute_in_progress",
-  "exactNextCommand": "/kbd-execute phase-1-core-infrastructure-adapters p1-c003-frf-broker-iggy",
-  "updatedAt": "2026-06-17T19:10:00Z",
+  "exactNextCommand": "/kbd-execute phase-1-core-infrastructure-adapters p1-c004-frf-authz-keto",
+  "updatedAt": "2026-06-17T20:00:00Z",
   "planComplete": true,
   "assessmentComplete": true,
   "executeComplete": false,
   "reflectComplete": false,
-  "lastCompletedChange": "p1-c002-frf-app",
-  "changesCompleted": 2,
+  "lastCompletedChange": "p1-c003-frf-broker-iggy",
+  "changesCompleted": 3,
   "changesTotal": 7
 }

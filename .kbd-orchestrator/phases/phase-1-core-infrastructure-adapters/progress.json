@@ -8,11 +8,15 @@
   "execute_complete": false,
   "reflect_complete": false,
   "changes_total": 7,
-  "changes_completed": 2,
-  "completed_changes": ["p1-c001-workspace-expansion", "p1-c002-frf-app"],
+  "changes_completed": 3,
+  "completed_changes": [
+    "p1-c001-workspace-expansion",
+    "p1-c002-frf-app",
+    "p1-c003-frf-broker-iggy"
+  ],
   "active_change": null,
   "blocked_changes": [],
   "sourceTool": "kbd-execute",
   "createdBy": "kbd-new-phase",
-  "updatedAt": "2026-06-17T19:10:00Z"
+  "updatedAt": "2026-06-17T20:00:00Z"
 }
