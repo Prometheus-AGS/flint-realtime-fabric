@@ -2,13 +2,13 @@
   "phase": "phase-1-core-infrastructure-adapters",
   "previousPhase": "phase-0-realtime-fabric-foundations",
   "status": "execute_in_progress",
-  "exactNextCommand": "/kbd-execute phase-1-core-infrastructure-adapters p1-c006-frf-postgres-cdc",
-  "updatedAt": "2026-06-17T21:30:00Z",
+  "exactNextCommand": "/kbd-execute phase-1-core-infrastructure-adapters p1-c007-gateway-subscription-mux",
+  "updatedAt": "2026-06-17T22:00:00Z",
   "planComplete": true,
   "assessmentComplete": true,
   "executeComplete": false,
   "reflectComplete": false,
-  "lastCompletedChange": "p1-c005-frf-identity-ory",
-  "changesCompleted": 5,
+  "lastCompletedChange": "p1-c006-frf-postgres-cdc",
+  "changesCompleted": 6,
   "changesTotal": 7
 }
