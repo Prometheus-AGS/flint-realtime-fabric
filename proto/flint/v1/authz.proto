@@ -3,6 +3,7 @@ syntax = "proto3";
 package flint.v1;
 
 option go_package = "github.com/prometheusags/frf/proto/flint/v1;flintv1";
+option csharp_namespace = "PrometheusAgs.Frf.Flint.V1";
 
 // Zanzibar-style relation tuple.
 message RelationTuple {
