@@ -31,4 +31,17 @@ impl CdcConfig {
             lsn_checkpoint_interval: 1000,
         }
     }
+
+    /// Return the database URL with `replication=database` appended.
+    ///
+    /// `pg_walstream` requires this query parameter to open a replication
+    /// connection rather than a standard query connection.
+    #[must_use]
+    pub fn replication_url(&self) -> String {
+        if self.database_url.contains('?') {
+            format!("{}&replication=database", self.database_url)
+        } else {
+            format!("{}?replication=database", self.database_url)
+        }
+    }
 }
