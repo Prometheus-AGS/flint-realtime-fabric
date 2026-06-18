@@ -35,6 +35,7 @@ async fn main() -> Result<()> {
     ));
     let publish_usecase = Arc::new(PublishUseCase::new(
         Arc::clone(&broker),
+        Arc::clone(&authz),
         Arc::clone(&identity),
     ));
 

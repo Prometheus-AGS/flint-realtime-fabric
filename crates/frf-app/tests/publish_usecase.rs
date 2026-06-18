@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use frf_app::{AppError, PublishRequest, PublishUseCase};
 use frf_domain::{Channel, ChannelId, EventEnvelope, EventKind, Offset, TenantId};
-use frf_ports::{EventStream, IdentityVerifier, LogBroker, PortError, VerifiedClaims};
+use frf_ports::{AuthzProvider, EventStream, IdentityVerifier, LogBroker, PortError, RelationTuple, VerifiedClaims};
 use mockall::mock;
 use uuid::Uuid;
 
@@ -29,6 +29,16 @@ mock! {
             offset: Offset,
         ) -> Result<(), PortError>;
         async fn ensure_channel(&self, channel: Channel) -> Result<(), PortError>;
+    }
+}
+
+mock! {
+    pub Authz {}
+    #[async_trait::async_trait]
+    impl AuthzProvider for Authz {
+        async fn check(&self, tuple: &RelationTuple) -> Result<bool, PortError>;
+        async fn write(&self, tuple: RelationTuple) -> Result<(), PortError>;
+        async fn delete(&self, tuple: RelationTuple) -> Result<(), PortError>;
     }
 }
 
@@ -67,6 +77,12 @@ fn test_envelope() -> EventEnvelope {
     )
 }
 
+fn allow_authz() -> MockAuthz {
+    let mut authz = MockAuthz::new();
+    authz.expect_check().returning(|_| Ok(true));
+    authz
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -82,7 +98,7 @@ async fn returns_offset_on_success() {
         .once()
         .returning(|_| Ok(test_claims()));
 
-    let usecase = PublishUseCase::new(Arc::new(broker), Arc::new(identity));
+    let usecase = PublishUseCase::new(Arc::new(broker), Arc::new(allow_authz()), Arc::new(identity));
     let req = PublishRequest {
         envelope: test_envelope(),
         bearer_token: "tok".to_owned(),
@@ -95,6 +111,7 @@ async fn returns_offset_on_success() {
 #[tokio::test]
 async fn returns_unauthorized_when_token_invalid() {
     let broker = MockBroker::new();
+    let authz = MockAuthz::new();
 
     let mut identity = MockIdentity::new();
     identity
@@ -102,7 +119,7 @@ async fn returns_unauthorized_when_token_invalid() {
         .once()
         .returning(|_| Err(PortError::PermissionDenied("bad token".to_owned())));
 
-    let usecase = PublishUseCase::new(Arc::new(broker), Arc::new(identity));
+    let usecase = PublishUseCase::new(Arc::new(broker), Arc::new(authz), Arc::new(identity));
     let req = PublishRequest {
         envelope: test_envelope(),
         bearer_token: "bad".to_owned(),
@@ -112,6 +129,32 @@ async fn returns_unauthorized_when_token_invalid() {
     assert!(
         matches!(result, Err(AppError::Identity(_))),
         "expected Identity error, got {result:?}"
+    );
+}
+
+#[tokio::test]
+async fn returns_forbidden_when_authz_denied() {
+    let broker = MockBroker::new();
+
+    let mut authz = MockAuthz::new();
+    authz.expect_check().once().returning(|_| Ok(false));
+
+    let mut identity = MockIdentity::new();
+    identity
+        .expect_verify()
+        .once()
+        .returning(|_| Ok(test_claims()));
+
+    let usecase = PublishUseCase::new(Arc::new(broker), Arc::new(authz), Arc::new(identity));
+    let req = PublishRequest {
+        envelope: test_envelope(),
+        bearer_token: "tok".to_owned(),
+    };
+
+    let result = usecase.execute(req).await;
+    assert!(
+        matches!(result, Err(AppError::Forbidden(_))),
+        "expected Forbidden error, got {result:?}"
     );
 }
 
@@ -129,7 +172,7 @@ async fn propagates_broker_error() {
         .once()
         .returning(|_| Ok(test_claims()));
 
-    let usecase = PublishUseCase::new(Arc::new(broker), Arc::new(identity));
+    let usecase = PublishUseCase::new(Arc::new(broker), Arc::new(allow_authz()), Arc::new(identity));
     let req = PublishRequest {
         envelope: test_envelope(),
         bearer_token: "tok".to_owned(),

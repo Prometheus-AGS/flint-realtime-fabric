@@ -17,7 +17,7 @@ pub use error::GatewayError;
 
 pub struct AppState<L, A, I> {
     pub subscribe_pipeline: Arc<SubscribePipeline<L, A, I>>,
-    pub publish_usecase: Arc<PublishUseCase<L, I>>,
+    pub publish_usecase: Arc<PublishUseCase<L, A, I>>,
     pub config: Arc<GatewayConfig>,
 }
 
