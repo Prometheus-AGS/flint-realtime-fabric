@@ -1,15 +1,11 @@
 {
-  "phase": "phase-1-core-infrastructure-adapters",
-  "previousPhase": "phase-0-realtime-fabric-foundations",
-  "status": "phase_complete",
-  "exactNextCommand": "/kbd-new-phase phase-2-generated-sdks",
+  "phase": "phase-2-generated-sdks",
+  "previousPhase": "phase-1-core-infrastructure-adapters",
+  "status": "assessment_ready",
+  "exactNextCommand": "/kbd-assess phase-2-generated-sdks",
   "updatedAt": "2026-06-18T00:00:00Z",
-  "planComplete": true,
-  "assessmentComplete": true,
-  "executeComplete": true,
-  "reflectComplete": true,
-  "cdcComplete": true,
-  "lastCompletedChange": "p1-c006b-frf-postgres-cdc-consumer",
-  "changesCompleted": 8,
-  "changesTotal": 8
+  "planComplete": false,
+  "assessmentComplete": false,
+  "executeComplete": false,
+  "reflectComplete": false
 }
