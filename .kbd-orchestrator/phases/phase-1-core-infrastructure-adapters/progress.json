@@ -6,7 +6,7 @@
   "assessment_complete": true,
   "plan_complete": true,
   "execute_complete": true,
-  "reflect_complete": false,
+  "reflect_complete": true,
   "changes_total": 7,
   "changes_completed": 7,
   "completed_changes": [
