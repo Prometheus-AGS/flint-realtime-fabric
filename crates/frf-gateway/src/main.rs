@@ -1,5 +1,14 @@
+#![deny(warnings)]
+#![warn(clippy::pedantic)]
+
+use std::sync::Arc;
+
 use anyhow::Result;
-use std::net::SocketAddr;
+use frf_app::{PublishUseCase, SubscribePipeline};
+use frf_authz_keto::KetoAuthzProvider;
+use frf_broker_iggy::IggyBroker;
+use frf_gateway::{AppState, GatewayConfig};
+use frf_identity_ory::OryIdentityVerifier;
 use tokio::net::TcpListener;
 use tracing_subscriber::{EnvFilter, fmt};
 
@@ -7,16 +16,39 @@ use tracing_subscriber::{EnvFilter, fmt};
 async fn main() -> Result<()> {
     fmt().with_env_filter(EnvFilter::from_default_env()).init();
 
-    let app = frf_gateway::build_router();
+    let config = GatewayConfig::from_env()?;
 
-    let port = std::env::var("PORT")
-        .unwrap_or_else(|_| "8080".to_string())
-        .parse::<u16>()
-        .unwrap_or(8080);
-    let addr = SocketAddr::from(([0, 0, 0, 0], port));
+    let broker = Arc::new(IggyBroker::new(&config.iggy_connection_string).await?);
+    let authz = Arc::new(KetoAuthzProvider::new(
+        &config.keto_base_url,
+        &config.keto_namespace,
+    ));
+    let identity = Arc::new(OryIdentityVerifier::new(
+        &config.oathkeeper_jwks_url,
+        &config.jwt_audience,
+    ));
 
-    tracing::info!("frf-gateway listening on {addr}");
-    let listener = TcpListener::bind(addr).await?;
+    let subscribe_pipeline = Arc::new(SubscribePipeline::new(
+        Arc::clone(&broker),
+        Arc::clone(&authz),
+        Arc::clone(&identity),
+    ));
+    let publish_usecase = Arc::new(PublishUseCase::new(
+        Arc::clone(&broker),
+        Arc::clone(&identity),
+    ));
+
+    let bind_addr = config.bind_addr;
+    let state = Arc::new(AppState {
+        subscribe_pipeline,
+        publish_usecase,
+        config: Arc::new(config),
+    });
+
+    let app = frf_gateway::build_router(state);
+
+    tracing::info!("frf-gateway listening on {bind_addr}");
+    let listener = TcpListener::bind(bind_addr).await?;
     axum::serve(listener, app).await?;
     Ok(())
 }
