@@ -1,11 +1,11 @@
 {
   "phase": "phase-2-generated-sdks",
   "previousPhase": "phase-1-core-infrastructure-adapters",
-  "status": "assessment_ready",
-  "exactNextCommand": "/kbd-assess phase-2-generated-sdks",
+  "status": "plan_ready",
+  "exactNextCommand": "/kbd-plan phase-2-generated-sdks",
   "updatedAt": "2026-06-18T00:00:00Z",
   "planComplete": false,
-  "assessmentComplete": false,
+  "assessmentComplete": true,
   "executeComplete": false,
   "reflectComplete": false
 }
