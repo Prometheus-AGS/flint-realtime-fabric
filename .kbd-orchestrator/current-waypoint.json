@@ -1,15 +1,15 @@
 {
   "phase": "phase-1-core-infrastructure-adapters",
   "previousPhase": "phase-0-realtime-fabric-foundations",
-  "status": "reflect_complete",
+  "status": "phase_complete",
   "exactNextCommand": "/kbd-new-phase phase-2-generated-sdks",
   "updatedAt": "2026-06-18T00:00:00Z",
   "planComplete": true,
   "assessmentComplete": true,
   "executeComplete": true,
   "reflectComplete": true,
-  "lastCompletedChange": "p1-c007-gateway-subscription-mux",
-  "changesCompleted": 7,
-  "changesTotal": 7,
-  "gateQuestion": "CDC partial delivery — see reflection §7 before advancing"
+  "cdcComplete": true,
+  "lastCompletedChange": "p1-c006b-frf-postgres-cdc-consumer",
+  "changesCompleted": 8,
+  "changesTotal": 8
 }
