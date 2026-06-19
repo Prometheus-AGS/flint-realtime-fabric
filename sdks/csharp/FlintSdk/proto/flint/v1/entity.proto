@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package flint.v1;
+
+option go_package = "github.com/prometheusags/frf/sdks/go/gen/flint/v1;flintv1";
+option csharp_namespace = "PrometheusAgs.Frf.Flint.V1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+enum ChangeOp {
+  CHANGE_OP_UNSPECIFIED = 0;
+  CHANGE_OP_INSERT = 1;
+  CHANGE_OP_UPDATE = 2;
+  CHANGE_OP_DELETE = 3;
+  CHANGE_OP_UPSERT = 4;
+}
+
+// A CDC / CRDT delta describing a change to a domain entity.
+message EntityChange {
+  string entity_id = 1;
+  string tenant_id = 2;
+  string entity_type = 3;
+  ChangeOp op = 4;
+  // Full snapshot (Insert/Upsert) or partial patch (Update).
+  google.protobuf.Struct data = 5;
+  google.protobuf.Struct previous = 6;
+  string session_id = 7;
+  google.protobuf.Timestamp timestamp = 8;
+  uint64 version = 9;
+}
+
+// --- Entity service ---
+
+message GetEntityRequest {
+  string entity_id = 1;
+  string tenant_id = 2;
+}
+
+message EntityResponse {
+  EntityChange entity = 1;
+}
+
+message WatchEntityRequest {
+  string entity_id = 1;
+  string tenant_id = 2;
+}
+
+service EntityService {
+  rpc GetEntity(GetEntityRequest) returns (EntityResponse);
+  rpc WatchEntity(WatchEntityRequest) returns (stream EntityChange);
+}

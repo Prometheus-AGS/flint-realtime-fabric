@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package flint.v1;
+
+option go_package = "github.com/prometheusags/frf/sdks/go/gen/flint/v1;flintv1";
+option csharp_namespace = "PrometheusAgs.Frf.Flint.V1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+enum AgentProtocol {
+  AGENT_PROTOCOL_UNSPECIFIED = 0;
+  AGENT_PROTOCOL_AG_UI = 1;
+  AGENT_PROTOCOL_A2A = 2;
+  AGENT_PROTOCOL_A2UI = 3;
+}
+
+enum AgentEventKind {
+  AGENT_EVENT_KIND_UNSPECIFIED = 0;
+  AGENT_EVENT_KIND_RUN_START = 1;
+  AGENT_EVENT_KIND_RUN_END = 2;
+  AGENT_EVENT_KIND_TEXT_DELTA = 3;
+  AGENT_EVENT_KIND_TOOL_CALL = 4;
+  AGENT_EVENT_KIND_TOOL_RESULT = 5;
+  AGENT_EVENT_KIND_STATE_SNAPSHOT = 6;
+  AGENT_EVENT_KIND_ERROR = 7;
+}
+
+// Envelope for AG-UI / A2A / A2UI agent protocol events.
+message AgentEvent {
+  string agent_id = 1;
+  string tenant_id = 2;
+  string session_id = 3;
+  AgentProtocol protocol = 4;
+  AgentEventKind kind = 5;
+  string run_id = 6;
+  google.protobuf.Struct content = 7;
+  google.protobuf.Timestamp timestamp = 8;
+}
+
+// --- Agent service ---
+
+message AgentRunRequest {
+  string agent_id = 1;
+  string tenant_id = 2;
+  string session_id = 3;
+  AgentProtocol protocol = 4;
+  google.protobuf.Struct input = 5;
+}
+
+service AgentService {
+  rpc RunAgent(AgentRunRequest) returns (stream AgentEvent);
+}
