@@ -1,0 +1,25 @@
+[package]
+name = "frf-store-surreal"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "SurrealDB CRDT checkpoint adapter for Flint Realtime Fabric"
+
+[features]
+integration = []
+
+[dependencies]
+frf-ports = { path = "../frf-ports" }
+frf-domain = { path = "../frf-domain" }
+surrealdb = { workspace = true }
+bytes = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+async-trait = "0.1"
+serde = { workspace = true }
+tokio = { workspace = true }
+
+[lints.clippy]
+pedantic = "warn"

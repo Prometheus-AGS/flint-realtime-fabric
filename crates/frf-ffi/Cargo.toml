@@ -1,0 +1,26 @@
+[package]
+name = "frf-ffi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "UniFFI FFI scaffold for Flint Realtime Fabric (Swift/Kotlin/Dart)"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+frf-crdt = { path = "../frf-crdt" }
+frf-ports = { path = "../frf-ports" }
+bytes = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }
+uniffi = { workspace = true }
+
+[build-dependencies]
+uniffi = { workspace = true }
+
+[lints.clippy]
+pedantic = "warn"
