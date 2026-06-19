@@ -8,12 +8,15 @@
   "execute_complete": false,
   "reflect_complete": false,
   "changes_total": 10,
-  "changes_completed": 4,
+  "changes_completed": 7,
   "completed_changes": [
     "p2-c001-publish-authz-fix",
     "p2-c002-proto-csharp-namespace",
     "p2-c003-buf-codegen",
-    "p2-c004-sdk-go"
+    "p2-c004-sdk-go",
+    "p2-c005-sdk-ts",
+    "p2-c006-sdk-csharp",
+    "p2-c007-gateway-tonic-service"
   ],
   "active_change": null,
   "blocked_changes": [],

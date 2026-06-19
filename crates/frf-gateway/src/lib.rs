@@ -3,6 +3,7 @@
 
 pub mod config;
 pub mod error;
+pub mod grpc_service;
 pub mod routes;
 
 use std::sync::Arc;
