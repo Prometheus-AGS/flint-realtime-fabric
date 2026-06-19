@@ -1,14 +1,14 @@
 {
-  "phase": "phase-2-generated-sdks",
-  "previousPhase": "phase-1-core-infrastructure-adapters",
-  "status": "reflect_complete",
-  "exactNextCommand": "/kbd-new-phase phase-3-ffi-sdks-crdt",
+  "phase": "phase-3-ffi-sdks-crdt",
+  "previousPhase": "phase-2-generated-sdks",
+  "status": "assessment_ready",
+  "exactNextCommand": "/kbd-assess phase-3-ffi-sdks-crdt",
   "activeChange": null,
-  "changesCompleted": 10,
-  "changesTotal": 10,
+  "changesCompleted": 0,
+  "changesTotal": 0,
   "updatedAt": "2026-06-19T00:00:00Z",
-  "planComplete": true,
-  "assessmentComplete": true,
-  "executeComplete": true,
-  "reflectComplete": true
+  "planComplete": false,
+  "assessmentComplete": false,
+  "executeComplete": false,
+  "reflectComplete": false
 }

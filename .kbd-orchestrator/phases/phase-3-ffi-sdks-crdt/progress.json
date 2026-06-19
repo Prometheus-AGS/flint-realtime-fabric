@@ -1,0 +1,18 @@
+{
+  "phase": "phase-3-ffi-sdks-crdt",
+  "parentPhase": null,
+  "childPhases": [],
+  "childPointer": null,
+  "assessment_complete": false,
+  "plan_complete": false,
+  "execute_complete": false,
+  "reflect_complete": false,
+  "changes_total": 0,
+  "changes_completed": 0,
+  "completed_changes": [],
+  "active_change": null,
+  "blocked_changes": [],
+  "sourceTool": "kbd-new-phase",
+  "createdBy": "kbd-new-phase",
+  "updatedAt": "2026-06-19T00:00:00Z"
+}
