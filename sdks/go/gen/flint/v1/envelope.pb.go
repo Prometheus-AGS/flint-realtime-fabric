@@ -654,7 +654,7 @@ const file_flint_v1_envelope_proto_rawDesc = "" +
 	"\fSpineService\x12>\n" +
 	"\aPublish\x12\x18.flint.v1.PublishRequest\x1a\x19.flint.v1.PublishResponse\x12B\n" +
 	"\tSubscribe\x12\x1a.flint.v1.SubscribeRequest\x1a\x17.flint.v1.EventEnvelope0\x01\x122\n" +
-	"\x03Ack\x12\x14.flint.v1.AckRequest\x1a\x15.flint.v1.AckResponseBRZ3github.com/prometheusags/frf/proto/flint/v1;flintv1\xaa\x02\x1aPrometheusAgs.Frf.Flint.V1b\x06proto3"
+	"\x03Ack\x12\x14.flint.v1.AckRequest\x1a\x15.flint.v1.AckResponseBXZ9github.com/prometheusags/frf/sdks/go/gen/flint/v1;flintv1\xaa\x02\x1aPrometheusAgs.Frf.Flint.V1b\x06proto3"
 
 var (
 	file_flint_v1_envelope_proto_rawDescOnce sync.Once

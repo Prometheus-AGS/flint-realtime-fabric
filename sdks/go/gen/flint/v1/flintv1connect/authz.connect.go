@@ -8,7 +8,7 @@ import (
 	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	v1 "github.com/prometheusags/frf/proto/flint/v1"
+	v1 "github.com/prometheusags/frf/sdks/go/gen/flint/v1"
 	http "net/http"
 	strings "strings"
 )

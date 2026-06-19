@@ -376,7 +376,7 @@ const file_flint_v1_sync_proto_rawDesc = "" +
 	"\x12SYNC_OP_KIND_MERGE\x10\x052\x8d\x01\n" +
 	"\vSyncService\x129\n" +
 	"\x04Sync\x12\x15.flint.v1.SyncRequest\x1a\x16.flint.v1.SyncResponse(\x010\x01\x12C\n" +
-	"\rGetCheckpoint\x12\x18.flint.v1.SyncCheckpoint\x1a\x18.flint.v1.SyncCheckpointBRZ3github.com/prometheusags/frf/proto/flint/v1;flintv1\xaa\x02\x1aPrometheusAgs.Frf.Flint.V1b\x06proto3"
+	"\rGetCheckpoint\x12\x18.flint.v1.SyncCheckpoint\x1a\x18.flint.v1.SyncCheckpointBXZ9github.com/prometheusags/frf/sdks/go/gen/flint/v1;flintv1\xaa\x02\x1aPrometheusAgs.Frf.Flint.V1b\x06proto3"
 
 var (
 	file_flint_v1_sync_proto_rawDescOnce sync.Once

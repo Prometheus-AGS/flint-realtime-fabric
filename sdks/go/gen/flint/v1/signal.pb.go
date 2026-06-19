@@ -270,7 +270,7 @@ const file_flint_v1_signal_proto_rawDesc = "" +
 	"\x12SFU_MODE_SOVEREIGN\x10\x01\x12\x13\n" +
 	"\x0fSFU_MODE_HOSTED\x10\x022Q\n" +
 	"\rSignalService\x12@\n" +
-	"\x06Signal\x12\x18.flint.v1.SignalEnvelope\x1a\x18.flint.v1.SignalEnvelope(\x010\x01BRZ3github.com/prometheusags/frf/proto/flint/v1;flintv1\xaa\x02\x1aPrometheusAgs.Frf.Flint.V1b\x06proto3"
+	"\x06Signal\x12\x18.flint.v1.SignalEnvelope\x1a\x18.flint.v1.SignalEnvelope(\x010\x01BXZ9github.com/prometheusags/frf/sdks/go/gen/flint/v1;flintv1\xaa\x02\x1aPrometheusAgs.Frf.Flint.V1b\x06proto3"
 
 var (
 	file_flint_v1_signal_proto_rawDescOnce sync.Once

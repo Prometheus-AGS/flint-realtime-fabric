@@ -25,11 +25,19 @@ lint:
 breaking:
   use:
     - FILE
-  # csharp_namespace is a codegen-only metadata option; it does not affect
-  # protobuf wire encoding. Adding it post-freeze is safe. Suppress the
-  # FILE_SAME_CSHARP_NAMESPACE rule to allow this intentional addition.
+  # csharp_namespace and go_package are codegen-only metadata options; they do
+  # not affect protobuf wire encoding. Changing them post-freeze is safe.
+  # go_package was updated to use the SDK-local module path so generated code
+  # compiles in a single Go module without an invalid /v1 module path suffix.
   ignore_only:
     FILE_SAME_CSHARP_NAMESPACE:
+      - flint/v1/agent.proto
+      - flint/v1/authz.proto
+      - flint/v1/entity.proto
+      - flint/v1/envelope.proto
+      - flint/v1/signal.proto
+      - flint/v1/sync.proto
+    FILE_SAME_GO_PACKAGE:
       - flint/v1/agent.proto
       - flint/v1/authz.proto
       - flint/v1/entity.proto

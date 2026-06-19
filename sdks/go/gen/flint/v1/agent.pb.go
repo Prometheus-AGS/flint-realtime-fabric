@@ -354,7 +354,7 @@ const file_flint_v1_agent_proto_rawDesc = "" +
 	"\x1fAGENT_EVENT_KIND_STATE_SNAPSHOT\x10\x06\x12\x1a\n" +
 	"\x16AGENT_EVENT_KIND_ERROR\x10\a2M\n" +
 	"\fAgentService\x12=\n" +
-	"\bRunAgent\x12\x19.flint.v1.AgentRunRequest\x1a\x14.flint.v1.AgentEvent0\x01BRZ3github.com/prometheusags/frf/proto/flint/v1;flintv1\xaa\x02\x1aPrometheusAgs.Frf.Flint.V1b\x06proto3"
+	"\bRunAgent\x12\x19.flint.v1.AgentRunRequest\x1a\x14.flint.v1.AgentEvent0\x01BXZ9github.com/prometheusags/frf/sdks/go/gen/flint/v1;flintv1\xaa\x02\x1aPrometheusAgs.Frf.Flint.V1b\x06proto3"
 
 var (
 	file_flint_v1_agent_proto_rawDescOnce sync.Once

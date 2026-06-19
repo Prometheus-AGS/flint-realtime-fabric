@@ -369,7 +369,7 @@ const file_flint_v1_entity_proto_rawDesc = "" +
 	"\x10CHANGE_OP_UPSERT\x10\x042\x99\x01\n" +
 	"\rEntityService\x12A\n" +
 	"\tGetEntity\x12\x1a.flint.v1.GetEntityRequest\x1a\x18.flint.v1.EntityResponse\x12E\n" +
-	"\vWatchEntity\x12\x1c.flint.v1.WatchEntityRequest\x1a\x16.flint.v1.EntityChange0\x01BRZ3github.com/prometheusags/frf/proto/flint/v1;flintv1\xaa\x02\x1aPrometheusAgs.Frf.Flint.V1b\x06proto3"
+	"\vWatchEntity\x12\x1c.flint.v1.WatchEntityRequest\x1a\x16.flint.v1.EntityChange0\x01BXZ9github.com/prometheusags/frf/sdks/go/gen/flint/v1;flintv1\xaa\x02\x1aPrometheusAgs.Frf.Flint.V1b\x06proto3"
 
 var (
 	file_flint_v1_entity_proto_rawDescOnce sync.Once

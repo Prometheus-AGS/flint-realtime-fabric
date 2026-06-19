@@ -361,7 +361,7 @@ const file_flint_v1_authz_proto_rawDesc = "" +
 	"\fAuthzService\x128\n" +
 	"\x05Check\x12\x16.flint.v1.CheckRequest\x1a\x17.flint.v1.CheckResponse\x12P\n" +
 	"\rWriteRelation\x12\x1e.flint.v1.WriteRelationRequest\x1a\x1f.flint.v1.WriteRelationResponse\x12S\n" +
-	"\x0eDeleteRelation\x12\x1f.flint.v1.DeleteRelationRequest\x1a .flint.v1.DeleteRelationResponseBRZ3github.com/prometheusags/frf/proto/flint/v1;flintv1\xaa\x02\x1aPrometheusAgs.Frf.Flint.V1b\x06proto3"
+	"\x0eDeleteRelation\x12\x1f.flint.v1.DeleteRelationRequest\x1a .flint.v1.DeleteRelationResponseBXZ9github.com/prometheusags/frf/sdks/go/gen/flint/v1;flintv1\xaa\x02\x1aPrometheusAgs.Frf.Flint.V1b\x06proto3"
 
 var (
 	file_flint_v1_authz_proto_rawDescOnce sync.Once

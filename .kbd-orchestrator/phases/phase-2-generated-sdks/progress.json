@@ -8,11 +8,16 @@
   "execute_complete": false,
   "reflect_complete": false,
   "changes_total": 10,
-  "changes_completed": 0,
-  "completed_changes": [],
+  "changes_completed": 4,
+  "completed_changes": [
+    "p2-c001-publish-authz-fix",
+    "p2-c002-proto-csharp-namespace",
+    "p2-c003-buf-codegen",
+    "p2-c004-sdk-go"
+  ],
   "active_change": null,
   "blocked_changes": [],
-  "sourceTool": "kbd-new-phase",
+  "sourceTool": "kbd-execute",
   "createdBy": "kbd-new-phase",
-  "updatedAt": "2026-06-18T01:00:00Z"
+  "updatedAt": "2026-06-19T00:00:00Z"
 }
