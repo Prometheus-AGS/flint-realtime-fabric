@@ -14,7 +14,7 @@ context: |
   - Event spine: Apache Iggy (GQAdonis fork) behind LogBroker trait
   - Identity: Ory Kratos + Oathkeeper (JWT)
   - AuthZ: Ory Keto (Zanzibar/ReBAC) + Cedar (action policy)
-  - CRDT: Loro or automerge-rs (OPEN — decide before Phase 3)
+  - CRDT: Loro 1.13.1 (ADR-001 — decided Phase 3)
   - On-device store: redb
   - Server store: SurrealDB 3.x
   - Postgres: PostgreSQL 17 with logical replication CDC
