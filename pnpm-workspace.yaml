@@ -2,3 +2,7 @@ packages:
   - sdks/ts
   - sdks/entity-management
   - admin-ui
+allowBuilds:
+  esbuild: true
+allowedBuilds:
+  - esbuild
