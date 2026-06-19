@@ -1,0 +1,38 @@
+version: v2
+modules:
+  - path: .
+    name: buf.build/prometheusags/frf
+lint:
+  use:
+    - STANDARD
+  # RPC naming violations are pre-existing in the frozen proto-v1 contract.
+  # These cannot be fixed without a breaking wire change. Suppress only these
+  # specific rules; all other STANDARD rules remain enforced.
+  ignore_only:
+    RPC_REQUEST_RESPONSE_UNIQUE:
+      - flint/v1/signal.proto
+      - flint/v1/sync.proto
+    RPC_REQUEST_STANDARD_NAME:
+      - flint/v1/agent.proto
+      - flint/v1/signal.proto
+      - flint/v1/sync.proto
+    RPC_RESPONSE_STANDARD_NAME:
+      - flint/v1/agent.proto
+      - flint/v1/entity.proto
+      - flint/v1/envelope.proto
+      - flint/v1/signal.proto
+      - flint/v1/sync.proto
+breaking:
+  use:
+    - FILE
+  # csharp_namespace is a codegen-only metadata option; it does not affect
+  # protobuf wire encoding. Adding it post-freeze is safe. Suppress the
+  # FILE_SAME_CSHARP_NAMESPACE rule to allow this intentional addition.
+  ignore_only:
+    FILE_SAME_CSHARP_NAMESPACE:
+      - flint/v1/agent.proto
+      - flint/v1/authz.proto
+      - flint/v1/entity.proto
+      - flint/v1/envelope.proto
+      - flint/v1/signal.proto
+      - flint/v1/sync.proto
