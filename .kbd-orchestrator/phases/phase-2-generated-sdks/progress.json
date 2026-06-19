@@ -5,10 +5,10 @@
   "childPointer": null,
   "assessment_complete": true,
   "plan_complete": true,
-  "execute_complete": false,
+  "execute_complete": true,
   "reflect_complete": false,
   "changes_total": 10,
-  "changes_completed": 7,
+  "changes_completed": 10,
   "completed_changes": [
     "p2-c001-publish-authz-fix",
     "p2-c002-proto-csharp-namespace",
@@ -16,7 +16,10 @@
     "p2-c004-sdk-go",
     "p2-c005-sdk-ts",
     "p2-c006-sdk-csharp",
-    "p2-c007-gateway-tonic-service"
+    "p2-c007-gateway-tonic-service",
+    "p2-c008-entity-management-adapter",
+    "p2-c009-admin-ui-scaffold",
+    "p2-c010-e2e-smoke"
   ],
   "active_change": null,
   "blocked_changes": [],

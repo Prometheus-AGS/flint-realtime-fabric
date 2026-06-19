@@ -1,14 +1,14 @@
 {
   "phase": "phase-2-generated-sdks",
   "previousPhase": "phase-1-core-infrastructure-adapters",
-  "status": "execute_in_progress",
-  "exactNextCommand": "/kbd-execute phase-2-generated-sdks",
-  "activeChange": "p2-c005-sdk-ts",
-  "changesCompleted": 4,
+  "status": "execute_complete",
+  "exactNextCommand": "/kbd-reflect phase-2-generated-sdks",
+  "activeChange": null,
+  "changesCompleted": 10,
   "changesTotal": 10,
   "updatedAt": "2026-06-19T00:00:00Z",
   "planComplete": true,
   "assessmentComplete": true,
-  "executeComplete": false,
+  "executeComplete": true,
   "reflectComplete": false
 }
