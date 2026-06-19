@@ -1,14 +1,14 @@
 {
   "phase": "phase-3-ffi-sdks-crdt",
   "previousPhase": "phase-2-generated-sdks",
-  "status": "assessment_ready",
-  "exactNextCommand": "/kbd-assess phase-3-ffi-sdks-crdt",
+  "status": "plan_ready",
+  "exactNextCommand": "/kbd-plan phase-3-ffi-sdks-crdt",
   "activeChange": null,
   "changesCompleted": 0,
   "changesTotal": 0,
   "updatedAt": "2026-06-19T00:00:00Z",
   "planComplete": false,
-  "assessmentComplete": false,
+  "assessmentComplete": true,
   "executeComplete": false,
   "reflectComplete": false
 }
