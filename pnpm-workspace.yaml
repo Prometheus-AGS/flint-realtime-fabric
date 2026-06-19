@@ -1,0 +1,4 @@
+packages:
+  - sdks/ts
+  - sdks/entity-management
+  - admin-ui
