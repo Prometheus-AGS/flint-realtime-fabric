@@ -1,13 +1,31 @@
 # Dagger CI Pipelines
 
-This directory is the future home of Dagger SDK pipeline scripts for FRF.
+Dagger TypeScript pipelines for Flint Realtime Fabric.
 
-## Current state
+## Pipelines
 
-CI gates run via `.github/workflows/ci.yml` (GitHub Actions) using direct
-`cargo` invocations. Migration to Dagger SDK pipelines is planned for Phase 1.
+### `codegen.ts` — FFI SDK + Proto codegen
 
-## Gates (enforced in CI)
+Ensures generated SDK bindings stay in sync with the Rust source.
+
+| Stage | Tool | Gate |
+|-------|------|------|
+| `rust-build` | `cargo build -p frf-ffi --release` | Must compile |
+| `uniffi-swift` | `uniffi-bindgen generate --language swift` | Diff must be empty |
+| `uniffi-kotlin` | `uniffi-bindgen generate --language kotlin` | Diff must be empty |
+| `frb-dart` | `flutter_rust_bridge_codegen generate` | Diff must be empty |
+| `buf-generate` | `buf generate` | Must succeed |
+| `pnpm-build` | `pnpm -r build` | Must succeed |
+
+Stages `uniffi-swift`, `uniffi-kotlin`, and `frb-dart` are fast when
+`crates/frf-ffi/` is unchanged (Dagger caches by input hash).
+
+```sh
+# Run codegen pipeline locally (requires Dagger CLI + Docker)
+cd dagger && pnpm install && pnpm codegen
+```
+
+## Cargo gates (enforced in CI via GitHub Actions)
 
 | Gate | Command |
 |------|---------|
@@ -15,5 +33,3 @@ CI gates run via `.github/workflows/ci.yml` (GitHub Actions) using direct
 | Lint (pedantic) | `cargo clippy --all-targets --all-features -- -D warnings -W clippy::pedantic` |
 | Test | `cargo test --all` |
 | MSRV | `cargo check --all` on Rust 1.85 |
-
-All four gates must be green before merging to `main`.

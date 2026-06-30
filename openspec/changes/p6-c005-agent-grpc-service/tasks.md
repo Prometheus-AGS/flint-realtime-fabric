@@ -1,0 +1,33 @@
+# Tasks — p6-c005: AgentGrpcService RunAgent gRPC
+
+- [ ] Read `crates/frf-agentproto/src/convert.rs` to understand existing `domain_from_proto` structure
+- [ ] Read `crates/frf-agentproto/src/lib.rs` for `AgentEvent`, `ContentBlock` domain types
+- [ ] Read `crates/frf-gateway/src/signal_service.rs` for JWT extraction pattern from gRPC metadata
+- [ ] Read `crates/frf-gateway/src/main.rs` to understand current server setup
+- [ ] Read `crates/frf-gateway/src/config.rs` to understand `GatewayConfig` structure
+- [ ] Add `domain_to_proto(event: AgentEvent) -> fv1::AgentEvent` to `frf-agentproto/src/convert.rs`:
+  - Map all fields: `run_id`, `agent_id`, `tenant_id`, `kind`, `content_blocks`, `timestamp`, `protocol`
+  - Add `block_to_proto(block: ContentBlock) -> fv1::ContentBlock` helper
+  - Add `proto_kind_from_domain` and `proto_protocol_from_domain` helpers
+- [ ] Add `grpc_port: Option<u16>` to `GatewayConfig` in `config.rs`:
+  - Default to `9090` when env var `GRPC_PORT` is not set
+- [ ] Create `crates/frf-gateway/src/agent_grpc_service.rs`:
+  - `pub struct AgentGrpcService<B, I, A>` with `bus`, `identity`, `authz` fields
+  - `impl AgentGrpcService<B, I, A>`: `#[must_use] pub fn new(...)` constructor
+  - Implement `AgentService` trait:
+    - Extract JWT from `request.metadata()` `"authorization"` header
+    - Call `self.identity.verify_token(&token).await`
+    - Extract `tenant_id` from `VerifiedClaims`
+    - Subscribe-time Keto: `self.authz.check(subject, "agent_bus:stream", &tenant_id).await`
+    - Call `self.bus.subscribe(&tenant_id)` to get event stream
+    - Map `FrfAgentEvent → proto AgentEvent` via `domain_to_proto`
+    - Return streaming response
+  - No `unwrap()` — all errors → `Status::*`
+- [ ] Update `crates/frf-gateway/src/lib.rs` to `pub mod agent_grpc_service`
+- [ ] Update `crates/frf-gateway/src/main.rs`:
+  - Construct `AgentGrpcService::new(arc_bus, arc_identity, arc_authz)`
+  - `tokio::spawn` tonic `Server::builder().add_service(...).serve(grpc_addr)`
+  - Log the gRPC address at startup with `tracing::info!`
+- [ ] Run `cargo check --workspace`
+- [ ] Run `cargo clippy --workspace --all-targets -- -D warnings -W clippy::pedantic`
+- [ ] Run `cargo test --workspace`

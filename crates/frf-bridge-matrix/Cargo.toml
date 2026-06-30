@@ -1,0 +1,24 @@
+[package]
+name = "frf-bridge-matrix"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Matrix homeserver federation bridge — implements FederationBridge via a MatrixClient abstraction"
+
+[dependencies]
+frf-domain = { path = "../frf-domain" }
+frf-ports = { path = "../frf-ports" }
+reqwest = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+thiserror = { workspace = true }
+serde_json = { workspace = true }
+futures-util = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+
+[lints.clippy]
+pedantic = "warn"

@@ -5,14 +5,11 @@
   "childPointer": null,
   "assessment_complete": true,
   "plan_complete": true,
-  "execute_complete": false,
-  "reflect_complete": false,
+  "execute_complete": true,
+  "reflect_complete": true,
   "changes_total": 13,
-  "changes_completed": 0,
-  "completed_changes": [],
-  "active_change": null,
-  "blocked_changes": [],
-  "pending_changes": [
+  "changes_completed": 13,
+  "completed_changes": [
     "p3-c001-crdt-adr",
     "p3-c002-op-store-port",
     "p3-c003-frf-crdt",
@@ -27,7 +24,19 @@
     "p3-c012-ci-codegen",
     "p3-c013-offline-roundtrip"
   ],
-  "sourceTool": "kbd-new-phase",
+  "active_change": null,
+  "blocked_changes": [],
+  "pending_changes": [
+    "p3-c006-sync-use-case",
+    "p3-c007-sync-grpc-service",
+    "p3-c008-frf-ffi",
+    "p3-c009-sdk-swift",
+    "p3-c010-sdk-kotlin",
+    "p3-c011-sdk-dart",
+    "p3-c012-ci-codegen",
+    "p3-c013-offline-roundtrip"
+  ],
+  "sourceTool": "kbd-execute",
   "createdBy": "kbd-new-phase",
-  "updatedAt": "2026-06-19T01:00:00Z"
+  "updatedAt": "2026-06-19T02:00:00Z"
 }

@@ -1,0 +1,22 @@
+[package]
+name = "frf-policy-cedar"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Cedar policy engine adapter implementing ActionPolicyProvider for Flint Realtime Fabric"
+
+[dependencies]
+frf-domain = { path = "../frf-domain" }
+frf-ports = { path = "../frf-ports" }
+cedar-policy = { workspace = true }
+async-trait = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+
+[lints.clippy]
+pedantic = "warn"

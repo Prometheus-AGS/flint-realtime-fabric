@@ -1,0 +1,17 @@
+{
+  "name": "frf-dagger",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dagger CI pipelines for Flint Realtime Fabric",
+  "scripts": {
+    "codegen": "ts-node codegen.ts"
+  },
+  "dependencies": {
+    "@dagger.io/dagger": "^0.11.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5",
+    "@types/node": "^20.0.0"
+  }
+}

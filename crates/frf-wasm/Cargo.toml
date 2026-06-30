@@ -1,0 +1,42 @@
+[package]
+name = "frf-wasm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "wasm-bindgen browser SDK: subscribe, publish, CRDT delta for Flint Realtime Fabric"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+frf-crdt = { path = "../frf-crdt" }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+loro = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+uuid = { version = "1.23", features = ["v4", "serde", "js"] }
+getrandom = { version = "0.2", features = ["js"] }
+web-sys = { version = "0.3", features = [
+    "console",
+    "BinaryType",
+    "WebSocket",
+    "MessageEvent",
+    "ErrorEvent",
+    "CloseEvent",
+    "Request",
+    "RequestInit",
+    "RequestCredentials",
+    "Headers",
+    "Response",
+    "ReadableStream",
+    "ReadableStreamDefaultReader",
+    "Window",
+] }

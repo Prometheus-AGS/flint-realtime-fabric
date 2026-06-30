@@ -10,6 +10,7 @@ rust-version.workspace = true
 [dependencies]
 frf-domain = { path = "../frf-domain" }
 frf-ports = { path = "../frf-ports" }
+bytes = { workspace = true }
 thiserror.workspace = true
 tracing.workspace = true
 async-trait.workspace = true

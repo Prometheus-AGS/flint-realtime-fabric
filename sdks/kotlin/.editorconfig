@@ -1,0 +1,23 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+max_line_length = 120
+trim_trailing_whitespace = true
+
+[*.kt]
+ktlint_standard_filename = enabled
+ktlint_standard_function-naming = enabled
+
+# UniFFI-generated Kotlin bindings contain JNI function names, wildcard imports,
+# uppercase constant properties, and a lowercase filename — all inherent to the
+# code generator. Disable rules that cannot be auto-corrected on generated output.
+[lib/src/main/kotlin/uniffi/**/*.kt]
+ktlint_standard_filename = disabled
+ktlint_standard_function-naming = disabled
+ktlint_standard_no-wildcard-imports = disabled
+ktlint_standard_property-naming = disabled

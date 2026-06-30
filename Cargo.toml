@@ -3,6 +3,8 @@ resolver = "2"
 members = [
     "crates/frf-domain",
     "crates/frf-ports",
+    "crates/frf-agentproto",
+    "crates/frf-librefang",
     "crates/frf-proto",
     "crates/frf-gateway",
     "crates/frf-app",
@@ -14,6 +16,13 @@ members = [
     "crates/frf-store-redb",
     "crates/frf-store-surreal",
     "crates/frf-ffi",
+    "crates/frf-media-livekit",
+    "crates/frf-media-str0m",
+    "crates/frf-wasm",
+    "crates/frf-bridge-matrix",
+    "crates/frf-bridge-atproto",
+    "crates/frf-policy-cedar",
+    "crates/uniffi-bindgen",
 ]
 
 [workspace.package]
@@ -57,6 +66,10 @@ anyhow = "1.0"
 # Observability
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+opentelemetry = { version = "0.27", features = ["trace"] }
+opentelemetry_sdk = { version = "0.27", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.27", features = ["grpc-tonic"] }
+tracing-opentelemetry = "0.28"
 
 # IDs / time
 uuid = { version = "1.23", features = ["v4", "serde"] }
@@ -70,8 +83,9 @@ async-stream = "0.3"
 futures-util = "0.3"
 async-trait = "0.1"
 
-# HTTP client
+# HTTP / WebSocket clients
 reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"] }
 
 # JWT / identity
 jsonwebtoken = "9"
@@ -83,12 +97,19 @@ pg_walstream = "0.6"
 # Test utilities
 mockall = "0.13"
 httpmock = "0.7"
+criterion = { version = "0.5", features = ["html_reports"] }
 
 # Event spine (GQAdonis fork)
 iggy = { git = "https://github.com/GQAdonis/iggy", branch = "master" }
 
 # Phase 3: CRDT + offline persistence + FFI
 loro = { version = "1.13.1" }
+
+# Phase 7: sovereign SFU
+str0m = { version = "0.7" }
+
+# Phase 8: Cedar policy engine
+cedar-policy = { version = "4" }
 loro-ffi = { version = "1.13.1" }
 redb = { version = "4.1.0" }
 surrealdb = { version = "3.1.5" }

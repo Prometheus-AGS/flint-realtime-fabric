@@ -23,6 +23,12 @@ export function Layout({ children }: LayoutProps): React.JSX.Element {
           <a href="#entities" style={{ fontSize: "0.875rem", textDecoration: "none", color: "inherit" }}>
             Entities
           </a>
+          <a href="#demo/signaling" style={{ fontSize: "0.875rem", textDecoration: "none", color: "inherit" }}>
+            Signaling
+          </a>
+          <a href="#agents" style={{ fontSize: "0.875rem", textDecoration: "none", color: "inherit" }}>
+            Agents
+          </a>
         </nav>
       </header>
       {children}

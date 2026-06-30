@@ -1,18 +1,19 @@
-use std::sync::Arc;
-
 use axum::extract::ws::{Message, WebSocket};
 use axum::extract::{Query, State, WebSocketUpgrade};
 use axum::http::HeaderMap;
 use axum::response::IntoResponse;
 use frf_app::SubscribeRequest;
 use frf_domain::{ChannelId, Offset};
-use frf_ports::{AuthzProvider, EventStream, IdentityVerifier, LogBroker};
+use frf_ports::{
+    ActionPolicyProvider, AgentEventBus, AuthzProvider, EventStream, IdentityVerifier, LogBroker,
+    MediaSignaler,
+};
 use futures_util::StreamExt;
 use serde::Deserialize;
 use tracing::instrument;
 use uuid::Uuid;
 
-use crate::AppState;
+use crate::AppStateArc;
 
 #[derive(Debug, Deserialize)]
 pub struct SubscribeQuery {
@@ -36,8 +37,8 @@ fn bearer_token(headers: &HeaderMap) -> Option<String> {
 ///
 /// Returns 401 if the `Authorization: Bearer <token>` header is missing.
 #[instrument(name = "ws::subscribe", skip(state, ws, headers))]
-pub async fn ws_subscribe<L, A, I>(
-    State(state): State<Arc<AppState<L, A, I>>>,
+pub async fn ws_subscribe<L, A, I, M, B, P>(
+    State(state): State<AppStateArc<L, A, I, M, B, P>>,
     ws: WebSocketUpgrade,
     headers: HeaderMap,
     Query(params): Query<SubscribeQuery>,
@@ -46,6 +47,9 @@ where
     L: LogBroker + Send + Sync + 'static,
     A: AuthzProvider + Send + Sync + 'static,
     I: IdentityVerifier + Send + Sync + 'static,
+    M: MediaSignaler + 'static,
+    B: AgentEventBus + 'static,
+    P: ActionPolicyProvider + 'static,
 {
     let Some(token) = bearer_token(&headers) else {
         return axum::http::StatusCode::UNAUTHORIZED.into_response();

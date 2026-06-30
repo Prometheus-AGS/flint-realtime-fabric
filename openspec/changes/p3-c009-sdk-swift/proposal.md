@@ -48,8 +48,16 @@ targets: [
 ]
 ```
 
+## Note on loro-swift
+
+`loro-swift` v1.13.2 (June 2026) is an SPM package maintained by loro-dev that
+wraps the Loro Rust core. FRF's Swift SDK wraps `frf-ffi` (our UniFFI scaffold),
+not `loro-swift` directly — CRDT logic crosses the boundary as opaque `[UInt8]`
+deltas. No dependency on `loro-swift` is needed in `sdks/swift/`.
+
 ## Non-goals
 
 - Does not publish to Swift Package Index.
 - Does not add iOS UI demo app (out of scope for Phase 3).
 - Does not sign the XCFramework (CI pipeline handles signing in Phase 7).
+- Does not depend on `loro-swift` — Loro is encapsulated inside `frf-ffi` (Rust-side).

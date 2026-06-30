@@ -1,0 +1,18 @@
+[package]
+name = "frf-agentproto"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "AG-UI / A2A / A2UI ContentBlock types and proto ↔ domain conversions"
+
+[dependencies]
+frf-domain = { path = "../frf-domain" }
+frf-proto = { path = "../frf-proto" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+prost-types = { workspace = true }
+uuid = { workspace = true }

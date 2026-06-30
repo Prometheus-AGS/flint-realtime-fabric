@@ -2,7 +2,10 @@ use std::sync::Arc;
 
 use frf_app::{AppError, PublishRequest, PublishUseCase};
 use frf_domain::{Channel, ChannelId, EventEnvelope, EventKind, Offset, TenantId};
-use frf_ports::{AuthzProvider, EventStream, IdentityVerifier, LogBroker, PortError, RelationTuple, VerifiedClaims};
+use frf_ports::{
+    AuthzProvider, EventStream, IdentityVerifier, LogBroker, PortError, RelationTuple,
+    VerifiedClaims,
+};
 use mockall::mock;
 use uuid::Uuid;
 
@@ -98,7 +101,11 @@ async fn returns_offset_on_success() {
         .once()
         .returning(|_| Ok(test_claims()));
 
-    let usecase = PublishUseCase::new(Arc::new(broker), Arc::new(allow_authz()), Arc::new(identity));
+    let usecase = PublishUseCase::new(
+        Arc::new(broker),
+        Arc::new(allow_authz()),
+        Arc::new(identity),
+    );
     let req = PublishRequest {
         envelope: test_envelope(),
         bearer_token: "tok".to_owned(),
@@ -172,7 +179,11 @@ async fn propagates_broker_error() {
         .once()
         .returning(|_| Ok(test_claims()));
 
-    let usecase = PublishUseCase::new(Arc::new(broker), Arc::new(allow_authz()), Arc::new(identity));
+    let usecase = PublishUseCase::new(
+        Arc::new(broker),
+        Arc::new(allow_authz()),
+        Arc::new(identity),
+    );
     let req = PublishRequest {
         envelope: test_envelope(),
         bearer_token: "tok".to_owned(),

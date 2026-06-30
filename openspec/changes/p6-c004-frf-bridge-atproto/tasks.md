@@ -1,0 +1,37 @@
+# Tasks — p6-c004: frf-bridge-atproto
+
+- [ ] Read `crates/frf-ports/src/federation.rs` to confirm `FederationError` variants
+- [ ] Read root `Cargo.toml` to check if `tokio-tungstenite` is already a workspace dep
+- [ ] Add `tokio-tungstenite = "0.24"` to `[workspace.dependencies]` if not present
+- [ ] Add `frf-bridge-atproto` to `[workspace.members]` in root `Cargo.toml`
+- [ ] Create `crates/frf-bridge-atproto/Cargo.toml` with deps:
+  - `frf-ports.workspace = true`
+  - `frf-domain.workspace = true`
+  - `tokio-tungstenite.workspace = true`
+  - `tokio = { workspace = true, features = ["full"] }`
+  - `async-trait.workspace = true`
+  - `thiserror.workspace = true`
+  - `serde_json.workspace = true`
+  - `futures.workspace = true`
+  - `tracing.workspace = true`
+  - `[lints.clippy] pedantic = "warn"`
+- [ ] Create `crates/frf-bridge-atproto/src/error.rs`:
+  - `AtProtoBridgeError` enum with `thiserror` derive
+  - `impl From<AtProtoBridgeError> for FederationError`
+- [ ] Create `crates/frf-bridge-atproto/src/convert.rs`:
+  - `jetstream_event_to_federated(raw: serde_json::Value) -> Result<FederatedEvent, AtProtoBridgeError>`
+  - Maps `did`, `rkey`, `commit.record` to `FederatedEvent` fields
+  - Unit tests for projection
+- [ ] Create `crates/frf-bridge-atproto/src/jetstream.rs`:
+  - `pub fn jetstream_stream(url: String, collections: Vec<String>) -> impl Stream<Item = Result<FederatedEvent, FederationError>> + Send`
+  - Connects via `tokio_tungstenite::connect_async`
+  - Sends subscription filter frame: `{ "wantedCollections": [...] }`
+  - Maps each WS `Message::Text` through `jetstream_event_to_federated`
+  - Reconnect on disconnect (exponential backoff, max 5 attempts)
+- [ ] Create `crates/frf-bridge-atproto/src/lib.rs`:
+  - `AtProtoBridge { jetstream_url: String, collections: Vec<String> }`
+  - `impl FederationBridge for AtProtoBridge`
+  - `pub fn new(jetstream_url: impl Into<String>, collections: Vec<String>) -> Self`
+- [ ] Run `cargo check --workspace`
+- [ ] Run `cargo clippy --workspace --all-targets -- -D warnings -W clippy::pedantic`
+- [ ] Run `cargo test -p frf-bridge-atproto`

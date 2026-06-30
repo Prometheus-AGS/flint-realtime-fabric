@@ -1,0 +1,17 @@
+# Build artifacts produced by build_xcframework.sh
+*.a
+*.dylib
+*.so
+
+# XCFramework — regenerated from build_xcframework.sh; not committed
+Sources/FrfClient/FrfClientFFI.xcframework/
+
+# Xcode artifacts
+*.xcodeproj/
+*.xcworkspace/
+DerivedData/
+.build/
+
+# Swift package resolved dependencies
+.package.resolved
+Package.resolved

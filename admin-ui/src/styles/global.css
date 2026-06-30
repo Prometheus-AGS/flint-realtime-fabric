@@ -1,10 +1,25 @@
 :root {
   --color-bg: #0f1117;
   --color-text: #e8eaf0;
+  --color-text-muted: #6b7280;
+  --color-text-secondary: #a0a8b8;
   --color-border: #23262f;
   --color-muted: #6b7280;
   --color-surface: #16181f;
+  --color-surface-elevated: #1c1e27;
   --color-accent: oklch(68% 0.21 250);
+
+  /* Signaling status badge colours */
+  --status-idle-bg: rgba(107, 114, 128, 0.15);
+  --status-idle-dot: #6b7280;
+  --status-joining-bg: rgba(234, 179, 8, 0.15);
+  --status-joining-dot: #ca8a04;
+  --status-joined-bg: rgba(34, 197, 94, 0.15);
+  --status-joined-dot: #16a34a;
+  --status-left-bg: rgba(107, 114, 128, 0.12);
+  --status-left-dot: #4b5563;
+  --status-error-bg: rgba(239, 68, 68, 0.12);
+  --status-error-dot: #dc2626;
 
   --text-base: clamp(1rem, 0.92rem + 0.4vw, 1.125rem);
   --duration-fast: 150ms;

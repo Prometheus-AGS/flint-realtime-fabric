@@ -66,5 +66,9 @@ pub trait ApplyDelta: Send + Sync + 'static {
     /// Apply `delta` to `existing`, returning the merged encoded state.
     ///
     /// Both slices are engine-specific binary. Returns merged bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns `PortError` if the CRDT engine fails to merge the slices.
     fn apply(&self, existing: &[u8], delta: &[u8]) -> Result<Vec<u8>, PortError>;
 }

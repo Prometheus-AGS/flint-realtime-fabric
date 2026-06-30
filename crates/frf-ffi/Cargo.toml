@@ -14,12 +14,10 @@ crate-type = ["cdylib", "staticlib"]
 frf-crdt = { path = "../frf-crdt" }
 frf-ports = { path = "../frf-ports" }
 bytes = { workspace = true }
+loro = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
-uniffi = { workspace = true }
-
-[build-dependencies]
 uniffi = { workspace = true }
 
 [lints.clippy]

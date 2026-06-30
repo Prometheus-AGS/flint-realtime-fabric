@@ -40,14 +40,34 @@ message AgentEvent {
 
 // --- Agent service ---
 
-message AgentRunRequest {
-  string agent_id = 1;
-  string tenant_id = 2;
+// Initial request to start an agent run.
+message AgentRunStart {
+  string agent_id   = 1;
+  string tenant_id  = 2;
   string session_id = 3;
   AgentProtocol protocol = 4;
   google.protobuf.Struct input = 5;
 }
 
+// Client-to-server control message sent after the stream is open.
+message AgentRunControl {
+  bool cancel = 1;
+  bool pause  = 2;
+  bool resume = 3;
+}
+
+// Bidirectional request envelope: first message must be AgentRunStart,
+// subsequent messages may be AgentRunControl frames.
+message AgentRunRequest {
+  oneof payload {
+    AgentRunStart  start   = 1;
+    AgentRunControl control = 2;
+  }
+}
+
 service AgentService {
-  rpc RunAgent(AgentRunRequest) returns (stream AgentEvent);
+  // Bidirectional streaming: client sends AgentRunRequest frames,
+  // server streams AgentEvent frames. First client frame must be
+  // AgentRunStart; subsequent frames may be AgentRunControl.
+  rpc RunAgent(stream AgentRunRequest) returns (stream AgentEvent);
 }

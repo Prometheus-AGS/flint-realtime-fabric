@@ -5,154 +5,239 @@ Iggy), one multiplexed client socket, and separate transports for media, peer
 CRDT sync, and federation. This repository is the contract-first monorepo for the
 core, the gateway, and every SDK.
 
-> **For Claude Code:** This README is your build brief. Read
-> `docs/IMPLEMENTATION-PLAN.md` (RFC-FRF-002) and
-> `docs/flint-realtime-fabric-implementation-plan.html` in full before generating
+> **For Claude Code and all agent systems:** Read `CLAUDE.md` and
+> `docs/PROMETHEUS-BASE-RULES.md` (Rules 1–40) before generating any code.
+> Read `docs/IMPLEMENTATION-PLAN.md` (RFC-FRF-002) in full before generating
 > any code. Follow the phase order exactly. Do not skip the contract-freeze gate.
-> Halt at each phase boundary for explicit approval — do not proceed to the next
-> phase or produce artifacts belonging to a future phase without it.
+> Halt at each phase boundary for explicit approval.
 
 ---
 
-## Current state
+## Current State
 
-This directory is a fresh `cargo init` and must be restructured into a workspace
-before Phase 1:
+**Phase 12 complete.** The workspace is fully built and operational.
+
+Active phase: `phase-13-live-layer3-e2e-validation` (pending kick-off).
+
+See `.kbd-orchestrator/current-waypoint.json` for the live orchestration state and
+`.kbd-orchestrator/phases/` for per-phase plans, assessments, and reflections.
+
+---
+
+## Repository Structure
 
 ```
 flint-realtime-fabric/
-├── Cargo.toml        # single-crate binary, edition 2024 — REPLACE with [workspace]
-├── src/main.rs       # hello-world — REMOVE; the root is a workspace, not a bin
-├── .gitignore        # /target
-└── docs/
-    ├── IMPLEMENTATION-PLAN.md                          # RFC-FRF-002 (authoritative)
-    └── flint-realtime-fabric-implementation-plan.html # same content, rich format
+├── proto/flint/v1/          # THE CONTRACT — frozen at proto-v1
+├── crates/
+│   ├── frf-domain/          # Layer 0: pure types, serde only, zero infra deps
+│   ├── frf-ports/           # Layer 1: trait seams (no implementations)
+│   ├── frf-app/             # Layer 1: use-cases against ports only
+│   ├── frf-proto/           # generated from proto/ via tonic-build
+│   ├── frf-broker-iggy/     # Adapter: LogBroker → Apache Iggy
+│   ├── frf-authz-keto/      # Adapter: AuthzProvider → Ory Keto
+│   ├── frf-identity-ory/    # Adapter: IdentityVerifier → Kratos/Oathkeeper
+│   ├── frf-policy-cedar/    # Adapter: action policy → Cedar
+│   ├── frf-postgres-cdc/    # Adapter: WAL logical replication → spine
+│   ├── frf-crdt/            # Adapter: Loro CRDT engine + CrdtStore
+│   ├── frf-store-surreal/   # Adapter: server persistence (SurrealDB 3.x)
+│   ├── frf-store-redb/      # Adapter: on-device op-log (redb)
+│   ├── frf-media-str0m/     # Adapter: sovereign SFU signaling
+│   ├── frf-media-livekit/   # Adapter: hosted conferencing signaling
+│   ├── frf-bridge-matrix/   # Adapter: Tuwunel projection
+│   ├── frf-bridge-atproto/  # Adapter: Tranquil firehose projection
+│   ├── frf-agentproto/      # AG-UI / A2A / A2UI schemas + ContentBlock
+│   ├── frf-librefang/       # ractor publish/consume actors (BossFang)
+│   ├── frf-gateway/         # Interface: Axum 0.8.8, WS mux + gRPC + Connect
+│   ├── frf-cli/             # Interface: ops + dev CLI
+│   ├── frf-ffi/             # SDK: UniFFI scaffold → Swift, Kotlin
+│   └── frf-wasm/            # SDK: wasm-bindgen → browser TS (Loro CRDT)
+├── sdks/                    # generated/bound — not hand-edited
+│   ├── go/  ts/  csharp/
+│   ├── swift/  kotlin/  dart/
+│   └── entity-management/   # thin RealtimeAdapter on TS SDK
+├── admin-ui/                # React 19 / Vite 7 / shadcn-ui / Base UI
+│   └── src/features/        # feature-based clean architecture
+├── scripts/
+│   ├── smoke-cdc.sh         # CDC replication slot smoke test
+│   └── bench-regression-check.sh
+├── dagger/
+│   └── codegen.ts           # 10-stage CI pipeline
+├── docs/
+│   ├── IMPLEMENTATION-PLAN.md        # RFC-FRF-002 (authoritative build plan)
+│   ├── PROMETHEUS-BASE-RULES.md      # Rules 1–40 for all agents
+│   └── decisions/                    # Architecture Decision Records
+├── openspec/changes/         # OpenSpec change proposals (active + archive)
+├── .kbd-orchestrator/        # KBD orchestration state (travels with repo)
+└── Cargo.toml                # [workspace] manifest
 ```
-
-**First action (Phase 0, step 1):** convert the root `Cargo.toml` to a virtual
-workspace manifest and delete `src/main.rs`. The root crate is a workspace, not a
-binary. Keep `edition = "2024"` across member crates.
 
 ---
 
-## Architecture in one paragraph
+## Architecture
 
 Feature-based hexagonal. `frf-domain` holds pure types (serde only, no I/O).
 `frf-ports` defines trait seams (`LogBroker`, `AuthzProvider`, `IdentityVerifier`,
 `CrdtStore`, `MediaSignaler`, `FederationBridge`). `frf-app` orchestrates
 use-cases against ports only. Every `frf-*` adapter crate implements exactly one
-port and is selected by a Cargo feature, so a deployment compiles only the planes
+port and is selected by Cargo features, so a deployment compiles only the planes
 it runs. `frf-gateway` (Axum 0.8.8) is the deployable: WebSocket mux + tonic gRPC
-+ Connect. The dependency rule is absolute and points inward — domain ← app ←
-infrastructure/interface. Nothing in domain or app may import an adapter crate.
++ Connect-ES.
 
-See `docs/IMPLEMENTATION-PLAN.md` §02 for the full crate graph and §01 for the
-target repository tree.
+**The dependency rule is absolute and points inward:**
 
----
+```
+Domain (frf-domain)
+  ↑ imported by
+Application (frf-app, frf-ports)
+  ↑ imported by
+Infrastructure adapters (frf-broker-*, frf-authz-*, ...)
+  ↑ wired by
+Interface (frf-gateway)
+```
 
-## Non-negotiable rules for code generation
-
-These are hard quality gates. A violation is a failure, not a style nit.
-
-1. **Contract first.** Author `proto/flint/v1/*.proto` and freeze it (`git tag
-   proto-v1`) before generating or hand-writing any SDK. Generated SDKs built
-   before the freeze churn endlessly. Breaking changes are a new proto version,
-   never an edit to v1.
-2. **Dependency rule.** `frf-domain` imports nothing but serde. `frf-app` imports
-   only `frf-domain` + `frf-ports`. Adapters depend inward. The compiler should
-   make a violation impossible — keep adapter crates out of app/domain `[dependencies]`.
-3. **No `unwrap()` / `expect()` in library crates.** `thiserror` for library
-   errors; `anyhow` only at binary edges (`frf-gateway`, `frf-cli`). Clippy-deny it.
-4. **Lint gate.** `clippy::pedantic` + `deny(warnings)` must pass. Pin MSRV.
-5. **Public API hygiene.** `#[non_exhaustive]` on public enums; newtype IDs with
-   `#[repr(transparent)]` over bare `String`; semver discipline on `frf-domain`
-   and every SDK.
-6. **Observability.** `tracing` spans across every port boundary call.
-7. **One port per adapter.** Do not let an adapter crate implement two ports or
-   reach across to another adapter. Composition happens in `frf-gateway`.
-8. **Naming.** kebab-case crate dirs and file names; Rust module files are
-   snake_case (language constraint). TSX over JSX in any generated TS UI.
+Nothing in `frf-domain` or `frf-app` may import an adapter crate. The compiler
+enforces this by keeping adapter crates out of `frf-domain` and `frf-app`
+`[dependencies]`. Composition happens in `frf-gateway` only.
 
 ---
 
-## Phase 0 — exact build order for Claude Code
+## Prometheus Base Rules
 
-Do these in sequence. Stop after Phase 0 for approval before Phase 1.
+All agents (Claude Code, Codex, Gemini CLI, Roo, Cline, Kilo Code, Librefang,
+and any Prometheus/UAR-compatible agent) operating in this repository must follow
+**[docs/PROMETHEUS-BASE-RULES.md](docs/PROMETHEUS-BASE-RULES.md)** (Rules 1–40).
 
-1. **Workspace.** Replace root `Cargo.toml` with a `[workspace]` manifest
-   (resolver = "2"), a `[workspace.package]` block (edition 2024, shared
-   version/license/repo), and `[workspace.dependencies]` pinning the shared stack:
-   `tokio`, `axum = "0.8.8"`, `tonic`, `prost`, `ractor`, `serde`, `serde_json`,
-   `bytes`, `thiserror`, `anyhow`, `tracing`, `tracing-subscriber`, `uuid`,
-   `chrono`, `dashmap`. Add the Iggy fork:
-   `iggy = { git = "https://github.com/GQAdonis/iggy", branch = "master" }`.
-   Delete `src/main.rs`.
-2. **Domain.** Create `crates/frf-domain` with the types from §02: `EventEnvelope`,
-   `Channel`, `Offset`, `Cursor`, `EntityChange`, `AgentEvent`, `SyncOp`,
-   `Presence`, `SignalEnvelope`, newtype IDs. Serde derives only. Unit tests for
-   (de)serialization round-trips.
-3. **Ports.** Create `crates/frf-ports` with the six traits from §02 as
-   `async_trait` (or native async-in-trait if MSRV allows). No implementations.
-4. **Contract.** Author `proto/flint/v1/{envelope,entity,agent,signal,sync,authz}.proto`
-   per §03. Create `crates/frf-proto` with a `build.rs` running `tonic-build`.
-   Confirm it compiles. Tag `proto-v1`.
-5. **Gateway stub.** Create `crates/frf-gateway` (Axum 0.8.8) that boots, exposes
-   `/healthz`, and mounts an empty tonic service + a WS upgrade handler that
-   echoes. No business logic yet.
-6. **CI.** Create `dagger/` pipelines: `fmt --check`, `clippy --all-targets
-   -- -D warnings -W clippy::pedantic`, `test`, MSRV check. Wire it to run on push.
+Key principles:
 
-**Phase 0 exit criteria:** workspace compiles; `proto-v1` tagged; CI green;
-`frf-gateway` serves `/healthz`. Then halt for approval.
+| Rule | Principle |
+|------|-----------|
+| 1 | Think before coding — surface tradeoffs first |
+| 2 | Simplicity first — minimum code that solves the problem |
+| 3 | Surgical changes — touch only what is necessary |
+| 4 | Goal-driven execution — define success criteria first |
+| 5 | Truth over fluency — never invent APIs or behavior |
+| 8 | Minimize irreversible actions — confirm before destructive ops |
+| 11 | Architecture before code — understand the system first |
+| 12 | Open standards first — MCP, A2A, AG-UI, WASM, OpenAPI |
+| 16 | Strict layering is mandatory — domain ← app ← infra ← interface |
+| 25 | Human override always exists |
+| 30 | Tests are part of completion |
+| 33 | Security is not optional |
+| 40 | Stop when done |
+
+Project-specific constraints in `CLAUDE.md` add stricter requirements on top of
+these base rules (see Rule 26).
 
 ---
 
-## Stack reference (confirm currency at kickoff)
+## Agent Rules (CLAUDE.md / AGENTS.md)
+
+`CLAUDE.md` in this repository extends the base rules with project-specific
+constraints:
+
+- **File size limit:** no file over 500 lines
+- **Absolute dependency rule:** enforced by Cargo — domain never imports adapters
+- **No `unwrap()` / `expect()` in library crates** — `thiserror` + `anyhow` only at binary edges
+- **`clippy::pedantic` + `deny(warnings)`** must pass on every commit
+- **`#[non_exhaustive]`** on all public enums
+- **Newtype IDs** with `#[repr(transparent)]`
+- **One port per adapter** — no adapter implements two ports
+- **Proto contract is frozen** — `flint/v1/*.proto` is immutable; breaking changes = new version
+- **Phase gate protocol** — halt at each phase boundary for explicit operator approval
+
+---
+
+## Common Commands
+
+```bash
+# Compilation check (fast)
+cargo check --workspace
+
+# Run all tests
+cargo test --workspace
+
+# Clippy (CI-equivalent)
+cargo clippy --workspace --all-targets -- -D warnings -W clippy::pedantic
+
+# Format check (CI)
+cargo fmt --check --all
+
+# Format (apply)
+cargo fmt --all
+
+# Build release
+cargo build --workspace --release
+
+# Run gateway
+cargo run -p frf-gateway
+
+# Admin UI
+cd admin-ui && pnpm install && pnpm dev
+
+# Dagger CI pipeline
+dagger run ts-node dagger/codegen.ts
+
+# Layer 3 E2E (requires Docker host with DinD)
+ENABLE_INTEGRATION_STAGE=true dagger run ts-node dagger/codegen.ts
+
+# CDC smoke test (requires running compose stack)
+bash scripts/smoke-cdc.sh
+```
+
+---
+
+## Stack
 
 | Concern | Choice |
 |---|---|
 | Web / gateway | Axum 0.8.8 |
 | gRPC | tonic + prost |
-| Actors (BossFang) | ractor |
+| Actors (BossFang) | ractor (LibreFang) |
 | Event spine | Apache Iggy (GQAdonis fork) behind `LogBroker` |
 | Identity | Ory Kratos / Oathkeeper (JWT) |
-| AuthZ (ReBAC / RLS) | Ory Keto (Zanzibar) |
-| Action policy | Cedar (existing PAUX-1) |
-| CRDT engine | Loro **or** automerge-rs — **OPEN, decide before Phase 3** |
+| AuthZ | Ory Keto (Zanzibar) + Cedar (PAUX-1) |
+| CRDT engine | Loro 1.13.1 (decision: ADR-001) |
 | On-device store | redb |
 | Server store | SurrealDB 3.x |
-| Postgres CDC | logical replication slot |
+| Postgres | PostgreSQL 17 (CDC via logical replication slot) |
 | Media SFU | str0m (sovereign) / LiveKit (hosted) |
-| Federation | Tuwunel (Matrix) · Tranquil (ATProto) |
-| FFI bindings | UniFFI (Swift, Kotlin) · flutter_rust_bridge (Dart) |
+| Federation | Tuwunel (Matrix), Tranquil (ATProto) |
+| FFI bindings | UniFFI (Swift, Kotlin) + flutter_rust_bridge (Dart) |
 | Browser transport | Connect-ES + WS mux |
-| CI | Dagger |
-
-> Versions for UniFFI, flutter_rust_bridge, Connect, and tonic shift. Confirm
-> current releases and language coverage before committing the FFI/codegen
-> approach (Risks table, `docs/IMPLEMENTATION-PLAN.md` §09).
+| CI | Dagger (10-stage pipeline) |
+| Admin UI | React 19 + Vite 7 + shadcn-ui + Base UI (latest) |
 
 ---
 
-## SDK strategy (why nine languages is tractable)
+## SDK Strategy
 
-Only **Rust** is hand-written. **Go / C# / browser-TS** are generated from the
-frozen proto. **Swift / Kotlin / Dart** bind to the same Rust core over FFI, which
-also gives every device identical offline CRDT merge. `prometheus-entity-management`
-is a thin `RealtimeAdapter` on the TS SDK, not a separate SDK. Java-for-Android
-consumes the UniFFI Kotlin binding — do not hand-write a separate Java SDK. Full
-table in §04.
+Only **Rust** is hand-written. Everything else is generated or FFI-bound.
+Business logic, CRDT merge, and reconnection logic live in exactly one place.
+
+| SDK | Pattern |
+|---|---|
+| Rust | Hand-written (`frf-sdk-rust`) |
+| Go, C#, browser-TS | Generated from frozen proto |
+| Swift, Kotlin | UniFFI over `frf-ffi` |
+| Dart / Flutter | flutter_rust_bridge over Rust core |
+| entity-management | Thin `RealtimeAdapter` on TS SDK |
+
+Java-for-Android consumes the UniFFI Kotlin binding — do not hand-write a
+separate Java SDK.
 
 ---
 
 ## Documents
 
-| File | What |
+| File | Description |
 |---|---|
-| `docs/IMPLEMENTATION-PLAN.md` | RFC-FRF-002 — authoritative build plan |
-| `docs/flint-realtime-fabric-implementation-plan.html` | Same, rich format |
-| `docs/flint-realtime-fabric-architecture.*` | RFC-FRF-001 — plane-separation design (add if not present) |
+| `docs/IMPLEMENTATION-PLAN.md` | RFC-FRF-002 — authoritative phase-by-phase build plan |
+| `docs/PROMETHEUS-BASE-RULES.md` | Rules 1–40 for all agents |
+| `docs/decisions/` | Architecture Decision Records (ADRs) |
+| `CLAUDE.md` | Project-specific agent constraints (extends base rules) |
+| `.kbd-orchestrator/` | KBD orchestration state — travels with the repo |
+| `openspec/` | OpenSpec change proposals and archive |
 
 ---
 

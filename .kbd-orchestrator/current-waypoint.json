@@ -1,14 +1,14 @@
 {
-  "phase": "phase-3-ffi-sdks-crdt",
-  "previousPhase": "phase-2-generated-sdks",
-  "status": "execute_ready",
-  "exactNextCommand": "/kbd-execute phase-3-ffi-sdks-crdt",
+  "phase": "phase-12-layer3-e2e-runtime-wasm-gate-cdc-smoke",
+  "previousPhase": "phase-11-layer3-e2e-wasm-opt-cdc",
+  "status": "phase_complete",
+  "exactNextCommand": "/kbd-new-phase phase-13-live-layer3-e2e-validation",
   "activeChange": null,
-  "changesCompleted": 0,
-  "changesTotal": 13,
-  "updatedAt": "2026-06-19T01:00:00Z",
+  "changesCompleted": 5,
+  "changesTotal": 5,
+  "updatedAt": "2026-06-30T00:00:00Z",
   "planComplete": true,
   "assessmentComplete": true,
-  "executeComplete": false,
-  "reflectComplete": false
+  "executeComplete": true,
+  "reflectComplete": true
 }

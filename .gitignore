@@ -1,4 +1,128 @@
-/target
-/node_modules
-*/node_modules
-*/dist
+# ── Rust ──────────────────────────────────────────────────────────────────────
+/target/
+# Cargo.lock is committed for binaries; omit for pure libraries
+# (this is a workspace with binary crates, so we keep Cargo.lock)
+# Criterion: commit baselines (.criterion/) but ignore the HTML report output
+target/criterion/
+# Allow committed Criterion baseline JSON
+!.criterion/
+
+# ── Node / pnpm ───────────────────────────────────────────────────────────────
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.pnpm-store/
+.pnpm-debug.log
+
+# ── TypeScript build outputs ───────────────────────────────────────────────────
+*.js.map
+*.d.ts.map
+# keep *.d.ts committed for published SDK types
+tsconfig.tsbuildinfo
+**/tsconfig.tsbuildinfo
+
+# ── Vite / admin-ui ───────────────────────────────────────────────────────────
+admin-ui/dist/
+
+# ── Go SDK ────────────────────────────────────────────────────────────────────
+sdks/go/vendor/
+
+# ── C# SDK ────────────────────────────────────────────────────────────────────
+sdks/csharp/bin/
+sdks/csharp/obj/
+sdks/csharp/**/*.user
+sdks/csharp/**/*.suo
+*.nupkg
+
+# ── Swift SDK ─────────────────────────────────────────────────────────────────
+sdks/swift/Sources/FrfClient/FrfClientFFI.xcframework/
+sdks/swift/Sources/FrfClient/frf.swift
+sdks/swift/Sources/FrfClient/frfFFI.h
+sdks/swift/Sources/FrfClient/module.modulemap
+sdks/swift/.build/
+sdks/swift/DerivedData/
+sdks/swift/*.xcodeproj/
+sdks/swift/*.xcworkspace/
+*.a
+*.dylib
+
+# ── Kotlin SDK ────────────────────────────────────────────────────────────────
+sdks/kotlin/build/
+sdks/kotlin/.gradle/
+sdks/kotlin/lib/build/
+sdks/kotlin/lib/src/main/jniLibs/*.so
+sdks/kotlin/lib/src/main/jniLibs/*.dylib
+sdks/kotlin/lib/src/main/kotlin/uniffi/frf/frf.kt
+sdks/kotlin/gradle/wrapper/gradle-wrapper.jar
+sdks/kotlin/.idea/
+sdks/kotlin/**/*.iml
+sdks/kotlin/local.properties
+
+# ── Dart / Flutter SDK ────────────────────────────────────────────────────────
+sdks/dart/.dart_tool/
+sdks/dart/.pub-cache/
+sdks/dart/pubspec.lock
+sdks/dart/build/
+sdks/dart/lib/src/rust/frb_generated.dart
+sdks/dart/lib/src/rust/frb_generated.io.dart
+sdks/dart/lib/src/rust/frb_generated.web.dart
+sdks/dart/ios/
+sdks/dart/android/
+sdks/dart/linux/
+sdks/dart/macos/
+sdks/dart/windows/
+sdks/dart/web/
+
+# ── Proto / buf ────────────────────────────────────────────────────────────────
+proto/gen/
+
+# ── Dagger pipeline ───────────────────────────────────────────────────────────
+dagger/node_modules/
+dagger/dist/
+
+# ── Environment and secrets ───────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p8
+*.p12
+*.cer
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+*.tar
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# ── JetBrains IDEs ────────────────────────────────────────────────────────────
+.idea/
+*.iml
+*.iws
+out/
+
+# ── VS Code ───────────────────────────────────────────────────────────────────
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+
+# ── Coverage / profiling ──────────────────────────────────────────────────────
+lcov.info
+coverage/
+*.profraw
+*.profdata
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+
+# ── KBD Orchestrator ──────────────────────────────────────────────────────────
+# Commit all KBD state so orchestrator context travels with the repo.
+# Exclude only runtime lock files that are meaningless on another machine.
+.kbd-orchestrator/**/*.lock

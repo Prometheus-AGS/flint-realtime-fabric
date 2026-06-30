@@ -1,2 +1,3 @@
-dist/
-node_modules/
+frf-wasm/
+*.wasm
+package-lock.json

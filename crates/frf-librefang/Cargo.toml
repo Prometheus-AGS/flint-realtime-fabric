@@ -1,0 +1,30 @@
+[package]
+name = "frf-librefang"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+# BossFang is the GQAdonis fork of LibreFang. Neither is published to crates.io,
+# so this crate vendors the ractor-based publish/subscribe actor bus directly
+# using the workspace ractor dependency (0.15), implementing the LibreFang
+# publish/consume actor patterns in-tree.
+description = "BossFang actor bus adapter — ractor-based AgentEventBus implementation"
+
+[dependencies]
+frf-domain = { path = "../frf-domain" }
+frf-ports = { path = "../frf-ports" }
+ractor = { workspace = true, features = ["async-trait"] }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+async-trait = "0.1"
+thiserror = { workspace = true }
+tracing = { workspace = true }
+dashmap = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+chrono = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+tokio-stream = { workspace = true }
+futures-core = "0.3"

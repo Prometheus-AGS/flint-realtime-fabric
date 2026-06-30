@@ -1,0 +1,66 @@
+# ── Rust build artifacts ──────────────────────────────────────────────────────
+target/
+
+# ── Node / pnpm ───────────────────────────────────────────────────────────────
+node_modules/
+**/node_modules/
+.pnpm-store/
+dist/
+**/dist/
+
+# ── Admin UI build (served by gateway via rust-embed) ─────────────────────────
+admin-ui/dist/
+
+# ── Swift / Kotlin / Dart SDK build artifacts ─────────────────────────────────
+sdks/swift/Sources/FrfClient/FrfClientFFI.xcframework/
+sdks/swift/.build/
+sdks/kotlin/build/
+sdks/kotlin/.gradle/
+sdks/dart/.dart_tool/
+sdks/dart/build/
+
+# ── Go vendor (not used — module cache is in the container) ───────────────────
+sdks/go/vendor/
+
+# ── C# build artifacts ────────────────────────────────────────────────────────
+sdks/csharp/bin/
+sdks/csharp/obj/
+
+# ── Git history (not needed in image) ────────────────────────────────────────
+.git/
+.gitattributes
+.gitmodules
+
+# ── CI and tooling metadata ──────────────────────────────────────────────────
+.kbd-orchestrator/
+.refiner/
+openspec/
+dagger/node_modules/
+dagger/dist/
+
+# ── Secrets and local config ─────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p8
+*.p12
+*.cer
+
+# ── Docs and planning (not needed in runtime image) ──────────────────────────
+docs/
+tests/
+
+# ── macOS artifacts ───────────────────────────────────────────────────────────
+.DS_Store
+._*
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+
+# ── Logs and coverage ────────────────────────────────────────────────────────
+*.log
+coverage/
+lcov.info

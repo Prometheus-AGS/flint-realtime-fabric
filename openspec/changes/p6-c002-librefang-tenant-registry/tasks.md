@@ -1,0 +1,23 @@
+# Tasks — p6-c002: LibreFangBus TenantActorRegistry
+
+- [ ] Read `crates/frf-librefang/src/bus.rs` and `crates/frf-librefang/src/lib.rs` to understand current structure
+- [ ] Read root `Cargo.toml` `[workspace.dependencies]` section to verify dashmap not yet present
+- [ ] Add `dashmap = "6"` to `[workspace.dependencies]` in `Cargo.toml`
+- [ ] Add `dashmap.workspace = true` to `crates/frf-librefang/Cargo.toml`
+- [ ] Create `crates/frf-librefang/src/registry.rs`:
+  - `TenantEntry { actor: ActorRef<PublisherMessage>, last_active: Instant }`
+  - `TenantActorRegistry { entries: Arc<DashMap<String, TenantEntry>> }`
+  - `impl TenantActorRegistry`:
+    - `pub fn new() -> Self`
+    - `pub async fn get_or_create(&self, tenant_id: &str) -> Result<ActorRef<PublisherMessage>, LibreFangError>`
+    - `pub fn spawn_eviction_task(&self, idle_secs: u64) -> tokio::task::JoinHandle<()>`
+  - No `unwrap()` — use `?` propagation with `LibreFangError`
+- [ ] Modify `crates/frf-librefang/src/bus.rs`:
+  - Replace `publisher: ActorRef<PublisherMessage>` field with `registry: Arc<TenantActorRegistry>`
+  - Update `LibreFangBus::new()` to create `TenantActorRegistry` and start eviction task
+  - Update `publish()` to call `registry.get_or_create(tenant_id)`
+  - Update `subscribe()` to route via registry
+- [ ] Update `crates/frf-librefang/src/lib.rs` to re-export `TenantActorRegistry`
+- [ ] Run `cargo check --workspace`
+- [ ] Run `cargo clippy --workspace --all-targets -- -D warnings -W clippy::pedantic`
+- [ ] Run `cargo test -p frf-librefang`

@@ -1,0 +1,18 @@
+# .wasm-size-baseline — WASM binary size regression guard
+#
+# Contains a single integer: the byte count of frf_wasm_bg.wasm at the
+# last accepted baseline. Stage 6 fails if the current build exceeds 150%
+# of this value.
+#
+# To establish the baseline after the first successful Stage 6 run:
+#
+#   SIZE=$(wc -c < sdks/ts/frf-wasm/frf_wasm_bg.wasm | tr -d ' ')
+#   echo "$SIZE" > .wasm-size-baseline
+#   git add .wasm-size-baseline
+#   git commit -m "chore: establish WASM binary size baseline (${SIZE} bytes)"
+#
+# To update after a legitimate size increase (e.g., new CRDT feature):
+#   Repeat the above; document the reason in the commit message.
+#
+# Example (do not copy this comment into the real file):
+#   524288

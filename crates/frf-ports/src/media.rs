@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use async_trait::async_trait;
 use frf_domain::{SessionId, SignalEnvelope, TenantId};
 use futures_core::Stream;
@@ -31,4 +33,39 @@ pub trait MediaSignaler: Send + Sync + 'static {
         session_id: SessionId,
         tenant_id: TenantId,
     ) -> Result<(), PortError>;
+}
+
+/// Type-erased `MediaSignaler` that forwards all calls to an inner
+/// `Arc<dyn MediaSignaler>`.  Enables the gateway to select between adapters
+/// at runtime via `SFU_MODE` without changing generic type parameters.
+pub struct DynMediaSignaler(Arc<dyn MediaSignaler>);
+
+impl DynMediaSignaler {
+    #[must_use]
+    pub fn new(inner: Arc<dyn MediaSignaler>) -> Self {
+        Self(inner)
+    }
+}
+
+#[async_trait]
+impl MediaSignaler for DynMediaSignaler {
+    async fn send_signal(&self, signal: SignalEnvelope) -> Result<(), PortError> {
+        self.0.send_signal(signal).await
+    }
+
+    async fn subscribe_signals(
+        &self,
+        session_id: SessionId,
+        tenant_id: TenantId,
+    ) -> Result<SignalStream, PortError> {
+        self.0.subscribe_signals(session_id, tenant_id).await
+    }
+
+    async fn remove_session(
+        &self,
+        session_id: SessionId,
+        tenant_id: TenantId,
+    ) -> Result<(), PortError> {
+        self.0.remove_session(session_id, tenant_id).await
+    }
 }

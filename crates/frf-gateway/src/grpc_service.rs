@@ -2,26 +2,29 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use frf_app::{AppError, PublishRequest, SubscribeRequest};
-use frf_domain::{Channel, EventEnvelope, EventKind, Offset};
 use frf_domain::ids::{ChannelId, EventId, TenantId};
-use frf_ports::{AuthzProvider, IdentityVerifier, LogBroker, PortError};
+use frf_domain::{Channel, EventEnvelope, EventKind, Offset};
+use frf_ports::{
+    ActionPolicyProvider, AgentEventBus, AuthzProvider, IdentityVerifier, LogBroker, MediaSignaler,
+    PortError,
+};
+use frf_proto::fv1::spine_service_server::{SpineService, SpineServiceServer};
 use frf_proto::fv1::{
     self, AckRequest, AckResponse, PublishResponse, SubscribeRequest as ProtoSubscribeRequest,
 };
-use frf_proto::fv1::spine_service_server::{SpineService, SpineServiceServer};
 use tokio_stream::{Stream, StreamExt as _};
 use tonic::{Request, Response, Status};
 use tracing::instrument;
 
 use crate::AppState;
 
-pub struct SpineGrpcService<L, A, I> {
-    state: Arc<AppState<L, A, I>>,
+pub struct SpineGrpcService<L, A, I, M, B, P> {
+    state: Arc<AppState<L, A, I, M, B, P>>,
 }
 
-impl<L, A, I> SpineGrpcService<L, A, I> {
+impl<L, A, I, M, B, P> SpineGrpcService<L, A, I, M, B, P> {
     #[must_use]
-    pub fn new(state: Arc<AppState<L, A, I>>) -> Self {
+    pub fn new(state: Arc<AppState<L, A, I, M, B, P>>) -> Self {
         Self { state }
     }
 
@@ -31,6 +34,9 @@ impl<L, A, I> SpineGrpcService<L, A, I> {
         L: LogBroker + Send + Sync + 'static,
         A: AuthzProvider + Send + Sync + 'static,
         I: IdentityVerifier + Send + Sync + 'static,
+        M: MediaSignaler + 'static,
+        B: AgentEventBus + 'static,
+        P: ActionPolicyProvider + 'static,
     {
         SpineServiceServer::new(self)
     }
@@ -131,7 +137,9 @@ fn domain_envelope_to_proto(env: &EventEnvelope) -> fv1::EventEnvelope {
             tenant_id: env.channel.tenant_id.to_string(),
             path: env.channel.path.clone(),
         }),
-        offset: Some(fv1::Offset { value: env.offset.0 }),
+        offset: Some(fv1::Offset {
+            value: env.offset.0,
+        }),
         kind: kind_num,
         payload: serde_json::to_vec(&env.payload).unwrap_or_default(),
         timestamp: None,
@@ -140,11 +148,14 @@ fn domain_envelope_to_proto(env: &EventEnvelope) -> fv1::EventEnvelope {
 }
 
 #[tonic::async_trait]
-impl<L, A, I> SpineService for SpineGrpcService<L, A, I>
+impl<L, A, I, M, B, P> SpineService for SpineGrpcService<L, A, I, M, B, P>
 where
     L: LogBroker + Send + Sync + 'static,
     A: AuthzProvider + Send + Sync + 'static,
     I: IdentityVerifier + Send + Sync + 'static,
+    M: MediaSignaler + 'static,
+    B: AgentEventBus + 'static,
+    P: ActionPolicyProvider + 'static,
 {
     #[instrument(name = "grpc::publish", skip(self, request))]
     async fn publish(
@@ -175,8 +186,7 @@ where
         }))
     }
 
-    type SubscribeStream =
-        Pin<Box<dyn Stream<Item = Result<fv1::EventEnvelope, Status>> + Send>>;
+    type SubscribeStream = Pin<Box<dyn Stream<Item = Result<fv1::EventEnvelope, Status>> + Send>>;
 
     #[instrument(name = "grpc::subscribe", skip(self, request))]
     async fn subscribe(
@@ -209,10 +219,7 @@ where
     }
 
     #[instrument(name = "grpc::ack", skip(self, _request))]
-    async fn ack(
-        &self,
-        _request: Request<AckRequest>,
-    ) -> Result<Response<AckResponse>, Status> {
+    async fn ack(&self, _request: Request<AckRequest>) -> Result<Response<AckResponse>, Status> {
         Ok(Response::new(AckResponse {}))
     }
 }

@@ -1,0 +1,34 @@
+# Tasks — p6-c003: frf-bridge-matrix
+
+- [ ] Read `crates/frf-ports/src/federation.rs` to confirm exact trait signatures
+- [ ] Read `crates/frf-domain/src/lib.rs` to confirm `EventEnvelope` fields
+- [ ] Read root `Cargo.toml` to capture existing workspace deps (reqwest, thiserror, async-trait, tokio)
+- [ ] Add `frf-bridge-matrix` to `[workspace.members]` in root `Cargo.toml`
+- [ ] Create `crates/frf-bridge-matrix/Cargo.toml` with deps:
+  - `frf-ports.workspace = true`
+  - `frf-domain.workspace = true`
+  - `reqwest = { workspace = true, features = ["json", "stream"] }`
+  - `tokio = { workspace = true, features = ["full"] }`
+  - `async-trait.workspace = true`
+  - `thiserror.workspace = true`
+  - `serde_json.workspace = true`
+  - `futures.workspace = true`
+  - `tracing.workspace = true`
+  - `[lints.clippy] pedantic = "warn"`
+- [ ] Create `crates/frf-bridge-matrix/src/error.rs`:
+  - `MatrixBridgeError` enum with `thiserror` derive
+  - `impl From<MatrixBridgeError> for FederationError`
+- [ ] Create `crates/frf-bridge-matrix/src/client.rs`:
+  - `MatrixClient` trait: `room_event_stream()` and `send_event()`
+  - `ReqwestMatrixClient` struct implementing `MatrixClient` via HTTP REST
+  - `MockMatrixClient` (cfg(test)) — returns a fixed event stream
+- [ ] Create `crates/frf-bridge-matrix/src/convert.rs`:
+  - `matrix_event_to_federated(raw: serde_json::Value, room_id: &str) -> Result<FederatedEvent, MatrixBridgeError>`
+  - Unit tests for projection logic
+- [ ] Create `crates/frf-bridge-matrix/src/lib.rs`:
+  - `MatrixBridge { client: Arc<dyn MatrixClient + Send + Sync>, room_id: String }`
+  - `impl FederationBridge for MatrixBridge`
+  - `pub fn new(client: impl MatrixClient + Send + Sync + 'static, room_id: String) -> Self`
+- [ ] Run `cargo check --workspace`
+- [ ] Run `cargo clippy --workspace --all-targets -- -D warnings -W clippy::pedantic`
+- [ ] Run `cargo test -p frf-bridge-matrix`
