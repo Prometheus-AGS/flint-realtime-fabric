@@ -306,6 +306,7 @@ async function main() {
                     .withEnvVariable("WASM_AVAILABLE", "1")
                     .withEnvVariable("GATEWAY_URL", "http://localhost:8080")
                     .withEnvVariable("SKIP_INTEGRATION", "false")
+                    .withEnvVariable("DEV_ENDPOINTS_ENABLED", "true")
                     .withWorkdir("/workspace/admin-ui")
                     .withExec(["pnpm", "install", "--frozen-lockfile"])
                     .withExec(["pnpm", "exec", "playwright", "install", "--with-deps", "chromium"])

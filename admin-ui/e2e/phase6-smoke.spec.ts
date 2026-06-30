@@ -20,6 +20,7 @@ import { test, expect } from "@playwright/test";
 
 const SKIP_INTEGRATION = process.env["SKIP_INTEGRATION"] === "true" || !process.env["GATEWAY_URL"];
 const GATEWAY_URL = process.env["GATEWAY_URL"] ?? "http://localhost:8080";
+const ENABLE_FEDERATION = process.env["ENABLE_FEDERATION_STAGE"] === "true";
 
 // ---------------------------------------------------------------------------
 // Layer 1 – UI shape (no live gateway required)
@@ -94,18 +95,23 @@ test.describe("Phase 6 UI layer", () => {
     await expect(page.getByText("federated via ATProto")).toBeVisible({ timeout: 3000 });
   });
 
-  test("dev injection endpoint returns 404 in release builds (or is absent)", async ({
+  test("dev injection endpoint absent in production builds", async ({
     request,
   }) => {
-    // In CI without a gateway this is skipped; the route only exists in debug builds.
+    // In CI without a gateway this is skipped; the route only exists in dev-endpoints builds.
     test.skip(SKIP_INTEGRATION, "set GATEWAY_URL to verify dev endpoint absence in release");
+    // Stage 10 builds with dev-endpoints feature enabled — endpoint is present by design.
+    test.skip(
+      process.env["DEV_ENDPOINTS_ENABLED"] === "true",
+      "compose build enables dev-endpoints — endpoint present by design; 404 check does not apply"
+    );
 
     const resp = await request.post(`${GATEWAY_URL}/dev/inject-federation-event`, {
       headers: { "Content-Type": "application/json" },
       data: {},
       failOnStatusCode: false,
     });
-    // Release build must return 404 — the route is #[cfg(debug_assertions)] only.
+    // Production build (no dev-endpoints feature) must return 404.
     expect(resp.status()).toBe(404);
   });
 });
@@ -136,6 +142,7 @@ test.describe("Phase 6 gRPC layer", () => {
 
 test.describe("Phase 6 federation bus end-to-end", () => {
   test.skip(SKIP_INTEGRATION, "set GATEWAY_URL to run full-stack federation smoke tests");
+  test.skip(!ENABLE_FEDERATION, "set ENABLE_FEDERATION_STAGE=true to run Matrix/ATProto bridge tests (requires Tuwunel/Tranquil in compose)");
 
   test("Matrix event injected via dev endpoint appears in agent stream WebSocket", async ({
     page,
@@ -149,6 +156,7 @@ test.describe("Phase 6 federation bus end-to-end", () => {
     const injectResp = await request.post(`${GATEWAY_URL}/dev/inject-federation-event`, {
       headers: { "Content-Type": "application/json" },
       data: {
+        tenant_id: "00000000-0000-0000-0000-000000000002",
         protocol: "matrix",
         source: "!smoke-room:matrix.org",
         content: { type: "text_delta", delta: `matrix smoke ${runId}` },
@@ -171,6 +179,7 @@ test.describe("Phase 6 federation bus end-to-end", () => {
     const injectResp = await request.post(`${GATEWAY_URL}/dev/inject-federation-event`, {
       headers: { "Content-Type": "application/json" },
       data: {
+        tenant_id: "00000000-0000-0000-0000-000000000002",
         protocol: "atproto",
         source: "did:plc:smoke-test",
         content: { type: "text_delta", delta: `atproto smoke ${runId}` },
