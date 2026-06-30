@@ -1,14 +1,14 @@
 {
-  "phase": "phase-14-stage10-dind-live-triage",
-  "previousPhase": "phase-13-live-layer3-e2e-validation",
-  "status": "reflect_complete",
-  "exactNextCommand": "/kbd-new-phase phase-15-stage10-live-run-and-retries",
+  "phase": "phase-15-stage10-live-run-and-retries",
+  "previousPhase": "phase-14-stage10-dind-live-triage",
+  "status": "assessment_ready",
+  "exactNextCommand": "/kbd-assess phase-15-stage10-live-run-and-retries",
   "activeChange": null,
-  "changesCompleted": 5,
-  "changesTotal": 6,
+  "changesCompleted": 0,
+  "changesTotal": 0,
   "updatedAt": "2026-06-30T00:00:00Z",
-  "planComplete": true,
-  "assessmentComplete": true,
-  "executeComplete": true,
-  "reflectComplete": true
+  "planComplete": false,
+  "assessmentComplete": false,
+  "executeComplete": false,
+  "reflectComplete": false
 }
