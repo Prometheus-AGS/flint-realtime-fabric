@@ -13,7 +13,7 @@ Dagger Stage 10 integration smoke gate can run.
 
 - `Dockerfile` — confirm exists at repo root; create minimal multi-stage build
   if missing (copy `target/release/frf-gateway` into `debian:bookworm-slim`)
-- `deploy/oathkeeper/config.yml` — confirm present; create stub if missing
+- `deploy/flint-gate/config.yml` — confirm present; create stub if missing
 - `deploy/keto/keto.yml` — confirm present; create stub if missing
 - `compose.yml` — fix any missing service config references
 

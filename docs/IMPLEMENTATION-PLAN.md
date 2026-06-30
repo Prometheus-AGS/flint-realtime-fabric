@@ -9,7 +9,7 @@
 | **Core** | Rust workspace (hexagonal, feature-gated) |
 | **Contract** | protobuf + tonic gRPC |
 | **SDKs** | native / generated / FFI |
-| **Identity** | Ory Kratos + Oathkeeper |
+| **Identity** | Ory Kratos + flint-gate (JWT proxy + minting) |
 | **AuthZ** | Keto (Zanzibar) + Cedar |
 | **CRDT** | Loro \| automerge + redb / SurrealDB |
 | **Status** | plan drafted · contract-freeze is the first gate · 2026-06-17 |
@@ -53,7 +53,7 @@ flint-realtime-fabric/            # Cargo workspace, source of truth
 │   │   # ── infrastructure adapters (one crate each, impl a port) ──
 │   ├── frf-broker-iggy/          # LogBroker        -> Apache Iggy (GQAdonis fork)
 │   ├── frf-authz-keto/           # AuthzProvider    -> Ory Keto (Zanzibar)
-│   ├── frf-identity-ory/         # IdentityVerifier -> Kratos/Oathkeeper JWT
+│   ├── frf-identity-ory/         # IdentityVerifier -> Kratos/flint-gate JWT
 │   ├── frf-policy-cedar/         # action policy    -> Cedar (existing PAUX-1)
 │   ├── frf-postgres-cdc/         # WAL logical replication -> spine
 │   ├── frf-crdt/                 # Loro/automerge engine + CrdtStore
@@ -252,7 +252,7 @@ relation tuples.
 
 ```
 // authN — at connect
-client JWT (Kratos-issued) → Oathkeeper/verify → Subject + claims
+client JWT (flint-gate-minted) → frf-gateway/verify (GATEWAY_JWKS_URL) → Subject + claims
 // authZ — at subscribe (coarse, cached)
 Subscribe(realtime:entity:Order, tenant) → Keto.check(subject, "view", topic) → allow/deny
 // RLS — at fan-out (per object)

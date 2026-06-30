@@ -54,7 +54,7 @@ pub struct GatewayConfig {
     pub iggy_connection_string: String,
     pub keto_base_url: String,
     pub keto_namespace: String,
-    pub oathkeeper_jwks_url: String,
+    pub gateway_jwks_url: String,
     pub jwt_audience: String,
 }
 ```
@@ -77,7 +77,7 @@ crates/frf-gateway/src/
 
 ## Phase 1 exit criterion satisfied
 
-Integration test (`#[ignore]`) starts a local Axum test server (using `axum::Server` or `axum-test`), connects a WebSocket subscriber, publishes one event, and asserts the subscriber receives the event. Requires local Iggy + Keto + Oathkeeper; can be run against test doubles (MockLogBroker, etc.) for CI.
+Integration test (`#[ignore]`) starts a local Axum test server (using `axum::Server` or `axum-test`), connects a WebSocket subscriber, publishes one event, and asserts the subscriber receives the event. Requires local Iggy + Keto + flint-gate; can be run against test doubles (MockLogBroker, etc.) for CI.
 
 ## Non-goals
 - Does not implement TLS termination (handled by reverse proxy in production).

@@ -104,7 +104,7 @@ async fn main() -> Result<()> {
         &config.keto_namespace,
     ));
     let identity = Arc::new(OryIdentityVerifier::new(
-        &config.oathkeeper_jwks_url,
+        &config.gateway_jwks_url,
         &config.jwt_audience,
     ));
 

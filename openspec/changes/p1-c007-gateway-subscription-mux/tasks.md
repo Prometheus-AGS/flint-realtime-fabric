@@ -1,7 +1,7 @@
 # Tasks — p1-c007 frf-gateway subscription mux
 
 - [x] **T1** Create `crates/frf-gateway/src/config.rs`
-  - `pub struct GatewayConfig { pub bind_addr: SocketAddr, pub iggy_connection_string: String, pub keto_base_url: String, pub keto_namespace: String, pub oathkeeper_jwks_url: String, pub jwt_audience: String }`
+  - `pub struct GatewayConfig { pub bind_addr: SocketAddr, pub iggy_connection_string: String, pub keto_base_url: String, pub keto_namespace: String, pub gateway_jwks_url: String, pub jwt_audience: String }`
   - `impl GatewayConfig { pub fn from_env() -> anyhow::Result<Self> }` — reads env vars, errors on missing required vars
   - Verification: `cargo check -p frf-gateway` exits 0
 

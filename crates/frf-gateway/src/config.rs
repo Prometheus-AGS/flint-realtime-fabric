@@ -29,7 +29,7 @@ pub struct GatewayConfig {
     pub iggy_connection_string: String,
     pub keto_base_url: String,
     pub keto_namespace: String,
-    pub oathkeeper_jwks_url: String,
+    pub gateway_jwks_url: String,
     pub jwt_audience: String,
     // CDC configuration — all optional (enabled via CDC_ENABLED=true)
     pub cdc_enabled: bool,
@@ -57,6 +57,18 @@ pub struct GatewayConfig {
     pub policy_engine: PolicyEngineMode,
 }
 
+/// When the `dev-endpoints` feature is active, returns true if `DEV_NO_AUTH=true`
+/// is set in the environment, bypassing JWT verification for publish/subscribe.
+///
+/// In non-dev-endpoints builds this function does not exist — the compiler
+/// makes it impossible to call from production code paths.
+#[cfg(feature = "dev-endpoints")]
+pub fn dev_no_auth() -> bool {
+    std::env::var("DEV_NO_AUTH")
+        .map(|v| v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
+}
+
 impl GatewayConfig {
     /// Construct a minimal `GatewayConfig` suitable for unit and integration tests.
     ///
@@ -70,7 +82,7 @@ impl GatewayConfig {
             iggy_connection_string: "test://iggy".to_owned(),
             keto_base_url: "http://localhost:4466".to_owned(),
             keto_namespace: "default".to_owned(),
-            oathkeeper_jwks_url: "http://localhost:4456/.well-known/jwks.json".to_owned(),
+            gateway_jwks_url: "http://localhost:4456/.well-known/jwks.json".to_owned(),
             jwt_audience: "test".to_owned(),
             cdc_enabled: false,
             cdc_replication_url: None,
@@ -110,8 +122,8 @@ impl GatewayConfig {
         let keto_namespace =
             std::env::var("KETO_NAMESPACE").unwrap_or_else(|_| "default".to_owned());
 
-        let oathkeeper_jwks_url =
-            std::env::var("OATHKEEPER_JWKS_URL").context("OATHKEEPER_JWKS_URL must be set")?;
+        let gateway_jwks_url =
+            std::env::var("GATEWAY_JWKS_URL").context("GATEWAY_JWKS_URL must be set")?;
 
         let jwt_audience = std::env::var("JWT_AUDIENCE").context("JWT_AUDIENCE must be set")?;
 
@@ -154,7 +166,7 @@ impl GatewayConfig {
             iggy_connection_string,
             keto_base_url,
             keto_namespace,
-            oathkeeper_jwks_url,
+            gateway_jwks_url,
             jwt_audience,
             cdc_enabled,
             cdc_replication_url: std::env::var("CDC_REPLICATION_URL").ok(),

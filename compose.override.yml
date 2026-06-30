@@ -1,0 +1,39 @@
+# Minimal dev stack: gateway + Iggy only, auth disabled.
+# Override prod compose.yml for local development.
+#
+# Usage: docker compose up -d
+#   (docker compose merges compose.yml + compose.override.yml automatically)
+
+name: flint-realtime-fabric
+
+services:
+  gateway:
+    environment:
+      IGGY_CONNECTION_STRING: "iggy://iggy:iggy@iggy-server:8090"
+      # Skip identity verification in dev — flint-gate is not started in this profile
+      GATEWAY_JWKS_URL: "http://localhost:4457/signing-keys"
+      JWT_AUDIENCE: "dev"
+      KETO_BASE_URL: "http://localhost:4466"
+      RUST_LOG: "debug"
+      DEV_NO_AUTH: "true"
+    depends_on:
+      - iggy-server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # Disable all auth/infra services in dev — use `--profile full` to enable
+  keto:
+    profiles: ["full"]
+
+  flint-gate:
+    profiles: ["full"]
+
+  surrealdb:
+    profiles: ["full"]
+
+  postgres:
+    profiles: ["full"]

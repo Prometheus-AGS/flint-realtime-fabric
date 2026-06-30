@@ -16,7 +16,7 @@ services:
       IGGY_CONNECTION_STRING: "iggy://iggy:iggy@iggy-server:8090"
       KETO_BASE_URL: "http://keto:4466"
       KETO_NAMESPACE: "default"
-      OATHKEEPER_JWKS_URL: "http://oathkeeper:4456/.well-known/jwks.json"
+      GATEWAY_JWKS_URL: "http://flint-gate:4457/signing-keys"
       JWT_AUDIENCE: "frf-gateway"
       SFU_MODE: "sovereign"
       RUST_LOG: "info"
@@ -26,6 +26,7 @@ services:
       CDC_PUBLICATION_NAME: "frf_pub"
       CDC_TENANT_ID: "00000000-0000-0000-0000-000000000001"
       CDC_CHANNEL_PATH: "entities"
+      DEV_NO_AUTH: "true"
     depends_on:
       iggy-server:
         condition: service_healthy
@@ -72,20 +73,29 @@ services:
       retries: 10
       start_period: 10s
 
-  oathkeeper:
-    image: oryd/oathkeeper:v0.40
+  flint-gate:
+    build:
+      context: /Users/gqadonis/Projects/prometheus/flint-gate
+      dockerfile: Dockerfile
     ports:
-      - "14455:4455"
       - "14456:4456"
+      - "14457:4457"
+    environment:
+      DATABASE_URL: "postgres://frf:frf@postgres:5432/frf"
+      FLINT_GATE_JWT_SECRET: "dev-secret-for-stage-10-integration-testing-only"
+      FLINT_GATE_CONFIG: "/app/config/config.yaml"
+      RUST_LOG: "info,flint_gate=debug"
     volumes:
-      - ./deploy/oathkeeper:/etc/config/oathkeeper
-    command: serve proxy -c /etc/config/oathkeeper/config.yml
+      - ./deploy/flint-gate/config.yaml:/app/config/config.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:4456/health/ready || exit 1"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-      start_period: 10s
+      test: ["CMD-SHELL", "printf '' > /dev/tcp/localhost/4456 2>/dev/null && echo ok || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   surrealdb:
     image: surrealdb/surrealdb:latest

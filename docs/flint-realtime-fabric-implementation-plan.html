@@ -133,7 +133,7 @@ pre .c{color:var(--text-3)}pre .k{color:var(--neural)}pre .s{color:var(--gold)}p
 │   │   <span class="c"># ── infrastructure adapters (one crate each, impl a port) ──</span>
 │   ├── frf-broker-iggy/        <span class="c"># LogBroker  -> Apache Iggy (GQAdonis fork)</span>
 │   ├── frf-authz-keto/         <span class="c"># AuthzProvider -> Ory Keto (Zanzibar)</span>
-│   ├── frf-identity-ory/       <span class="c"># IdentityVerifier -> Kratos/Oathkeeper JWT</span>
+│   ├── frf-identity-ory/       <span class="c"># IdentityVerifier -> Kratos/flint-gate JWT</span>
 │   ├── frf-policy-cedar/       <span class="c"># action policy -> Cedar (existing PAUX-1)</span>
 │   ├── frf-postgres-cdc/       <span class="c"># WAL logical replication -> spine</span>
 │   ├── frf-crdt/               <span class="c"># Loro/automerge engine + CrdtStore</span>
@@ -265,7 +265,7 @@ SOURCE      Postgres             entity source-of-truth feeding frf-postgres-cdc
 <p class="sub">Four concerns, placed deliberately rather than piled together. Identity proves who; Keto decides who-can-see-what as a relationship graph; Cedar governs which-actions-under-what-conditions; rights management is users writing their own relation tuples.</p>
 <h3>The pipeline</h3>
 <pre><span class="c">// authN — at connect</span>
-client JWT (Kratos-issued) → Oathkeeper/verify → <span class="f">Subject</span> + claims
+client JWT (flint-gate-minted) → frf-gateway/verify (GATEWAY_JWKS_URL) → <span class="f">Subject</span> + claims
 <span class="c">// authZ — at subscribe (coarse, cached)</span>
 Subscribe(realtime:entity:Order, tenant) → Keto.check(subject, "view", topic) → allow/deny
 <span class="c">// RLS — at fan-out (per object)</span>
@@ -324,7 +324,7 @@ mutating ops → Cedar.is_authorized(principal, action, resource, context)</pre>
 <footer class="foot"><div class="wrap">
 <b>Flint Realtime Fabric — Implementation Plan</b> · RFC-FRF-002 · Prometheus AGS<br>
 Core: Rust workspace (hexagonal, feature-gated) · Contract: protobuf + tonic · SDKs: native / generated / FFI<br>
-Identity: Ory Kratos + Oathkeeper · AuthZ: Keto (Zanzibar) + Cedar · CRDT: Loro|automerge + redb/SurrealDB<br>
+Identity: Ory Kratos + flint-gate · AuthZ: Keto (Zanzibar) + Cedar · CRDT: Loro|automerge + redb/SurrealDB<br>
 Status: plan drafted · contract-freeze is the first gate · 2026-06-17
 </div></footer>
 </body></html>

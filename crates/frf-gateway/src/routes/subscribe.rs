@@ -51,8 +51,21 @@ where
     B: AgentEventBus + 'static,
     P: ActionPolicyProvider + 'static,
 {
-    let Some(token) = bearer_token(&headers) else {
-        return axum::http::StatusCode::UNAUTHORIZED.into_response();
+    #[cfg(feature = "dev-endpoints")]
+    let token_for_req = if crate::config::dev_no_auth() {
+        // Auth bypassed — dev-endpoints build with DEV_NO_AUTH=true.
+        String::new()
+    } else {
+        match bearer_token(&headers) {
+            Some(t) => t,
+            None => return axum::http::StatusCode::UNAUTHORIZED.into_response(),
+        }
+    };
+
+    #[cfg(not(feature = "dev-endpoints"))]
+    let token_for_req = match bearer_token(&headers) {
+        Some(t) => t,
+        None => return axum::http::StatusCode::UNAUTHORIZED.into_response(),
     };
 
     let Ok(channel_uuid) = Uuid::parse_str(&params.channel) else {
@@ -67,7 +80,7 @@ where
 
     let req = SubscribeRequest {
         channel_id,
-        bearer_token: token,
+        bearer_token: token_for_req,
         from: Offset::BEGINNING,
     };
 

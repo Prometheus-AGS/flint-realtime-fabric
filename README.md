@@ -36,7 +36,7 @@ flint-realtime-fabric/
 │   ├── frf-proto/           # generated from proto/ via tonic-build
 │   ├── frf-broker-iggy/     # Adapter: LogBroker → Apache Iggy
 │   ├── frf-authz-keto/      # Adapter: AuthzProvider → Ory Keto
-│   ├── frf-identity-ory/    # Adapter: IdentityVerifier → Kratos/Oathkeeper
+│   ├── frf-identity-ory/    # Adapter: IdentityVerifier → Kratos/flint-gate (JWT)
 │   ├── frf-policy-cedar/    # Adapter: action policy → Cedar
 │   ├── frf-postgres-cdc/    # Adapter: WAL logical replication → spine
 │   ├── frf-crdt/            # Adapter: Loro CRDT engine + CrdtStore
@@ -195,7 +195,7 @@ bash scripts/smoke-cdc.sh
 | gRPC | tonic + prost |
 | Actors (BossFang) | ractor (LibreFang) |
 | Event spine | Apache Iggy (GQAdonis fork) behind `LogBroker` |
-| Identity | Ory Kratos / Oathkeeper (JWT) |
+| Identity | Ory Kratos + flint-gate (JWT proxy + minting) |
 | AuthZ | Ory Keto (Zanzibar) + Cedar (PAUX-1) |
 | CRDT engine | Loro 1.13.1 (decision: ADR-001) |
 | On-device store | redb |

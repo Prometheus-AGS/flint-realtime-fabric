@@ -52,6 +52,27 @@ where
     B: AgentEventBus + 'static,
     P: ActionPolicyProvider + 'static,
 {
+    #[cfg(feature = "dev-endpoints")]
+    if crate::config::dev_no_auth() {
+        // Auth bypassed — dev-endpoints build with DEV_NO_AUTH=true.
+        // Compose integration tests run without minting real JWTs.
+        let req = PublishRequest {
+            envelope,
+            bearer_token: String::new(),
+        };
+        return match state.publish_usecase.execute(req).await {
+            Ok(offset) => Json(PublishResponse { offset: offset.0 }).into_response(),
+            Err(e) => {
+                let status = match &e {
+                    AppError::Unauthorized(_) | AppError::Identity(_) => StatusCode::UNAUTHORIZED,
+                    AppError::Forbidden(_) => StatusCode::FORBIDDEN,
+                    _ => StatusCode::INTERNAL_SERVER_ERROR,
+                };
+                (status, e.to_string()).into_response()
+            }
+        };
+    }
+
     let Some(token) = bearer_token(&headers) else {
         return StatusCode::UNAUTHORIZED.into_response();
     };

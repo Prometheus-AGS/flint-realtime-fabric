@@ -1,0 +1,58 @@
+# Flint Gate — dev compose configuration for Stage 10 integration tests.
+# NOT for production. The JWT signing secret is intentionally weak and well-known.
+
+server:
+  listen: "0.0.0.0:4456"
+  admin_listen: "0.0.0.0:4457"
+  tls:
+    enabled: false
+
+database:
+  url: "postgres://frf:frf@postgres:5432/frf"
+  max_connections: 5
+  override_yaml: false
+
+cache:
+  l1:
+    max_capacity: 1000
+    ttl_seconds: 30
+
+jwt:
+  signing_algorithm: "HS256"
+  signing_key_secret: "dev-secret-for-stage-10-integration-testing-only"
+  issuer: "flint-gate-dev"
+  default_ttl_seconds: 3600
+
+auth_providers:
+  dev_passthrough:
+    type: anonymous
+    default_subject: "dev-integration"
+
+sites:
+  - id: "frf-dev"
+    domains:
+      - "localhost"
+      - "gateway"
+    default_auth: dev_passthrough
+    default_upstream: "http://gateway:8080"
+
+routes:
+  - id: "frf-all"
+    site: "frf-dev"
+    match:
+      path: "/**"
+      methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+    upstream: "http://gateway:8080"
+    auth: dev_passthrough
+    priority: 1
+    hooks:
+      pre_request:
+        - type: claims_enhancement
+          config:
+            inject_headers:
+              X-Dev-Integration: "true"
+            mint_jwt:
+              enabled: true
+              additional_claims:
+                tenant_id: "00000000-0000-0000-0000-000000000001"
+                sub: "dev-integration-user"

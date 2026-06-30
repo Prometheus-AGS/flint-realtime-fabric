@@ -15,7 +15,7 @@ pub struct VerifiedClaims {
 
 /// JWT / OIDC token verification at the gateway boundary.
 ///
-/// Implemented by `frf-identity-ory` (Kratos + Oathkeeper). Never trust
+/// Implemented by `frf-identity-ory` (Kratos + flint-gate). Never trust
 /// unverified claims downstream — call this once per connection.
 /// Adapter crates MUST instrument methods with `#[tracing::instrument]`.
 #[async_trait]
