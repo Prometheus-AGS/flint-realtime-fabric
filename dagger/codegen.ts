@@ -300,11 +300,11 @@ async function main() {
                     .withExec(["docker", "compose", "up", "-d"])
                     // Poll gateway healthz up to 60 seconds
                     .withExec(["sh", "-c",
-                        "for i in $(seq 1 30); do curl -sf http://localhost:8080/healthz && break || sleep 2; done"
+                        "for i in $(seq 1 30); do curl -sf http://localhost:28080/healthz && break || sleep 2; done"
                     ])
                     // Run the admin-UI Layer 3 E2E suite
                     .withEnvVariable("WASM_AVAILABLE", "1")
-                    .withEnvVariable("GATEWAY_URL", "http://localhost:8080")
+                    .withEnvVariable("GATEWAY_URL", "http://localhost:28080")
                     .withEnvVariable("SKIP_INTEGRATION", "false")
                     .withEnvVariable("DEV_ENDPOINTS_ENABLED", "true")
                     .withWorkdir("/workspace/admin-ui")

@@ -3,19 +3,25 @@
   "parentPhase": null,
   "childPhases": [],
   "childPointer": null,
-  "assessment_complete": false,
-  "plan_complete": false,
+  "assessment_complete": true,
+  "plan_complete": true,
   "execute_complete": false,
   "reflect_complete": false,
-  "changes_total": 0,
-  "changes_completed": 0,
-  "completed_changes": [],
+  "changes_total": 1,
+  "changes_completed": 1,
+  "completed_changes": [
+    "p15-c001-dagger-port-fix"
+  ],
   "active_change": null,
   "blocked_changes": [],
   "pending_changes": [],
   "notes": {
-    "entry_condition": "Requires DinD-capable environment (Docker Desktop or GitHub Actions --privileged). Run /kbd-assess after Stage 10 live run produces output to triage."
+    "entry_condition": "Requires DinD-capable environment (Docker Desktop or GitHub Actions --privileged). Run /kbd-assess after Stage 10 live run produces output to triage.",
+    "p15-c002-flint-gate-dockerfile": "CONDITIONAL — create only if compose build fails during live run",
+    "p15-c003-stage10-live-run": "MANUAL — operator must run with DinD after p15-c001 lands",
+    "p15-c004-playwright-retries": "CONDITIONAL — add --retries=2 only if live run shows flakiness",
+    "g2-wasm-baseline": "MANUAL — operator runs make baseline-wasm after Stage 6 succeeds"
   },
-  "sourceTool": "kbd-new-phase",
+  "sourceTool": "kbd-plan",
   "updatedAt": "2026-06-30T00:00:00Z"
 }
