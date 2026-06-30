@@ -1,8 +1,8 @@
 {
   "name": "flint-realtime-fabric",
   "change_backend": "openspec",
-  "activePhase": "phase-13-live-layer3-e2e-validation",
-  "completedPhase": "phase-12-layer3-e2e-runtime-wasm-gate-cdc-smoke",
+  "activePhase": "phase-14-stage10-dind-live-triage",
+  "completedPhase": "phase-13-live-layer3-e2e-validation",
   "createdAt": "2026-06-17T13:30:22Z",
   "updatedAt": "2026-06-30T00:00:00Z"
 }

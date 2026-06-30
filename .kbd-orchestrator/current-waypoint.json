@@ -1,15 +1,14 @@
 {
-  "phase": "phase-13-live-layer3-e2e-validation",
-  "previousPhase": "phase-12-layer3-e2e-runtime-wasm-gate-cdc-smoke",
-  "status": "reflect_complete",
-  "exactNextCommand": "/kbd-new-phase phase-14-stage10-dind-live-triage",
+  "phase": "phase-14-stage10-dind-live-triage",
+  "previousPhase": "phase-13-live-layer3-e2e-validation",
+  "status": "assessment_ready",
+  "exactNextCommand": "/kbd-assess phase-14-stage10-dind-live-triage",
   "activeChange": null,
-  "changesCompleted": 8,
-  "changesTotal": 8,
+  "changesCompleted": 0,
+  "changesTotal": 0,
   "updatedAt": "2026-06-30T00:00:00Z",
-  "planComplete": true,
-  "assessmentComplete": true,
-  "executeComplete": true,
-  "reflectComplete": true,
-  "recommendedNextPhase": "phase-14-stage10-dind-live-triage"
+  "planComplete": false,
+  "assessmentComplete": false,
+  "executeComplete": false,
+  "reflectComplete": false
 }
