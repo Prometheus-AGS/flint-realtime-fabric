@@ -5,7 +5,7 @@
   "childPointer": null,
   "assessment_complete": true,
   "plan_complete": true,
-  "execute_complete": false,
+  "execute_complete": true,
   "reflect_complete": false,
   "changes_total": 1,
   "changes_completed": 1,
