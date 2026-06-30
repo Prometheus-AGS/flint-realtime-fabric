@@ -4,15 +4,25 @@
   "childPhases": [],
   "childPointer": null,
   "assessment_complete": true,
-  "plan_complete": false,
+  "plan_complete": true,
   "execute_complete": false,
   "reflect_complete": false,
-  "changes_total": 0,
+  "changes_total": 6,
   "changes_completed": 0,
   "completed_changes": [],
   "active_change": null,
   "blocked_changes": [],
-  "pending_changes": [],
-  "sourceTool": "kbd-new-phase",
+  "pending_changes": [
+    "p14-c001-oathkeeper-jwks",
+    "p14-c002-gateway-dev-no-auth",
+    "p14-c003-phase6-spec-tenant-id",
+    "p14-c004-phase6-spec-404-fix",
+    "p14-c005-enable-federation-stage",
+    "p14-c006-wasm-size-baseline"
+  ],
+  "notes": {
+    "p14-c006-wasm-size-baseline": "MANUAL — requires DinD Stage 6 run; operator runs make baseline-wasm"
+  },
+  "sourceTool": "kbd-plan",
   "updatedAt": "2026-06-30T00:00:00Z"
 }
