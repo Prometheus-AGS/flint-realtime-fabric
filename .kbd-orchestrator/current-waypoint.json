@@ -1,14 +1,14 @@
 {
-  "phase": "phase-12-layer3-e2e-runtime-wasm-gate-cdc-smoke",
-  "previousPhase": "phase-11-layer3-e2e-wasm-opt-cdc",
-  "status": "phase_complete",
-  "exactNextCommand": "/kbd-new-phase phase-13-live-layer3-e2e-validation",
+  "phase": "phase-13-live-layer3-e2e-validation",
+  "previousPhase": "phase-12-layer3-e2e-runtime-wasm-gate-cdc-smoke",
+  "status": "reflect_pending",
+  "exactNextCommand": "/kbd-reflect phase-13-live-layer3-e2e-validation",
   "activeChange": null,
-  "changesCompleted": 5,
-  "changesTotal": 5,
+  "changesCompleted": 8,
+  "changesTotal": 8,
   "updatedAt": "2026-06-30T00:00:00Z",
   "planComplete": true,
   "assessmentComplete": true,
   "executeComplete": true,
-  "reflectComplete": true
+  "reflectComplete": false
 }

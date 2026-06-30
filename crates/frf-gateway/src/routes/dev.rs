@@ -1,9 +1,10 @@
-//! Dev-only HTTP endpoints gated by `#[cfg(debug_assertions)]`.
+//! Dev-only HTTP endpoints gated by the `dev-endpoints` Cargo feature.
 //!
-//! These routes are compiled out in release builds and must not be registered
-//! in production. The router wires them under `#[cfg(debug_assertions)]` only.
+//! These routes are compiled out unless `--features dev-endpoints` is passed.
+//! Enable in compose builds via `CARGO_FEATURES=dev-endpoints` build arg.
+//! Never enable in production images.
 
-#[cfg(debug_assertions)]
+#[cfg(feature = "dev-endpoints")]
 pub mod inject {
     use axum::Json;
     use axum::extract::State;
@@ -32,7 +33,7 @@ pub mod inject {
     ///
     /// Returns `202 Accepted` on success, `400` on bad UUID, `503` on broker error.
     ///
-    /// **Compiled only with `debug_assertions` enabled — absent in release binaries.**
+    /// **Only compiled when `--features dev-endpoints` is passed — absent in default release builds.**
     pub async fn inject_federation_event<L, A, I, M, B, P>(
         State(state): State<AppStateArc<L, A, I, M, B, P>>,
         Json(body): Json<InjectFederationEventRequest>,

@@ -212,6 +212,10 @@ async function main() {
                 .withDirectory("/workspace/sdks/ts/frf-wasm", wasmOut)
                 .withWorkdir("/workspace")
                 .withExec(["pnpm", "install", "--frozen-lockfile"])
+                // Lint admin-UI (catches !!process.env coercion and TypeScript issues)
+                .withWorkdir("/workspace/admin-ui")
+                .withExec(["pnpm", "lint"])
+                .withWorkdir("/workspace")
                 .withExec(["pnpm", "-r", "build"]);
 
             // ----------------------------------------------------------------
@@ -300,7 +304,7 @@ async function main() {
                     ])
                     // Run the admin-UI Layer 3 E2E suite
                     .withEnvVariable("WASM_AVAILABLE", "1")
-                    .withEnvVariable("GATEWAY_URL", "http://localhost:28080")
+                    .withEnvVariable("GATEWAY_URL", "http://localhost:8080")
                     .withEnvVariable("SKIP_INTEGRATION", "false")
                     .withWorkdir("/workspace/admin-ui")
                     .withExec(["pnpm", "install", "--frozen-lockfile"])

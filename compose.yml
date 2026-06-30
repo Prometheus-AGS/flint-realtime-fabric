@@ -1,0 +1,127 @@
+name: flint-realtime-fabric
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CARGO_FEATURES: dev-endpoints
+    ports:
+      - "28080:8080"
+      - "29090:9090"
+    environment:
+      BIND_ADDR: "0.0.0.0:8080"
+      GRPC_PORT: "9090"
+      IGGY_CONNECTION_STRING: "iggy://iggy:iggy@iggy-server:8090"
+      KETO_BASE_URL: "http://keto:4466"
+      KETO_NAMESPACE: "default"
+      OATHKEEPER_JWKS_URL: "http://oathkeeper:4456/.well-known/jwks.json"
+      JWT_AUDIENCE: "frf-gateway"
+      SFU_MODE: "sovereign"
+      RUST_LOG: "info"
+      CDC_ENABLED: "true"
+      CDC_REPLICATION_URL: "postgres://frf:frf@postgres:5432/frf?replication=database"
+      CDC_SLOT_NAME: "frf_slot"
+      CDC_PUBLICATION_NAME: "frf_pub"
+      CDC_TENANT_ID: "00000000-0000-0000-0000-000000000001"
+      CDC_CHANNEL_PATH: "entities"
+    depends_on:
+      iggy-server:
+        condition: service_healthy
+      keto:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  iggy-server:
+    image: iggyrs/iggy:latest
+    ports:
+      - "8090:8090"
+    volumes:
+      - iggy-data:/data
+    environment:
+      IGGY_SYSTEM_PATH: "/data"
+    healthcheck:
+      test: ["CMD-SHELL", "iggy --transport tcp --server-address localhost:8090 me 2>/dev/null || exit 0"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  keto:
+    image: oryd/keto:v0.12
+    ports:
+      - "4466:4466"
+      - "4467:4467"
+    volumes:
+      - ./deploy/keto:/etc/config/keto
+    command: serve -c /etc/config/keto/keto.yml
+    environment:
+      LOG_LEVEL: info
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4466/health/ready || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  oathkeeper:
+    image: oryd/oathkeeper:v0.40
+    ports:
+      - "14455:4455"
+      - "14456:4456"
+    volumes:
+      - ./deploy/oathkeeper:/etc/config/oathkeeper
+    command: serve proxy -c /etc/config/oathkeeper/config.yml
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4456/health/ready || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  surrealdb:
+    image: surrealdb/surrealdb:latest
+    ports:
+      - "8001:8000"
+    volumes:
+      - surreal-data:/data
+    user: "0"
+    command: start --log info --user root --pass root surrealkv:/data/frf.db
+    healthcheck:
+      test: ["CMD", "/surreal", "is-ready", "--endpoint", "http://0.0.0.0:8000"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - "15432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./deploy/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    environment:
+      POSTGRES_USER: frf
+      POSTGRES_PASSWORD: frf
+      POSTGRES_DB: frf
+    command: postgres -c wal_level=logical -c max_replication_slots=5 -c max_wal_senders=5
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U frf -d frf"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  iggy-data:
+  surreal-data:
+  postgres-data:

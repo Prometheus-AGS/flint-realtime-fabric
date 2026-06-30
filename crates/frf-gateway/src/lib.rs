@@ -75,7 +75,7 @@ where
             get(routes::agents::ws_agent_stream::<L, A, I, M, B, P>),
         );
 
-    #[cfg(debug_assertions)]
+    #[cfg(feature = "dev-endpoints")]
     {
         router = router
             .route(

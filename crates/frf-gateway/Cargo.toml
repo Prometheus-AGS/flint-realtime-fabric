@@ -55,6 +55,10 @@ tower-http = { workspace = true }
 futures-util = { workspace = true }
 thiserror = { workspace = true }
 
+[features]
+default = []
+dev-endpoints = []
+
 [dev-dependencies]
 axum-test = "17"
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

@@ -11,8 +11,17 @@ COPY Cargo.toml Cargo.lock ./
 COPY crates/ crates/
 COPY proto/ proto/
 
+# CARGO_FEATURES: pass additional Cargo features at build time.
+# Example: --build-arg CARGO_FEATURES=dev-endpoints (enables /dev/* routes for CI).
+# Leave empty for production images.
+ARG CARGO_FEATURES=""
+
 # Build the gateway binary in release mode
-RUN cargo build --release -p frf-gateway
+RUN if [ -n "$CARGO_FEATURES" ]; then \
+        cargo build --release -p frf-gateway --features "$CARGO_FEATURES"; \
+    else \
+        cargo build --release -p frf-gateway; \
+    fi
 
 FROM debian:trixie-slim
 
