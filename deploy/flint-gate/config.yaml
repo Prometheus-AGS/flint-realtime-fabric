@@ -19,7 +19,10 @@ cache:
 
 jwt:
   signing_algorithm: "HS256"
-  signing_key_secret: "dev-secret-for-stage-10-integration-testing-only"
+  # Signing secret is NOT stored here. It is supplied via the FLINT_GATE_JWT_SECRET
+  # environment variable, which overrides this field (see flint-gate main.rs). Prod
+  # requires it (compose.yml fails fast if unset); dev provides it via the override.
+  signing_key_secret: null
   issuer: "flint-gate-dev"
   default_ttl_seconds: 3600
 

@@ -36,7 +36,8 @@ where
     /// # Errors
     ///
     /// Returns [`AppError::Identity`] if the bearer token is invalid.
-    /// Returns [`AppError::Forbidden`] if the subject is not permitted to publish.
+    /// Returns [`AppError::Forbidden`] if the subject's tenant does not match the
+    /// target channel's tenant, or if the subject is not permitted to publish.
     /// Returns [`AppError::Broker`] if the broker publish fails.
     #[instrument(name = "app::publish", skip(self, req))]
     pub async fn execute(&self, req: PublishRequest) -> Result<Offset, AppError> {
@@ -45,6 +46,18 @@ where
             .verify(&req.bearer_token)
             .await
             .map_err(AppError::Identity)?;
+
+        // Tenant-equality assertion (defense in depth beneath Keto): a caller
+        // authenticated for tenant A must not publish into a channel owned by
+        // tenant B, even if a stray relation tuple would allow it. The verified
+        // JWT tenant is authoritative; the envelope's channel tenant is
+        // caller-supplied and must match it.
+        if claims.tenant_id != req.envelope.channel.tenant_id {
+            return Err(AppError::Forbidden(format!(
+                "subject {} (tenant {}) may not publish into a channel owned by tenant {}",
+                claims.subject, claims.tenant_id, req.envelope.channel.tenant_id
+            )));
+        }
 
         let publish_tuple = RelationTuple {
             tenant_id: claims.tenant_id,

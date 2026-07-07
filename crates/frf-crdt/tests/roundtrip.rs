@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)] // test/bench crate — see clippy.toml + rules/rust/testing.md
+
 /// Phase-3 exit criterion: offline CRDT convergence roundtrip.
 ///
 /// Simulates two devices diverging offline, then merging via `apply_delta`.

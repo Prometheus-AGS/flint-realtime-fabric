@@ -27,7 +27,7 @@ pub mod inject {
 
     /// `POST /dev/inject-federation-event`
     ///
-    /// Publishes a synthetic federation event directly to the LogBroker spine.
+    /// Publishes a synthetic federation event directly to the `LogBroker` spine.
     /// Enables Layer 3 smoke tests to exercise the full subscribe fan-out path
     /// without a live Matrix/ATProto bridge.
     ///

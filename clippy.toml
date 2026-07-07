@@ -1,0 +1,5 @@
+# Scope the restriction lints (unwrap_used / expect_used, denied in
+# [workspace.lints.clippy]) to production code only. Test and #[cfg(test)]
+# code may use unwrap()/expect() freely — see rules/rust/testing.md.
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true

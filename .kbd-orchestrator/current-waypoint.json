@@ -1,14 +1,15 @@
 {
-  "phase": "phase-15-stage10-live-run-and-retries",
-  "previousPhase": "phase-14-stage10-dind-live-triage",
-  "status": "operator_action_required",
-  "exactNextCommand": "ENABLE_INTEGRATION_STAGE=true dagger run ts-node dagger/codegen.ts",
+  "phase": "phase-17-plane-completion-and-release-audit",
+  "previousPhase": "phase-16-production-hardening",
+  "status": "reflected",
+  "exactNextCommand": "/kbd-next-phase",
   "activeChange": null,
-  "changesCompleted": 0,
-  "changesTotal": 0,
-  "updatedAt": "2026-06-30T00:00:00Z",
+  "changesCompleted": 10,
+  "changesTotal": 10,
+  "updatedAt": "2026-07-07T00:00:00Z",
   "planComplete": true,
   "assessmentComplete": true,
-  "executeComplete": true,
-  "reflectComplete": false
+  "executeComplete": false,
+  "reflectComplete": false,
+  "backend": "openspec"
 }

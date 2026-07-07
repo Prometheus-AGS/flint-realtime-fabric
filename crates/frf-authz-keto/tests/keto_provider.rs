@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)] // test/bench crate — see clippy.toml + rules/rust/testing.md
+
 use frf_authz_keto::KetoAuthzProvider;
 use frf_domain::{ChannelId, TenantId};
 use frf_ports::{AuthzProvider, RelationTuple};

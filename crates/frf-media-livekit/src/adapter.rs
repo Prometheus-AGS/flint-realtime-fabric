@@ -18,11 +18,23 @@ struct SessionChannel {
 
 /// `LiveKit` hosted SFU adapter implementing [`MediaSignaler`].
 ///
-/// Signals are relayed via the `LiveKit` `send_data` API, which broadcasts JSON
-/// payloads to all participants in the tenant-namespaced room. Local session
-/// subscriptions are served via in-process broadcast channels — the `LiveKit`
-/// server is not polled; inbound data events would be delivered via a separate
-/// WebSocket listener if full bi-directional relay is needed.
+/// # Directionality (v1 status)
+///
+/// - **Outbound (`send_signal`) is fully cross-node:** it publishes to the
+///   `LiveKit` server via the `send_data` API, which fans the JSON payload out to
+///   every participant in the tenant-namespaced room across all nodes.
+/// - **Inbound (`subscribe_signals`) is in-process only:** it serves each session
+///   from a local broadcast channel that receives this process's own outbound
+///   signals. It does **not** subscribe to the `LiveKit` server's data channel, so
+///   a signal published by *another* gateway node is delivered to `LiveKit` room
+///   participants but is **not** re-surfaced through this adapter's stream on this
+///   node.
+///
+/// KNOWN LIMITATION (deferred): full cross-node inbound relay requires the
+/// `LiveKit` realtime SDK (a WebRTC data-channel client) to listen for
+/// server-originated data events and feed them into `subscribe_signals`. That is
+/// a larger adapter addition and is deferred; single-process signaling and
+/// cross-node egress work today.
 pub struct LiveKitSignaling {
     config: LiveKitConfig,
     client: Arc<RoomClient>,

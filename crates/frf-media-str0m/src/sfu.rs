@@ -24,13 +24,14 @@ struct SfuSession {
     created_at: Instant,
 }
 
-/// Sovereign SFU signaling adapter backed by `str0m`.
+/// Sovereign SFU **signaling** adapter (str0m media plane deferred).
 ///
-/// Each session gets a buffered channel. `send_signal` routes the envelope to
-/// the correct session's sender; `subscribe_signals` returns a stream from the
-/// receiver end of that channel. The str0m `Rtc` state machine is driven
-/// externally via `process_offer` / `process_ice` calls when the gateway
-/// receives SDP or ICE candidate signals from the gRPC `SignalService`.
+/// Each session gets a buffered channel: `send_signal` routes an envelope to the target
+/// session's sender; `subscribe_signals` returns a stream from the receiver end. This
+/// moves signaling envelopes between peers but does **not** yet drive a real WebRTC
+/// media plane — there is no `str0m::Rtc` state machine, SDP/ICE negotiation, or RTP
+/// forwarding here. Sovereign mode is therefore gated off by default (`SFU_MODE=hosted`)
+/// and boots with a warning; wiring real str0m media is a deferred follow-up.
 pub struct StrOmSignaler {
     sessions: Arc<DashMap<(TenantId, SessionId), SfuSession>>,
 }
@@ -103,7 +104,6 @@ mod tests {
     use super::*;
     use chrono::Utc;
     use frf_domain::{SessionId, SfuMode, SignalEnvelope, SignalKind, TenantId};
-    use tokio_stream::StreamExt as _;
 
     fn make_envelope(tenant: TenantId, session: SessionId) -> SignalEnvelope {
         SignalEnvelope {
@@ -156,7 +156,10 @@ mod tests {
         let tenant = TenantId::new();
         let session = SessionId::new();
 
-        signaler
+        // Hold the subscription stream alive so the session is registered, then
+        // remove it — the stream must outlive the registration to model a real
+        // subscriber being torn down.
+        let _stream = signaler
             .subscribe_signals(session, tenant)
             .await
             .expect("subscribe");

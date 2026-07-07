@@ -13,12 +13,19 @@ crate-type = ["cdylib", "staticlib"]
 [dependencies]
 frf-crdt = { path = "../frf-crdt" }
 frf-ports = { path = "../frf-ports" }
+frf-domain = { path = "../frf-domain" }
+frf-sdk-rust = { path = "../frf-sdk-rust" }
 bytes = { workspace = true }
 loro = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
-uniffi = { workspace = true }
+tokio-stream = { workspace = true }
+futures-util = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+# `tokio` feature enables UniFFI's async_runtime = "tokio" bridge (async_compat).
+uniffi = { workspace = true, features = ["tokio"] }
 
-[lints.clippy]
-pedantic = "warn"
+[lints]
+workspace = true

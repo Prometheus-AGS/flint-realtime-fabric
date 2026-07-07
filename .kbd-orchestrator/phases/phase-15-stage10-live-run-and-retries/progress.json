@@ -22,6 +22,22 @@
     "p15-c004-playwright-retries": "CONDITIONAL — add --retries=2 only if live run shows flakiness",
     "g2-wasm-baseline": "MANUAL — operator runs make baseline-wasm after Stage 6 succeeds"
   },
-  "sourceTool": "kbd-plan",
-  "updatedAt": "2026-06-30T00:00:00Z"
+  "sourceTool": "kbd-assess",
+  "production_readiness_audit": {
+    "assessment_complete": true,
+    "method": "multi-agent (9 dimensions × adversarial verify, 74 agents)",
+    "findings_total": 61,
+    "critical": 7,
+    "high": 15,
+    "medium": 24,
+    "low": 15,
+    "verdict": "NOT_PRODUCTION_READY",
+    "artifacts": [
+      "assessment-production-readiness.md",
+      "assessment-production-readiness-findings.json"
+    ],
+    "top_fix": "Remove auth bypass from compose.yml (C1: CARGO_FEATURES=dev-endpoints + DEV_NO_AUTH=true)",
+    "recommended_next_phase": "phase-16-production-hardening"
+  },
+  "updatedAt": "2026-07-06T00:00:00Z"
 }

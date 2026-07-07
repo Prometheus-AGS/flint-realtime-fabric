@@ -43,7 +43,7 @@ pub trait MatrixClient: Send + Sync {
 /// This stub polls `/sync` for room events. In production, replace with a
 /// persistent `tokio-tungstenite` WebSocket connection or a Tuwunel library dep.
 ///
-/// BLOCKED_ON_TUWUNEL: Tuwunel does not yet expose a stable Rust library crate.
+/// `BLOCKED_ON_TUWUNEL`: Tuwunel does not yet expose a stable Rust library crate.
 /// Track <https://github.com/girlbossceo/tuwunel/issues> for crate publication.
 /// Replace this REST stub with a native Tuwunel client once the crate is available.
 pub struct ReqwestMatrixClient {

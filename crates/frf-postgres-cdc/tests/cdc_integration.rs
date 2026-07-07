@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)] // test/bench crate — see clippy.toml + rules/rust/testing.md
+
 // Run with: cargo test -p frf-postgres-cdc -- --ignored
 //
 // Requires a local PostgreSQL 17 instance with:

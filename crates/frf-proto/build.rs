@@ -5,7 +5,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let workspace_root = manifest_dir
         .parent()
         .and_then(|p| p.parent())
-        .expect("workspace root");
+        .ok_or("frf-proto must live at <workspace>/crates/frf-proto")?;
 
     let proto_root = workspace_root.join("proto");
     let protos: Vec<PathBuf> = [
@@ -24,7 +24,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     tonic_prost_build::configure()
         .build_server(true)
-        .build_client(false)
+        // Client stubs are consumed by frf-sdk-rust (the hand-written Rust SDK
+        // wraps SpineServiceClient). Server stubs are still built for the gateway.
+        .build_client(true)
         .compile_protos(&protos, &includes)?;
 
     println!("cargo:rerun-if-changed=../../proto");

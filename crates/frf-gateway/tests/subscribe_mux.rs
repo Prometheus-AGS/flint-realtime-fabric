@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)] // test/bench crate — see clippy.toml + rules/rust/testing.md
+
 // Run with: cargo test -p frf-gateway -- --ignored
 //
 // Requires live Iggy, Keto, and flint-gate instances configured via env vars:

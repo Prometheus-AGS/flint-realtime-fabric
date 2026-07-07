@@ -25,5 +25,5 @@ criterion = { workspace = true }
 name = "crdt_merge"
 harness = false
 
-[lints.clippy]
-pedantic = "warn"
+[lints]
+workspace = true

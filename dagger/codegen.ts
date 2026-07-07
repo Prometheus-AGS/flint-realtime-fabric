@@ -40,14 +40,25 @@ async function main() {
 
             // ----------------------------------------------------------------
             // Stage 0: Clippy workspace lint gate (pedantic, deny warnings)
+            //
+            // rust:latest always tracks the current stable release.
+            // rust-toolchain.toml (channel = "stable", components = [..., "clippy"])
+            // is picked up by rustup automatically — no explicit component add needed.
             // ----------------------------------------------------------------
+            // Restriction gate (unwrap_used / expect_used) runs on production
+            // code only (--lib --bins); test/#[cfg(test)] code may use unwrap()
+            // (clippy.toml allow-in-tests). Test targets get a pedantic-only pass.
             const clippyCheck = client
                 .container()
-                .from("rust:1.85-slim")
+                .from("rust:latest")
                 .withDirectory("/workspace", src)
                 .withWorkdir("/workspace")
                 .withExec([
-                    "cargo", "clippy", "--workspace", "--all-targets",
+                    "cargo", "clippy", "--workspace", "--lib", "--bins",
+                    "--", "-D", "warnings", "-W", "clippy::pedantic",
+                ])
+                .withExec([
+                    "cargo", "clippy", "--workspace", "--tests",
                     "--", "-D", "warnings", "-W", "clippy::pedantic",
                 ]);
 
@@ -56,7 +67,7 @@ async function main() {
             // ----------------------------------------------------------------
             const rustBase = client
                 .container()
-                .from("rust:1.85-slim")
+                .from("rust:latest")
                 .withDirectory("/workspace", src)
                 .withWorkdir("/workspace")
                 .withExec(["cargo", "build", "--release", "-p", "frf-ffi"]);
@@ -97,10 +108,21 @@ async function main() {
 
             // ----------------------------------------------------------------
             // Stage 4: flutter_rust_bridge Dart bindings
+            //
+            // ghcr.io/cirruslabs/flutter:stable does not ship Rust/cargo.
+            // Install rustup with --default-toolchain stable; rust-toolchain.toml
+            // in the workspace governs the exact version rustup resolves.
             // ----------------------------------------------------------------
             const dartBindgen = client
                 .container()
                 .from("ghcr.io/cirruslabs/flutter:stable")
+                // Install Rust toolchain (non-interactive, no PATH reload needed — cargo
+                // lands at /root/.cargo/bin which we add to PATH via env var below).
+                // --default-toolchain stable lets rust-toolchain.toml govern the version.
+                .withExec(["sh", "-c",
+                    "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path"
+                ])
+                .withEnvVariable("PATH", "/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin")
                 .withDirectory("/workspace", src)
                 .withWorkdir("/workspace")
                 .withExec(["cargo", "install", "flutter_rust_bridge_codegen", "--version", "2.11.1"])
@@ -118,23 +140,39 @@ async function main() {
 
             // ----------------------------------------------------------------
             // Stage 5: proto codegen (buf generate)
+            //
+            // buf.gen.yaml lives in proto/ and references local Go plugins
+            // (protoc-gen-go, protoc-gen-connect-go). We use a golang base image
+            // so those plugins can be installed via `go install`, then overlay
+            // the buf CLI binary from bufbuild/buf:latest.
             // ----------------------------------------------------------------
+            const bufBase = client
+                .container()
+                .from("bufbuild/buf:latest");
+
             const bufGen = client
                 .container()
-                .from("bufbuild/buf:latest")
+                .from("golang:1.24-bookworm")
+                // Copy buf binary from the official buf image
+                .withFile("/usr/local/bin/buf", bufBase.file("/usr/local/bin/buf"))
+                // Install local protoc plugins needed by buf.gen.yaml
+                .withExec(["go", "install", "google.golang.org/protobuf/cmd/protoc-gen-go@latest"])
+                // v1.17.0 is the last release supporting Go 1.24
+                .withExec(["go", "install", "connectrpc.com/connect/cmd/protoc-gen-connect-go@v1.17.0"])
                 .withDirectory("/workspace", src)
-                .withWorkdir("/workspace")
+                // buf generate must run from the directory that contains buf.gen.yaml
+                .withWorkdir("/workspace/proto")
                 .withExec(["buf", "generate"]);
 
             // ----------------------------------------------------------------
             // Stage 6: WASM build — crates/frf-wasm → sdks/ts/frf-wasm/
             //
-            // Uses rust:1.85-slim + wasm-pack. The output is mounted into the
+            // Uses rust:latest + wasm-pack. The output is mounted into the
             // pnpm build stage (stage 7) so admin-UI can import the package.
             // ----------------------------------------------------------------
             const wasmBuild: Container = client
                 .container()
-                .from("rust:1.85-slim")
+                .from("rust:latest")
                 .withExec(["apt-get", "update"])
                 .withExec(["apt-get", "install", "-y", "--no-install-recommends",
                     "curl", "ca-certificates", "pkg-config", "build-essential", "wget",
@@ -257,7 +295,7 @@ async function main() {
             if (process.env["ENABLE_BENCH_STAGE"] === "true") {
                 const bench = client
                     .container()
-                    .from("rust:1.85-slim")
+                    .from("rust:latest")
                     .withDirectory("/workspace", src)
                     .withWorkdir("/workspace")
                     // Restore committed baseline into target/criterion/ so --baseline can load it.
@@ -291,18 +329,38 @@ async function main() {
                     .from("node:24-slim")
                     .withExec(["apt-get", "update"])
                     .withExec(["apt-get", "install", "-y", "--no-install-recommends",
-                        "docker-compose-plugin", "curl", "ca-certificates",
+                        "curl", "ca-certificates", "gnupg", "lsb-release",
+                    ])
+                    // Add Docker's official apt repo so docker-compose-plugin is available
+                    .withExec(["sh", "-c",
+                        "install -m 0755 -d /etc/apt/keyrings && " +
+                        "curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && " +
+                        "chmod a+r /etc/apt/keyrings/docker.gpg && " +
+                        "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(. /etc/os-release && echo $VERSION_CODENAME) stable\" > /etc/apt/sources.list.d/docker.list"
+                    ])
+                    .withExec(["apt-get", "update"])
+                    .withExec(["apt-get", "install", "-y", "--no-install-recommends",
+                        "docker-ce-cli", "docker-compose-plugin",
                     ])
                     .withExec(["npm", "install", "-g", "pnpm"])
                     .withDirectory("/workspace", src)
+                    // Mount the host Docker socket — use the real path (not the symlink at
+                    // /var/run/docker.sock which Dagger cannot resolve inside the engine).
+                    .withUnixSocket("/var/run/docker.sock", client.host().unixSocket("/Users/gqadonis/.docker/run/docker.sock"))
                     .withWorkdir("/workspace")
-                    // Start the compose stack (requires /var/run/docker.sock)
-                    .withExec(["docker", "compose", "up", "-d"])
+                    // Use compose.ci.yml — a CI-specific compose file with no bind mounts.
+                    // Regular compose.yml uses ./deploy/keto and ./deploy/postgres mounts
+                    // which Docker Desktop on Mac denies when compose runs inside a container.
+                    // compose.ci.yml injects keto config via env vars and omits the postgres
+                    // init.sql mount (CDC is disabled via CDC_ENABLED=false in CI).
+                    .withExec(["docker", "compose", "-f", "compose.ci.yml", "up", "-d"])
                     // Poll gateway healthz up to 60 seconds
                     .withExec(["sh", "-c",
                         "for i in $(seq 1 30); do curl -sf http://localhost:28080/healthz && break || sleep 2; done"
                     ])
                     // Run the admin-UI Layer 3 E2E suite
+                    // CI=true tells pnpm to skip the interactive TTY check for node_modules purge
+                    .withEnvVariable("CI", "true")
                     .withEnvVariable("WASM_AVAILABLE", "1")
                     .withEnvVariable("GATEWAY_URL", "http://localhost:28080")
                     .withEnvVariable("SKIP_INTEGRATION", "false")
@@ -316,7 +374,7 @@ async function main() {
                     ])
                     // Tear down the stack (always runs via .withExec chaining)
                     .withWorkdir("/workspace")
-                    .withExec(["docker", "compose", "down"]);
+                    .withExec(["docker", "compose", "-f", "compose.ci.yml", "down"]);
 
                 stages.push(integration.sync());
                 console.log("Stage 10 (integration) enabled.");

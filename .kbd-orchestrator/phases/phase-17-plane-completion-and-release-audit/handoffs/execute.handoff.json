@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-07T02:03:07Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "Backend: OpenSpec, 10 changes scaffolded, driven via /kbd-apply one at a time. QA-gate ordering dependency: constraints.md is authored by c003, so QA is ON for c004-c008 only (c001/c002 pre-gate + config-only; c009 docs-only; c010 verification). Scope guard: str0m WebRTC / federation / admin-ui login deferred to phase-18. First pending: p17-c001 (compose.override footgun).",
+  "skipped": false,
+  "skipReason": null
+}

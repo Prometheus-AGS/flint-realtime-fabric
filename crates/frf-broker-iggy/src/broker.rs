@@ -35,6 +35,49 @@ impl IggyBroker {
             client: Arc::new(client),
         })
     }
+
+    /// Read the stored consumer offset for a channel/consumer, if one has been recorded.
+    ///
+    /// This is the read counterpart to [`LogBroker::seek`]. It is an inherent method
+    /// (not part of the `LogBroker` port) so the port stays minimal; operational tools
+    /// like `frf-cli` use the adapter directly. Returns `Ok(None)` when Iggy has no
+    /// stored offset for the pair yet.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`PortError::Transport`] if the Iggy offset lookup fails for a reason
+    /// other than "no offset stored".
+    #[instrument(name = "IggyBroker::get_consumer_offset", skip(self))]
+    pub async fn get_consumer_offset(
+        &self,
+        channel_id: ChannelId,
+        consumer_id: &str,
+    ) -> Result<Option<Offset>, PortError> {
+        let stream = format!("channel-{channel_id}");
+        let topic = "events";
+        let partition = partition_id(consumer_id);
+
+        let stream_id = stream
+            .as_str()
+            .try_into()
+            .map_err(|e: IggyError| IggyBrokerError::Transport(e))?;
+        let topic_id = topic
+            .try_into()
+            .map_err(|e: IggyError| IggyBrokerError::Transport(e))?;
+        let iggy_consumer = Consumer::new(
+            consumer_id
+                .try_into()
+                .map_err(|e: IggyError| IggyBrokerError::Transport(e))?,
+        );
+
+        let stored = self
+            .client
+            .get_consumer_offset(&iggy_consumer, &stream_id, &topic_id, Some(partition))
+            .await
+            .map_err(IggyBrokerError::Transport)?;
+
+        Ok(stored.map(|info| Offset(info.stored_offset)))
+    }
 }
 
 #[async_trait]

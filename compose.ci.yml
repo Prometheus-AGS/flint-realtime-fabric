@@ -1,0 +1,100 @@
+# CI-mode compose: no bind-mounts, no local builds.
+# Used by Stage 10 (Dagger DinD) where the Docker daemon runs on the host
+# but compose executes inside a container — host-path bind mounts are denied.
+#
+# Differences from compose.yml:
+#   - keto: config injected via env vars (dsn=memory, no volume mount)
+#   - postgres: init.sql omitted; CDC slot is not pre-created in CI
+#   - gateway: built from the Dockerfile (no local build context issues)
+#   - flint-gate, surrealdb: excluded (not needed for /healthz smoke test)
+#   - All named volumes use tmpfs so nothing persists across runs
+
+name: flint-realtime-fabric
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CARGO_FEATURES: dev-endpoints
+    ports:
+      - "28080:8080"
+      - "29090:9090"
+    environment:
+      BIND_ADDR: "0.0.0.0:8080"
+      GRPC_PORT: "9090"
+      IGGY_CONNECTION_STRING: "iggy://iggy:iggy@iggy-server:8090"
+      KETO_BASE_URL: "http://keto:4466"
+      KETO_NAMESPACE: "default"
+      GATEWAY_JWKS_URL: "http://localhost:4457/signing-keys"
+      JWT_AUDIENCE: "frf-gateway"
+      SFU_MODE: "hosted"
+      RUST_LOG: "info"
+      CDC_ENABLED: "false"
+      DEV_NO_AUTH: "true"
+    depends_on:
+      iggy-server:
+        condition: service_healthy
+      keto:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  iggy-server:
+    image: iggyrs/iggy:latest
+    volumes:
+      - iggy-data:/data
+    environment:
+      IGGY_SYSTEM_PATH: "/data"
+    healthcheck:
+      test: ["CMD-SHELL", "iggy --transport tcp --server-address localhost:8090 me 2>/dev/null || exit 0"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  keto:
+    image: oryd/keto:v0.12
+    ports:
+      - "4466:4466"
+      - "4467:4467"
+    environment:
+      DSN: memory
+      LOG_LEVEL: info
+      SERVE_READ_HOST: "0.0.0.0"
+      SERVE_READ_PORT: "4466"
+      SERVE_WRITE_HOST: "0.0.0.0"
+      SERVE_WRITE_PORT: "4467"
+    command: ["serve", "all"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4466/health/ready || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - "15432:5432"
+    environment:
+      POSTGRES_USER: frf
+      POSTGRES_PASSWORD: frf
+      POSTGRES_DB: frf
+    command: postgres -c wal_level=logical -c max_replication_slots=5 -c max_wal_senders=5
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U frf -d frf"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  iggy-data:

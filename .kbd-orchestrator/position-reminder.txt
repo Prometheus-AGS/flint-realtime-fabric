@@ -1,0 +1,10 @@
+POSITION REMINDER — read this as your FIRST tool call every turn
+Phase: phase-15-stage10-live-run-and-retries
+Step: 1 of 1
+Stage: operator_action_required
+Next command: ENABLE_INTEGRATION_STAGE=true dagger run ts-node dagger/codegen.ts
+
+Required signal format (emit BEFORE any tool call):
+  Starting <kbd-skill> — phase-15-stage10-live-run-and-retries (step 1 of 1)
+  [do work]
+  Completed <kbd-skill> — phase-15-stage10-live-run-and-retries (step 1 of 1)

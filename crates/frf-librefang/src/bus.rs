@@ -42,6 +42,11 @@ impl LibreFangBus {
         })
     }
 
+    /// Start the actor registry with default eviction parameters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`LibreFangError::SpawnFailed`] if the registry cannot be initialised.
     pub fn start() -> Result<Self, LibreFangError> {
         let registry = Arc::new(TenantActorRegistry::new());
         let eviction_handle = registry.spawn_eviction_task(IDLE_EVICTION_SECS, SWEEP_INTERVAL_SECS);

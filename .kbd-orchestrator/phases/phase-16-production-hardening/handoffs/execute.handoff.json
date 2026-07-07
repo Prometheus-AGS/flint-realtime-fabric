@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-06T15:40:09Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "Backend: openspec, driven via /kbd-apply one change at a time. 26 changes, security-first order (G1 c001-c007 gates all G2+). First pending: p16-c001 (remove compose auth bypass). Contract in execution.md; dispatch not auto-run.",
+  "skipped": false,
+  "skipReason": null
+}

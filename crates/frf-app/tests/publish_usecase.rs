@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)] // test/bench crate — see clippy.toml + rules/rust/testing.md
+
 use std::sync::Arc;
 
 use frf_app::{AppError, PublishRequest, PublishUseCase};
@@ -86,6 +88,21 @@ fn allow_authz() -> MockAuthz {
     authz
 }
 
+/// An envelope whose channel is owned by a DIFFERENT tenant than `test_claims()`
+/// (which uses the nil UUID). Used to exercise the tenant-equality guard.
+fn foreign_tenant_envelope() -> EventEnvelope {
+    EventEnvelope::new(
+        Channel {
+            id: ChannelId::new(),
+            tenant_id: TenantId::from_uuid(Uuid::from_u128(0xdead_beef)),
+            path: "other-tenant/channel".to_owned(),
+        },
+        Offset(0),
+        EventKind::EntityChange,
+        serde_json::Value::Null,
+    )
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -113,6 +130,59 @@ async fn returns_offset_on_success() {
 
     let result = usecase.execute(req).await;
     assert_eq!(result.unwrap(), Offset(42));
+}
+
+#[tokio::test]
+async fn allows_publish_when_tenant_matches_channel() {
+    // claims tenant == envelope channel tenant (both nil) → the guard passes and
+    // the publish proceeds through authz to the broker.
+    let mut broker = MockBroker::new();
+    broker.expect_publish().once().returning(|_| Ok(Offset(7)));
+
+    let mut identity = MockIdentity::new();
+    identity
+        .expect_verify()
+        .once()
+        .returning(|_| Ok(test_claims()));
+
+    let usecase = PublishUseCase::new(
+        Arc::new(broker),
+        Arc::new(allow_authz()),
+        Arc::new(identity),
+    );
+    let req = PublishRequest {
+        envelope: test_envelope(),
+        bearer_token: "tok".to_owned(),
+    };
+
+    assert_eq!(usecase.execute(req).await.unwrap(), Offset(7));
+}
+
+#[tokio::test]
+async fn rejects_publish_into_foreign_tenant_channel() {
+    // A caller authenticated for the nil tenant tries to publish into a channel
+    // owned by a different tenant. The tenant-equality guard must reject it
+    // BEFORE authz or the broker is consulted — so neither mock expects a call.
+    let broker = MockBroker::new(); // no expect_publish → panics if publish is reached
+    let authz = MockAuthz::new(); // no expect_check → panics if authz is reached
+
+    let mut identity = MockIdentity::new();
+    identity
+        .expect_verify()
+        .once()
+        .returning(|_| Ok(test_claims()));
+
+    let usecase = PublishUseCase::new(Arc::new(broker), Arc::new(authz), Arc::new(identity));
+    let req = PublishRequest {
+        envelope: foreign_tenant_envelope(),
+        bearer_token: "tok".to_owned(),
+    };
+
+    let result = usecase.execute(req).await;
+    assert!(
+        matches!(result, Err(AppError::Forbidden(_))),
+        "expected Forbidden (tenant mismatch), got {result:?}"
+    );
 }
 
 #[tokio::test]

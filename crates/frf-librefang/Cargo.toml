@@ -28,3 +28,6 @@ chrono = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
 tokio-stream = { workspace = true }
 futures-core = "0.3"
+
+[lints]
+workspace = true

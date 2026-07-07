@@ -61,8 +61,12 @@ where
             bearer_token: String::new(),
         };
         return match state.publish_usecase.execute(req).await {
-            Ok(offset) => Json(PublishResponse { offset: offset.0 }).into_response(),
+            Ok(offset) => {
+                crate::routes::metrics::record_publish("ok");
+                Json(PublishResponse { offset: offset.0 }).into_response()
+            }
             Err(e) => {
+                crate::routes::metrics::record_publish("error");
                 let status = match &e {
                     AppError::Unauthorized(_) | AppError::Identity(_) => StatusCode::UNAUTHORIZED,
                     AppError::Forbidden(_) => StatusCode::FORBIDDEN,
@@ -78,9 +82,8 @@ where
     };
 
     // JWT verification at this boundary — never trust claims downstream.
-    let claims = match state.identity.verify(&token).await {
-        Ok(c) => c,
-        Err(_) => return StatusCode::UNAUTHORIZED.into_response(),
+    let Ok(claims) = state.identity.verify(&token).await else {
+        return StatusCode::UNAUTHORIZED.into_response();
     };
 
     // Cedar action-policy check: Cedar governs mutation ops (publish).
@@ -112,8 +115,12 @@ where
     };
 
     match state.publish_usecase.execute(req).await {
-        Ok(offset) => Json(PublishResponse { offset: offset.0 }).into_response(),
+        Ok(offset) => {
+            crate::routes::metrics::record_publish("ok");
+            Json(PublishResponse { offset: offset.0 }).into_response()
+        }
         Err(e) => {
+            crate::routes::metrics::record_publish("error");
             let status = match &e {
                 AppError::Unauthorized(_) | AppError::Identity(_) => StatusCode::UNAUTHORIZED,
                 AppError::Forbidden(_) => StatusCode::FORBIDDEN,

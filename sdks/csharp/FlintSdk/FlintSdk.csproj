@@ -12,7 +12,15 @@
     <PackageReference Include="Grpc.Tools" Version="2.67.0" PrivateAssets="All" />
   </ItemGroup>
 
+  <!--
+    Proto is generated directly from the frozen source of truth at the repo root
+    (proto/flint/v1) — NOT a committed copy. This prevents the SDK's proto from
+    drifting from the contract (p16-c016). ProtoRoot keeps the `flint.v1` package
+    paths and cross-file imports resolving correctly.
+  -->
   <ItemGroup>
-    <Protobuf Include="proto/flint/v1/*.proto" GrpcServices="Client" />
+    <Protobuf Include="../../../proto/flint/v1/*.proto"
+              ProtoRoot="../../../proto"
+              GrpcServices="Client" />
   </ItemGroup>
 </Project>

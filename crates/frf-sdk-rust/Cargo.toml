@@ -1,0 +1,32 @@
+[package]
+name = "frf-sdk-rust"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Hand-written Rust client SDK for Flint Realtime Fabric — the single home for connection lifecycle, publish/subscribe, and (later) reconnection and CRDT merge"
+
+[lints]
+workspace = true
+
+[dependencies]
+frf-domain = { path = "../frf-domain" }
+frf-proto = { path = "../frf-proto" }
+tonic = { workspace = true }
+tonic-prost = "0.14"
+prost = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "sync", "time"] }
+tokio-stream = { workspace = true }
+futures-util = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+async-stream = "0.3"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+futures-util = { workspace = true }
+serde_json = { workspace = true }

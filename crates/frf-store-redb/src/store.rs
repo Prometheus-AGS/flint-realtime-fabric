@@ -52,12 +52,15 @@ impl RedbOpStore {
         Ok(Self { db: Arc::new(db) })
     }
 
-    /// Open an in-memory redb instance (useful for tests without tempfile).
+    /// Open an in-memory redb instance (no file backing).
+    ///
+    /// Useful for tests and for an ephemeral default op-store (e.g. the gateway's
+    /// default `SyncService` wiring). Data does not persist across restarts — use
+    /// [`RedbOpStore::open`] with a file path for durability.
     ///
     /// # Errors
     ///
     /// Returns `RedbOpStoreError` if database or table initialization fails.
-    #[cfg(test)]
     pub fn in_memory() -> Result<Self, RedbOpStoreError> {
         use redb::backends::InMemoryBackend;
         let db = Database::builder().create_with_backend(InMemoryBackend::new())?;

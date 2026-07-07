@@ -7,11 +7,12 @@
     "codegen": "ts-node codegen.ts"
   },
   "dependencies": {
-    "@dagger.io/dagger": "^0.11.0"
+    "@dagger.io/dagger": "^0.21.7"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5",
-    "@types/node": "^20.0.0"
+    "tsx": "^4.22.4",
+    "typescript": "^5.4.5"
   }
 }

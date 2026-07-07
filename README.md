@@ -15,9 +15,31 @@ core, the gateway, and every SDK.
 
 ## Current State
 
-**Phase 12 complete.** The workspace is fully built and operational.
+**Phase 17 — plane completion & release audit (complete).** Phase 16 hardened the
+security boundary and shipped the core deliverables; phase 17 independently re-audited
+the release claim, wired a per-change QA gate, and completed the pure-Rust deferred
+planes. The workspace builds clean and every CI gate is green.
 
-Active phase: `phase-13-live-layer3-e2e-validation` (pending kick-off).
+- **Security** (hardened in 16, re-verified in 17): production `compose.yml` cannot carry
+  the dev auth bypass (the override is now untracked); app-layer tenant-equality guard on
+  publish; **`JWT_ISSUER` mandatory in production**; `clippy::unwrap_used` enforced in CI;
+  rate-limit / body-size / CORS middleware; Cedar surfaces policy errors. An independent
+  re-audit found **zero CRITICAL and zero HIGH** in the production build.
+- **All six proto services are live**: Spine, Signal, Sync, Agent, plus the phase-17
+  **`EntityService`** (auth-guarded read/watch) and **`AuthzService`** (Keto-backed,
+  tenant-scoped) gateway servers.
+- **SDKs & CLI**: `frf-sdk-rust` binds all services; FFI (Swift/Kotlin) transport with
+  resilient reconnect + `ack`; TS/Go/C# wrappers cover all six services; `frf-cli` adds
+  broker-offset inspect and CDC slot management; Dart CRDT bindings generated via
+  `uniffi-bindgen-dart`. All SDKs generate from the frozen `proto-v1`.
+- **Operability**: `/readyz`, `/metrics`, graceful shutdown, boot-time config validation,
+  Keto migration step.
+- **Docs**: env reference, runbook, security model, API reference, and this state.
+
+Deferred to a future phase (documented, not silently missing): str0m sovereign SFU real
+WebRTC (signaling-only today, gated off), Matrix/ATProto federation + LiveKit cross-node
+relay, admin-ui interactive OIDC login, and the Dart **async-transport** bindings
+(pending an upstream `uniffi-bindgen-dart` fix).
 
 See `.kbd-orchestrator/current-waypoint.json` for the live orchestration state and
 `.kbd-orchestrator/phases/` for per-phase plans, assessments, and reflections.
@@ -234,6 +256,10 @@ separate Java SDK.
 |---|---|
 | `docs/IMPLEMENTATION-PLAN.md` | RFC-FRF-002 — authoritative phase-by-phase build plan |
 | `docs/PROMETHEUS-BASE-RULES.md` | Rules 1–40 for all agents |
+| `docs/ENVIRONMENT.md` | Environment-variable reference (required/secret/dev-only) |
+| `docs/RUNBOOK.md` | Deployment & operations runbook (topology, secrets, CDC, scaling) |
+| `docs/SECURITY.md` | Security model (auth boundary, tenant isolation, Keto/Cedar) |
+| `.env.example` | Environment template — copy to `.env` (gitignored) |
 | `docs/decisions/` | Architecture Decision Records (ADRs) |
 | `CLAUDE.md` | Project-specific agent constraints (extends base rules) |
 | `.kbd-orchestrator/` | KBD orchestration state — travels with the repo |

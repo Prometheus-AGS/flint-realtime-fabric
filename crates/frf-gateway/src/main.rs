@@ -4,15 +4,22 @@
 use std::sync::Arc;
 
 use anyhow::{Context as _, Result};
-use frf_app::{PublishUseCase, SubscribePipeline};
+use frf_app::SyncUseCase;
+use frf_app::{AuthzUseCase, EntityUseCase, PublishUseCase, SubscribePipeline};
 use frf_authz_keto::KetoAuthzProvider;
 use frf_bridge_atproto::AtProtoBridge;
 use frf_bridge_matrix::MatrixBridge;
 use frf_bridge_matrix::client::ReqwestMatrixClient;
 use frf_broker_iggy::IggyBroker;
+use frf_crdt::{InMemoryCrdtStore, LoroDeltaApplier};
 use frf_domain::{Channel, TenantId, ids::ChannelId};
 use frf_gateway::config::PolicyEngineMode;
-use frf_gateway::{AppState, GatewayConfig, agent_grpc_service::AgentGrpcService};
+use frf_gateway::{
+    AppState, GatewayConfig, agent_grpc_service::AgentGrpcService,
+    authz_grpc_service::AuthzGrpcService, entity_grpc_service::EntityGrpcService,
+    entity_store_mem::InMemoryEntityStore, grpc_service::SpineGrpcService,
+    signal_service::SpineSignalService, sync_grpc_service::SyncGrpcService,
+};
 use frf_identity_ory::OryIdentityVerifier;
 use frf_librefang::LibreFangBus;
 use frf_media_livekit::LiveKitSignaling;
@@ -23,6 +30,7 @@ use frf_ports::{
     LogBroker, NoOpPolicyProvider,
 };
 use frf_postgres_cdc::{CdcConfig, PostgresCdcConsumer};
+use frf_store_redb::RedbOpStore;
 use futures_util::StreamExt as _;
 use opentelemetry::KeyValue;
 use opentelemetry::global;
@@ -37,7 +45,7 @@ use tracing_subscriber::layer::SubscriberExt as _;
 use tracing_subscriber::util::SubscriberInitExt as _;
 use tracing_subscriber::{EnvFilter, fmt};
 
-fn init_telemetry() -> Option<TracerProvider> {
+fn init_telemetry() -> Result<Option<TracerProvider>> {
     let otlp_endpoint = std::env::var("OTEL_EXPORTER_OTLP_ENDPOINT").ok();
 
     if let Some(endpoint) = otlp_endpoint {
@@ -48,7 +56,7 @@ fn init_telemetry() -> Option<TracerProvider> {
             .with_tonic()
             .with_endpoint(endpoint)
             .build()
-            .expect("build OTLP span exporter");
+            .context("build OTLP span exporter")?;
 
         let resource = Resource::new(vec![KeyValue::new("service.name", service_name)]);
 
@@ -68,18 +76,27 @@ fn init_telemetry() -> Option<TracerProvider> {
             .with(EnvFilter::from_default_env())
             .init();
 
-        Some(provider)
+        Ok(Some(provider))
     } else {
         fmt().with_env_filter(EnvFilter::from_default_env()).init();
-        None
+        Ok(None)
     }
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let _tracer_provider = init_telemetry();
+    let tracer_provider = init_telemetry()?;
+
+    // Install the Prometheus recorder before any metric is recorded so the
+    // /metrics endpoint has data. Non-fatal: a failure only disables metrics.
+    if let Err(e) = frf_gateway::routes::metrics::install_recorder() {
+        tracing::warn!(error = %e, "metrics disabled — Prometheus recorder not installed");
+    }
 
     let config = GatewayConfig::from_env()?;
+    // Fail fast on semantically-invalid config (e.g. hosted SFU with empty
+    // LiveKit creds) rather than booting into a silently-broken state.
+    config.validate()?;
     let broker = Arc::new(IggyBroker::new(&config.iggy_connection_string).await?);
 
     // Pre-create the fixture channel used by integration and Layer 3 E2E tests.
@@ -87,8 +104,9 @@ async fn main() -> Result<()> {
     // ensure_channel is idempotent — safe to call on every restart.
     {
         use uuid::Uuid;
-        let fixture_tenant_uuid = Uuid::parse_str("00000000-0000-0000-0000-000000000001")
-            .expect("fixture tenant UUID is a compile-time constant");
+        // Fixture tenant 00000000-0000-0000-0000-000000000001, built infallibly
+        // from its integer value (no parse, no panic).
+        let fixture_tenant_uuid = Uuid::from_u128(1);
         let fixture_channel = Channel {
             id: ChannelId::new(),
             tenant_id: TenantId::from_uuid(fixture_tenant_uuid),
@@ -103,10 +121,15 @@ async fn main() -> Result<()> {
         &config.keto_base_url,
         &config.keto_namespace,
     ));
-    let identity = Arc::new(OryIdentityVerifier::new(
-        &config.gateway_jwks_url,
-        &config.jwt_audience,
-    ));
+    let identity = Arc::new(if let Some(issuer) = &config.jwt_issuer {
+        OryIdentityVerifier::with_issuer(&config.gateway_jwks_url, &config.jwt_audience, issuer)
+    } else {
+        tracing::warn!(
+            "JWT_ISSUER is not set — token issuer (iss) will NOT be validated. \
+             Set JWT_ISSUER in production so only your IdP's tokens are trusted."
+        );
+        OryIdentityVerifier::new(&config.gateway_jwks_url, &config.jwt_audience)
+    });
 
     let subscribe_pipeline = Arc::new(SubscribePipeline::new(
         Arc::clone(&broker),
@@ -154,10 +177,13 @@ async fn main() -> Result<()> {
     tracing::info!("frf-gateway listening on {bind_addr}");
     let listener = TcpListener::bind(bind_addr).await?;
 
-    tokio::select! {
-        result = axum::serve(listener, app) => { result?; }
-        _ = tokio::signal::ctrl_c() => { tracing::info!("received ctrl-c, shutting down"); }
-    }
+    // Graceful shutdown: on SIGTERM/SIGINT, axum stops accepting new connections
+    // and DRAINS in-flight requests (and WS streams) before `serve` returns,
+    // rather than aborting them mid-flight.
+    axum::serve(listener, app)
+        .with_graceful_shutdown(frf_gateway::shutdown_signal())
+        .await?;
+    tracing::info!("HTTP server drained; shutting down background tasks");
 
     let _ = shutdown_tx.send(true);
 
@@ -168,7 +194,7 @@ async fn main() -> Result<()> {
         task.abort();
     }
 
-    if let Some(provider) = _tracer_provider {
+    if let Some(provider) = tracer_provider {
         if let Err(e) = provider.shutdown() {
             tracing::warn!(error = %e, "OTEL tracer provider shutdown error");
         }
@@ -183,25 +209,71 @@ fn build_federation_bridges(
     let mut bridges: Vec<(FederationProtocol, Arc<dyn FederationBridge + Send + Sync>)> =
         Vec::new();
 
+    // Federation is HALF-implemented for v1 and OFF by default. Neither bridge is
+    // fully bidirectional (Matrix: outbound send only, inbound is a stub;
+    // ATProto: inbound jetstream only, outbound send returns unsupported), so it
+    // must be explicitly opted into. Nothing is silently wired.
+    if !config.federation_enabled {
+        if config.matrix_homeserver_url.is_some() || config.atproto_jetstream_url.is_some() {
+            tracing::warn!(
+                "Federation env vars are set but FEDERATION_ENABLED is not true — \
+                 Matrix/ATProto bridges are NOT wired (federation is opt-in for v1)"
+            );
+        }
+        return bridges;
+    }
+
+    // Configured tenant/channel for ingested events. Falls back to freshly-minted
+    // IDs only with a loud warning — a random per-boot tenant means ingested
+    // events land where no subscriber's JWT matches (they change every restart).
+    let (tenant_id, channel_id) = resolve_federation_ids(config);
+
     if let (Some(url), Some(token), Some(room)) = (
         &config.matrix_homeserver_url,
         &config.matrix_access_token,
         &config.matrix_room_id,
     ) {
         let client = ReqwestMatrixClient::new(url, token);
-        let bridge = MatrixBridge::new(client, room, TenantId::new(), ChannelId::new());
-        tracing::info!(room_id = %room, "Matrix federation bridge enabled");
+        let bridge = MatrixBridge::new(client, room, tenant_id, channel_id);
+        tracing::info!(
+            room_id = %room,
+            "Matrix federation bridge enabled (OUTBOUND send supported; INBOUND is a stub — no events until Tuwunel is wired)"
+        );
         bridges.push((FederationProtocol::Matrix, Arc::new(bridge)));
     }
 
     if let Some(url) = &config.atproto_jetstream_url {
         let collections = config.atproto_collections.clone();
-        let bridge = AtProtoBridge::new(url, collections, TenantId::new(), ChannelId::new());
-        tracing::info!(jetstream_url = %url, "ATProto federation bridge enabled");
+        let bridge = AtProtoBridge::new(url, collections, tenant_id, channel_id);
+        tracing::info!(
+            jetstream_url = %url,
+            "ATProto federation bridge enabled (INBOUND jetstream supported; OUTBOUND send is unsupported for v1)"
+        );
         bridges.push((FederationProtocol::AtProto, Arc::new(bridge)));
     }
 
     bridges
+}
+
+/// Resolve the tenant/channel that ingested federated events are stamped with.
+/// Uses configured values; falls back to random IDs with a loud warning (which
+/// makes federation effectively non-functional — for dev only).
+fn resolve_federation_ids(config: &GatewayConfig) -> (TenantId, ChannelId) {
+    let tenant_id = config.federation_tenant_id.map_or_else(
+        || {
+            tracing::warn!(
+                "FEDERATION_TENANT_ID not set — using a random per-boot tenant. Ingested \
+                 federated events will not match any subscriber and change every restart. \
+                 Set FEDERATION_TENANT_ID in production."
+            );
+            TenantId::new()
+        },
+        TenantId::from_uuid,
+    );
+    let channel_id = config
+        .federation_channel_id
+        .map_or_else(ChannelId::new, ChannelId::from_uuid);
+    (tenant_id, channel_id)
 }
 
 fn spawn_federation_ingest_tasks(
@@ -307,7 +379,16 @@ fn build_media_signaler(config: &GatewayConfig) -> DynMediaSignaler {
 
     match config.sfu_mode {
         SfuMode::Sovereign => {
-            tracing::info!("SFU mode: sovereign (str0m)");
+            // str0m sovereign SFU is DEFERRED for v1: the adapter does not perform
+            // real WebRTC (no Rtc/SDP/ICE, no RTP forwarding). It is selected here
+            // only if an operator explicitly sets SFU_MODE=sovereign — with a loud
+            // warning that media will NOT flow. LiveKit-hosted is the supported
+            // v1 media path.
+            tracing::warn!(
+                "SFU_MODE=sovereign selected, but the str0m sovereign SFU is NOT \
+                 implemented for v1 — no media will flow. Use SFU_MODE=hosted (LiveKit) \
+                 for a working media path. str0m is deferred to a future phase."
+            );
             DynMediaSignaler::new(Arc::new(StrOmSignaler::new()))
         }
         SfuMode::Hosted => {
@@ -344,11 +425,57 @@ fn spawn_grpc_server(
     };
 
     let grpc_addr: std::net::SocketAddr = format!("0.0.0.0:{grpc_port}").parse()?;
+
+    // Register every service that has a server implementation. SpineService is
+    // what the browser admin UI calls over Connect/gRPC-web (Subscribe/Publish).
+    // SyncService (CRDT sync) is wired here with an in-memory CRDT store + redb
+    // op-log + Loro applier. EntityService (read plane) is wired with an in-memory
+    // entity store. AuthzService is wired against the Keto-backed AuthzProvider.
+    // All six proto services now have server implementations.
+    let spine_svc = SpineGrpcService::new(Arc::clone(&state)).into_server();
+    let signal_svc = SpineSignalService::new(Arc::clone(&state.media_signaler)).into_server();
+
+    // SyncService: CRDT sync over bidi streaming. In-memory stores are the
+    // default; persistent deployments swap in frf-store-surreal / a redb file.
+    let sync_use_case = Arc::new(SyncUseCase::new(
+        InMemoryCrdtStore::default(),
+        RedbOpStore::in_memory().context("initialize redb in-memory op-store")?,
+        LoroDeltaApplier,
+    ));
+    let sync_svc = SyncGrpcService::new(sync_use_case).into_server();
+
+    // EntityService: read side of the entity plane. In-memory store is the default;
+    // reads are auth-guarded (identity + tenant-equality + Keto `view`) in the use-case.
+    // Built before `agent_svc` because that call consumes `state`.
+    let entity_use_case = Arc::new(EntityUseCase::new(
+        Arc::new(InMemoryEntityStore::new()),
+        Arc::clone(&state.authz),
+        Arc::clone(&state.identity),
+    ));
+    let entity_svc = EntityGrpcService::new(entity_use_case).into_server();
+
+    // AuthzService: check/write/delete relation tuples against Keto. Each op verifies the
+    // caller's token and enforces tenant-equality before delegating to the provider.
+    let authz_use_case = Arc::new(AuthzUseCase::new(
+        Arc::clone(&state.authz),
+        Arc::clone(&state.identity),
+    ));
+    let authz_svc = AuthzGrpcService::new(authz_use_case).into_server();
+
     let agent_svc = AgentGrpcService::new(state).into_server();
-    tracing::info!("frf-gateway gRPC listening on {grpc_addr}");
+    tracing::info!("frf-gateway gRPC (+gRPC-web) listening on {grpc_addr}");
 
     Ok(Some(tokio::spawn(async move {
+        // `accept_http1(true)` + GrpcWebLayer lets browsers reach these services
+        // via Connect-Web / gRPC-web (HTTP/1.1), not just native HTTP/2 gRPC.
         if let Err(e) = tonic::transport::Server::builder()
+            .accept_http1(true)
+            .layer(tonic_web::GrpcWebLayer::new())
+            .add_service(spine_svc)
+            .add_service(signal_svc)
+            .add_service(sync_svc)
+            .add_service(entity_svc)
+            .add_service(authz_svc)
             .add_service(agent_svc)
             .serve(grpc_addr)
             .await

@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)] // test/bench crate — see clippy.toml + rules/rust/testing.md
+
 // Native (non-wasm) test for the crdt_apply_delta WASM binding function.
 // Tests the pure-Rust path — no browser required.
 

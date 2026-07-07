@@ -1,7 +1,12 @@
 import { useSignalingStore } from "../stores/signalingStore.js";
 import type { SignalFrame } from "../stores/signalingStore.js";
+import { useAuthStore } from "../../auth/stores/authStore.js";
 
-const GATEWAY_WS_URL = (import.meta.env["VITE_GATEWAY_URL"] ?? "http://localhost:4000")
+// The /ws/v1/signal endpoint is an Axum WebSocket route on the gateway's HTTP
+// port (BIND_ADDR, default 8080) — distinct from the gRPC-web port used by
+// spineClient. Direct dev → :8080; the compose stack maps it to host 28080, so
+// set VITE_GATEWAY_WS_URL=http://localhost:28080 against compose.
+const GATEWAY_WS_URL = (import.meta.env["VITE_GATEWAY_WS_URL"] ?? "http://localhost:8080")
   .replace(/^http/, "ws");
 
 let activeSocket: WebSocket | null = null;
@@ -19,7 +24,11 @@ export async function openSignalStream(roomId: string, tenantId: string): Promis
   const { setStatus, setError, onSignalFrame } = useSignalingStore.getState();
 
   try {
-    const url = `${GATEWAY_WS_URL}/ws/v1/signal?room=${encodeURIComponent(roomId)}&tenant=${encodeURIComponent(tenantId)}`;
+    // Browser WebSocket cannot set an Authorization header, so the JWT (when
+    // present) is passed as a query param — the gateway verifies it there.
+    const token = useAuthStore.getState().accessToken;
+    const tokenParam = token ? `&token=${encodeURIComponent(token)}` : "";
+    const url = `${GATEWAY_WS_URL}/ws/v1/signal?room=${encodeURIComponent(roomId)}&tenant=${encodeURIComponent(tenantId)}${tokenParam}`;
     const socket = new WebSocket(url);
     activeSocket = socket;
 

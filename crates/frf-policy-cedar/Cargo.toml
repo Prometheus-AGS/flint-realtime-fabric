@@ -18,5 +18,5 @@ tracing = { workspace = true }
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
-[lints.clippy]
-pedantic = "warn"
+[lints]
+workspace = true

@@ -25,3 +25,6 @@ bytes.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time"] }
 async-trait.workspace = true
 uuid.workspace = true
+
+[lints]
+workspace = true

@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)] // test/bench crate — see clippy.toml + rules/rust/testing.md
+
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use loro::LoroDoc;
 

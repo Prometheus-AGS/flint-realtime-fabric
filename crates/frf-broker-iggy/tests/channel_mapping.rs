@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)] // test/bench crate — see clippy.toml + rules/rust/testing.md
+
 use frf_broker_iggy::channel::{partition_id, stream_name, topic_name};
 use frf_domain::TenantId;
 use uuid::Uuid;

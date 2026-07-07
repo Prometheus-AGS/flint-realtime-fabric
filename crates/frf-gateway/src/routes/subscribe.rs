@@ -63,9 +63,8 @@ where
     };
 
     #[cfg(not(feature = "dev-endpoints"))]
-    let token_for_req = match bearer_token(&headers) {
-        Some(t) => t,
-        None => return axum::http::StatusCode::UNAUTHORIZED.into_response(),
+    let Some(token_for_req) = bearer_token(&headers) else {
+        return axum::http::StatusCode::UNAUTHORIZED.into_response();
     };
 
     let Ok(channel_uuid) = Uuid::parse_str(&params.channel) else {
@@ -85,7 +84,10 @@ where
     };
 
     match state.subscribe_pipeline.execute(req).await {
-        Ok(stream) => ws.on_upgrade(move |socket| handle_socket(socket, stream)),
+        Ok(stream) => {
+            crate::routes::metrics::record_subscribe_opened();
+            ws.on_upgrade(move |socket| handle_socket(socket, stream))
+        }
         Err(e) => {
             use frf_app::AppError;
             let status = match &e {
@@ -110,6 +112,7 @@ async fn handle_socket(mut socket: WebSocket, mut stream: EventStream) {
                 if socket.send(Message::Text(json.into())).await.is_err() {
                     break;
                 }
+                crate::routes::metrics::record_delivery();
             }
             Err(_) => break,
         }

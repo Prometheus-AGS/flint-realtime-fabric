@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
-# Regenerate the Dart/Flutter SDK from frf-ffi via flutter_rust_bridge_codegen 2.11.1.
+# Regenerate the Dart/Flutter SDK from the UniFFI FFI crate (frf-ffi).
+#
+# The FFI crate is UniFFI-based (same surface as the Swift/Kotlin bindings), so
+# the Dart bindings are generated with uniffi-bindgen-dart — NOT flutter_rust_bridge.
+# FRB cannot parse a UniFFI crate (it errors on the #[uniffi::export] surface).
 #
 # Prerequisites:
-#   - flutter_rust_bridge_codegen 2.11.1: `cargo install flutter_rust_bridge_codegen`
-#   - Flutter SDK on PATH
-#   - Rust toolchain with frf-ffi compilable for the host
+#   - uniffi-bindgen-dart:  `cargo install uniffi-bindgen-dart`
+#   - Dart/Flutter SDK on PATH
+#   - Rust toolchain able to build frf-ffi as a cdylib for the host
 #
 # Usage (from workspace root):
 #   ./sdks/dart/build_dart.sh
@@ -13,17 +17,19 @@ set -euo pipefail
 
 WORKSPACE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DART_SDK_DIR="$WORKSPACE_ROOT/sdks/dart"
-FFI_CRATE="$WORKSPACE_ROOT/crates/frf-ffi"
+RUST_OUT="$DART_SDK_DIR/lib/src/rust"
 
-echo "==> Generating Dart bridge from frf-ffi..."
-flutter_rust_bridge_codegen generate \
-    --rust-input "$FFI_CRATE/src/lib.rs" \
-    --dart-output "$DART_SDK_DIR/lib/src/rust/frb_generated.dart" \
-    --dart-root "$DART_SDK_DIR" \
-    --rust-root "$WORKSPACE_ROOT"
+echo "==> Building frf-ffi cdylib (release)..."
+(cd "$WORKSPACE_ROOT" && cargo build -p frf-ffi --release)
 
-echo "==> Running flutter pub get..."
-(cd "$DART_SDK_DIR" && flutter pub get)
+LIB="$WORKSPACE_ROOT/target/release/libfrf_ffi.dylib"
+[ -f "$LIB" ] || LIB="$WORKSPACE_ROOT/target/release/libfrf_ffi.so"
+
+echo "==> Generating Dart bindings via uniffi-bindgen-dart..."
+uniffi-bindgen-dart generate --library "$LIB" --out-dir "$RUST_OUT"
+
+echo "==> Running dart pub get..."
+(cd "$DART_SDK_DIR" && dart pub get)
 
 echo "==> Done. Generated files:"
-find "$DART_SDK_DIR/lib/src/rust" -name "*.dart" | sort
+find "$RUST_OUT" -name "*.dart" | sort
