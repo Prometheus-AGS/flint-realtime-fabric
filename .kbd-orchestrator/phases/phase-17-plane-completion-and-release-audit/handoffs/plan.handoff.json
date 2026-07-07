@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-07T02:01:03Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "10 changes, verify+pure-Rust scope (str0m WebRTC + federation + admin-ui-login deferred to phase-18 per operator). Order: G1 residual (c001 compose footgun, c002 JWT_ISSUER) → c003 QA gate (constraints.md + wire /refine-validate, prerequisite for gating the rest) → c004/c005 pure-Rust Entity/Authz servers (highest leverage) → c006 SDK/FFI parity → c007 CLI commands → c008 Dart bindings → c009 docs → c010 re-audit sign-off. First change to apply: p17-c001.",
+  "skipped": false,
+  "skipReason": null
+}

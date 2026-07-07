@@ -15,6 +15,7 @@
     "@base-ui-components/react": "^1.0.0-rc.0",
     "@prometheusags/frf-entity-management": "workspace:*",
     "@prometheusags/frf-sdk": "workspace:*",
+    "@connectrpc/connect": "^1.7.0",
     "@connectrpc/connect-web": "^1.6.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

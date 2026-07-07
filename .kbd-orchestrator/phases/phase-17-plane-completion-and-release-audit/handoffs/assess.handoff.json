@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-07T01:53:47Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Independent re-audit done against real code. G1 MET: zero CRITICAL/HIGH survive in prod build (7 controls verified); cargo check/clippy(+unwrap_used)/fmt all green. Residual: 1 MEDIUM (committed compose.override.yml auto-merges dev bypass+secret), 2 LOW. G2 NOT MET: artifact-refiner never ran (no .refiner/, no constraints.md — must author constraints first). G3 NOT MET: all 7 planes honestly-stubbed (no dangerous cases); cheapest-first = pure-Rust EntityService/AuthzService servers. 12 change candidates A1-A12 with recommended ordering + 3 open questions for plan (scope big planes A10/A11, CDC CLI re-scope, Dart toolchain availability).",
+  "skipped": false,
+  "skipReason": null
+}

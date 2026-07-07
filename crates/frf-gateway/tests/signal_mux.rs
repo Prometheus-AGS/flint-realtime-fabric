@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)] // test/bench crate — see clippy.toml + rules/rust/testing.md
+
 // p8-c004: RunAgent bidi stream integration tests.
 //
 // These tests verify the filtering and cancellation logic that AgentGrpcService
@@ -193,7 +195,7 @@ fn make_state(
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-/// The AgentService subscribes to the bus and filters events by (agent_id, session_id).
+/// The `AgentService` subscribes to the bus and filters events by (`agent_id`, `session_id`).
 /// Verify that the domain stream returned by `AgentEventBus::subscribe` can be filtered
 /// correctly — this is the core of what `run_agent` does on the outbound side.
 #[tokio::test]

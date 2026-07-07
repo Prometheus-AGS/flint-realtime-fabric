@@ -44,7 +44,7 @@ flint-realtime-fabric/
 │   ├── frf-proto/           # generated from proto/ via tonic-build
 │   ├── frf-broker-iggy/     # Adapter: LogBroker → Apache Iggy
 │   ├── frf-authz-keto/      # Adapter: AuthzProvider → Ory Keto
-│   ├── frf-identity-ory/    # Adapter: IdentityVerifier → Kratos/Oathkeeper
+│   ├── frf-identity-ory/    # Adapter: IdentityVerifier → Kratos/flint-gate (JWT)
 │   ├── frf-policy-cedar/    # Adapter: action policy → Cedar
 │   ├── frf-postgres-cdc/    # Adapter: WAL logical replication → spine
 │   ├── frf-crdt/            # Adapter: Loro/automerge + CrdtStore
@@ -97,7 +97,7 @@ Interface (frf-gateway)
 | gRPC | tonic + prost |
 | Actors | ractor (BossFang / LibreFang) |
 | Event spine | Apache Iggy (GQAdonis fork) behind `LogBroker` |
-| Identity | Ory Kratos / Oathkeeper (JWT) |
+| Identity | Ory Kratos + flint-gate (JWT proxy + minting) |
 | AuthZ | Ory Keto (Zanzibar) + Cedar (PAUX-1) |
 | CRDT | Loro **or** automerge-rs — **OPEN, decide before Phase 3** |
 | On-device store | redb |
@@ -275,7 +275,7 @@ These are load-bearing choices. Do not code around them without a decision. Surf
 
 - **Tenant isolation** is enforced at the Keto (Zanzibar) layer, not in application code.
 - **Per-event RLS:** Keto `check(subject, "view", object_id)` before every fan-out delivery — design caching at subscribe time to avoid per-event Keto latency at scale.
-- **JWT verification** via Oathkeeper at the gateway boundary. Never trust unverified claims downstream.
+- **JWT verification** via flint-gate at the gateway boundary. flint-gate mints outbound JWTs; frf-gateway verifies them using `GATEWAY_JWKS_URL`. Never trust unverified claims downstream.
 - **Cedar** governs action policy (mutating ops), not visibility. Do not conflate with Keto.
 - **Never log** JWT payloads, relation tuples, or tenant identifiers in debug output.
 

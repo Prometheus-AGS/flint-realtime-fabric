@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)] // test/bench crate — see clippy.toml + rules/rust/testing.md
+
 use frf_domain::TenantId;
 use frf_postgres_cdc::CdcConfig;
 use uuid::Uuid;

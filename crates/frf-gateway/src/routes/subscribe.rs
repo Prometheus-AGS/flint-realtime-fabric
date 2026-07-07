@@ -51,7 +51,19 @@ where
     B: AgentEventBus + 'static,
     P: ActionPolicyProvider + 'static,
 {
-    let Some(token) = bearer_token(&headers) else {
+    #[cfg(feature = "dev-endpoints")]
+    let token_for_req = if crate::config::dev_no_auth() {
+        // Auth bypassed — dev-endpoints build with DEV_NO_AUTH=true.
+        String::new()
+    } else {
+        match bearer_token(&headers) {
+            Some(t) => t,
+            None => return axum::http::StatusCode::UNAUTHORIZED.into_response(),
+        }
+    };
+
+    #[cfg(not(feature = "dev-endpoints"))]
+    let Some(token_for_req) = bearer_token(&headers) else {
         return axum::http::StatusCode::UNAUTHORIZED.into_response();
     };
 
@@ -67,12 +79,15 @@ where
 
     let req = SubscribeRequest {
         channel_id,
-        bearer_token: token,
+        bearer_token: token_for_req,
         from: Offset::BEGINNING,
     };
 
     match state.subscribe_pipeline.execute(req).await {
-        Ok(stream) => ws.on_upgrade(move |socket| handle_socket(socket, stream)),
+        Ok(stream) => {
+            crate::routes::metrics::record_subscribe_opened();
+            ws.on_upgrade(move |socket| handle_socket(socket, stream))
+        }
         Err(e) => {
             use frf_app::AppError;
             let status = match &e {
@@ -97,6 +112,7 @@ async fn handle_socket(mut socket: WebSocket, mut stream: EventStream) {
                 if socket.send(Message::Text(json.into())).await.is_err() {
                     break;
                 }
+                crate::routes::metrics::record_delivery();
             }
             Err(_) => break,
         }

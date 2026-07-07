@@ -34,8 +34,18 @@ jobs:
         uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: cargo clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings -W clippy::pedantic
+      # Restriction gate (unwrap_used / expect_used, denied in
+      # [workspace.lints.clippy]) runs on PRODUCTION code only — lib + bins.
+      # Test/#[cfg(test)] code may use unwrap()/expect() (clippy.toml +
+      # allow-in-tests). Both feature configs are checked so the dev-endpoints
+      # auth-bypass path is also linted.
+      - name: cargo clippy (production — restriction gate)
+        run: |
+          cargo clippy --workspace --lib --bins -- -D warnings -W clippy::pedantic
+          cargo clippy --workspace --lib --bins --features frf-gateway/dev-endpoints -- -D warnings -W clippy::pedantic
+      # Test targets: pedantic only (unwrap/expect allowed per clippy.toml).
+      - name: cargo clippy (tests — pedantic)
+        run: cargo clippy --workspace --tests -- -D warnings -W clippy::pedantic
 
   test:
     name: Test suite

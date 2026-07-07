@@ -93,6 +93,9 @@ dagger/dist/
 
 # ── Docker ────────────────────────────────────────────────────────────────────
 *.tar
+# Local dev override is untracked — it enables the dev-endpoints/DEV_NO_AUTH bypass
+# and must never be a deploy base. Copy compose.override.example.yml to start.
+compose.override.yml
 
 # ── macOS ─────────────────────────────────────────────────────────────────────
 .DS_Store
@@ -126,3 +129,9 @@ coverage/
 # Commit all KBD state so orchestrator context travels with the repo.
 # Exclude only runtime lock files that are meaningless on another machine.
 .kbd-orchestrator/**/*.lock
+
+# Local orchestration / QA state and test-output artifacts (not versioned)
+.refiner/
+.prometheus/
+admin-ui/playwright-report/
+admin-ui/test-results/

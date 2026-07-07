@@ -5,7 +5,7 @@
   - Services: `postgres` (image: postgres:17-alpine, wal_level=logical),
     `iggy` (image: iggyrs/iggy:latest)
   - Environment variables for gateway: CDC_ENABLED=true, CDC_REPLICATION_URL,
-    IGGY_CONNECTION_STRING, stub KETO/OATHKEEPER vars pointing to localhost noops
+    IGGY_CONNECTION_STRING, stub KETO/FLINT_GATE vars pointing to localhost noops
   - Verification: `docker compose -f docker-compose.test.yml config` exits 0
 
 - [ ] **T2** Create `tests/browser/` directory and Playwright config

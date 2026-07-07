@@ -24,7 +24,7 @@ The ADR records:
    of cumulative delay per second of agent streaming. CLAUDE.md itself notes
    "design caching at subscribe time to avoid per-event Keto latency at scale."
 3. **Rationale**:
-   - `tenant_id` is extracted from JWT-verified `VerifiedClaims` at the Oathkeeper
+   - `tenant_id` is extracted from JWT-verified `VerifiedClaims` at flint-gate
      boundary — the source is the verified identity, not caller-supplied data.
    - `bus.subscribe(&tenant_id)` scopes the channel to that tenant; no cross-tenant
      event delivery is possible by construction.

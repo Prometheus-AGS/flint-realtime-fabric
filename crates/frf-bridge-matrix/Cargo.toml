@@ -20,5 +20,5 @@ tracing = { workspace = true }
 chrono = { workspace = true }
 uuid = { workspace = true }
 
-[lints.clippy]
-pedantic = "warn"
+[lints]
+workspace = true

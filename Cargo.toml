@@ -6,6 +6,8 @@ members = [
     "crates/frf-agentproto",
     "crates/frf-librefang",
     "crates/frf-proto",
+    "crates/frf-sdk-rust",
+    "crates/frf-cli",
     "crates/frf-gateway",
     "crates/frf-app",
     "crates/frf-broker-iggy",
@@ -32,12 +34,25 @@ license = "MIT"
 repository = "https://github.com/prometheusags/flint-realtime-fabric"
 rust-version = "1.85"
 
+# Centralized lint policy — every crate opts in via `[lints] workspace = true`.
+# `unwrap_used` is the CLAUDE.md hard gate: no unwrap()/expect() in library code.
+# It is a `restriction`-group lint (not covered by `pedantic`), so it must be
+# named explicitly. clippy skips `#[cfg(test)]` code automatically, so tests may
+# still use unwrap()/expect() freely.
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"
+
 [workspace.dependencies]
 # Web / gateway
 axum = { version = "0.8.8", features = ["ws", "macros"] }
 axum-extra = { version = "0.10", features = ["typed-header"] }
 tower = "0.5"
-tower-http = { version = "0.6", features = ["cors", "trace", "compression-br"] }
+tower-http = { version = "0.6", features = ["cors", "trace", "compression-br", "limit"] }
+tower_governor = "0.8"
+rust-embed = "8"
+mime_guess = "2"
 
 # Async runtime
 tokio = { version = "1.52", features = ["full"] }
@@ -45,6 +60,7 @@ tokio-stream = "0.1"
 
 # gRPC / proto
 tonic = { version = "0.14", features = ["transport", "tls-ring"] }
+tonic-web = "0.14"
 prost = "0.14"
 prost-types = "0.14"
 
@@ -62,6 +78,7 @@ http = "1.2"
 # Error handling
 thiserror = "2.0"
 anyhow = "1.0"
+clap = { version = "4", features = ["derive", "env"] }
 
 # Observability
 tracing = "0.1"
@@ -85,6 +102,8 @@ async-trait = "0.1"
 
 # HTTP / WebSocket clients
 reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+metrics = "0.24"
+metrics-exporter-prometheus = { version = "0.18", default-features = false }
 tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"] }
 
 # JWT / identity

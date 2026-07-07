@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::error::IdentityError;
 
-/// JWT payload claims emitted by Oathkeeper's `id_token` mutator.
+/// JWT payload claims minted by flint-gate's `claims_enhancement` pre-request hook.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FrfClaims {
     /// Subject — the Kratos identity UUID.

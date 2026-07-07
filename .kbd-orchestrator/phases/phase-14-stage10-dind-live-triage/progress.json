@@ -5,24 +5,24 @@
   "childPointer": null,
   "assessment_complete": true,
   "plan_complete": true,
-  "execute_complete": false,
-  "reflect_complete": false,
+  "execute_complete": true,
+  "reflect_complete": true,
   "changes_total": 6,
-  "changes_completed": 0,
-  "completed_changes": [],
-  "active_change": null,
-  "blocked_changes": [],
-  "pending_changes": [
+  "changes_completed": 5,
+  "completed_changes": [
     "p14-c001-oathkeeper-jwks",
     "p14-c002-gateway-dev-no-auth",
     "p14-c003-phase6-spec-tenant-id",
     "p14-c004-phase6-spec-404-fix",
-    "p14-c005-enable-federation-stage",
-    "p14-c006-wasm-size-baseline"
+    "p14-c005-enable-federation-stage"
   ],
+  "active_change": null,
+  "blocked_changes": [],
+  "pending_changes": [],
   "notes": {
-    "p14-c006-wasm-size-baseline": "MANUAL — requires DinD Stage 6 run; operator runs make baseline-wasm"
+    "p14-c006-wasm-size-baseline": "MANUAL — requires DinD Stage 6 run; operator runs make baseline-wasm",
+    "p14-c007-playwright-retries": "DEFERRED — requires live flakiness data from Stage 10 run"
   },
-  "sourceTool": "kbd-plan",
+  "sourceTool": "kbd-reflect",
   "updatedAt": "2026-06-30T00:00:00Z"
 }

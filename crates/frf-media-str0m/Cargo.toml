@@ -7,8 +7,8 @@ repository.workspace = true
 rust-version.workspace = true
 description = "Sovereign WebRTC SFU signaling adapter using str0m for Flint Realtime Fabric"
 
-[lints.clippy]
-pedantic = "warn"
+[lints]
+workspace = true
 
 [dependencies]
 frf-domain = { path = "../frf-domain" }
@@ -23,3 +23,7 @@ bytes = { workspace = true }
 dashmap = { workspace = true }
 futures-util = { workspace = true }
 serde_json = { workspace = true }
+
+[dev-dependencies]
+# Used by the sfu.rs unit tests to build SignalEnvelope fixtures with timestamps.
+chrono = { workspace = true }

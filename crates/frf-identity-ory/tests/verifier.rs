@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)] // test/bench crate — see clippy.toml + rules/rust/testing.md
+
 use frf_identity_ory::OryIdentityVerifier;
 use frf_ports::IdentityVerifier;
 use httpmock::prelude::*;
@@ -50,6 +52,80 @@ fn make_jwt(_tenant_id: &str, exp_offset_secs: i64) -> String {
 
     let key = EncodingKey::from_rsa_pem(&private_key_pem()).expect("test RSA private key");
     encode(&header, &claims, &key).expect("encode JWT")
+}
+
+/// Mint a JWT that additionally carries an `iss` (issuer) claim.
+fn make_jwt_with_iss(issuer: &str, exp_offset_secs: i64) -> String {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    #[allow(clippy::cast_possible_wrap, clippy::cast_sign_loss)]
+    let exp = (now as i64 + exp_offset_secs) as u64;
+
+    let claims = serde_json::json!({
+        "sub": Uuid::new_v4().to_string(),
+        "email": "user@example.com",
+        "tenant_id": Uuid::nil().to_string(),
+        "roles": ["viewer"],
+        "jti": Uuid::new_v4().to_string(),
+        "aud": ["frf-gateway"],
+        "iss": issuer,
+        "exp": exp,
+    });
+
+    let mut header = Header::new(Algorithm::RS256);
+    header.kid = Some(TEST_KID.to_owned());
+
+    let key = EncodingKey::from_rsa_pem(&private_key_pem()).expect("test RSA private key");
+    encode(&header, &claims, &key).expect("encode JWT")
+}
+
+const TEST_ISSUER: &str = "https://idp.example.com";
+
+fn iss_test_server() -> (MockServer, String) {
+    let server = MockServer::start();
+    server.mock(|when, then| {
+        when.method(GET).path("/.well-known/jwks.json");
+        then.status(200).json_body(test_jwks_json());
+    });
+    let jwks_url = format!("{}/.well-known/jwks.json", server.base_url());
+    (server, jwks_url)
+}
+
+#[tokio::test]
+async fn verify_accepts_token_with_matching_issuer() {
+    let (_server, jwks_url) = iss_test_server();
+    let verifier = OryIdentityVerifier::with_issuer(jwks_url, "frf-gateway", TEST_ISSUER);
+    let token = make_jwt_with_iss(TEST_ISSUER, 300);
+
+    let claims = verifier
+        .verify(&token)
+        .await
+        .expect("verify should succeed");
+    assert_eq!(claims.email.as_deref(), Some("user@example.com"));
+}
+
+#[tokio::test]
+async fn verify_rejects_token_with_wrong_issuer() {
+    let (_server, jwks_url) = iss_test_server();
+    let verifier = OryIdentityVerifier::with_issuer(jwks_url, "frf-gateway", TEST_ISSUER);
+    // Token minted by a DIFFERENT issuer — must be rejected.
+    let token = make_jwt_with_iss("https://evil.example.com", 300);
+
+    let result = verifier.verify(&token).await;
+    assert!(result.is_err(), "expected rejection for mismatched issuer");
+}
+
+#[tokio::test]
+async fn verify_rejects_token_with_missing_issuer_when_issuer_required() {
+    let (_server, jwks_url) = iss_test_server();
+    let verifier = OryIdentityVerifier::with_issuer(jwks_url, "frf-gateway", TEST_ISSUER);
+    // make_jwt has no `iss` claim at all — must be rejected when an issuer is required.
+    let token = make_jwt(Uuid::nil().to_string().as_str(), 300);
+
+    let result = verifier.verify(&token).await;
+    assert!(result.is_err(), "expected rejection for absent issuer");
 }
 
 #[tokio::test]

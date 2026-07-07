@@ -12,7 +12,7 @@ context: |
   - gRPC: tonic + prost (proto-generated)
   - Actors: ractor (BossFang/LibreFang)
   - Event spine: Apache Iggy (GQAdonis fork) behind LogBroker trait
-  - Identity: Ory Kratos + Oathkeeper (JWT)
+  - Identity: Ory Kratos + flint-gate (JWT proxy + minting)
   - AuthZ: Ory Keto (Zanzibar/ReBAC) + Cedar (action policy)
   - CRDT: Loro 1.13.1 (ADR-001 — decided Phase 3)
   - On-device store: redb

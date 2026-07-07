@@ -1,4 +1,4 @@
-# p1-c005 — frf-identity-ory: IdentityVerifier → Ory Oathkeeper
+# p1-c005 — frf-identity-ory: IdentityVerifier → flint-gate
 
 ## Affected crates
 - `crates/frf-identity-ory` (new — stub created by p1-c001)
@@ -10,11 +10,11 @@ Layer 2 (infrastructure adapter). Imports `frf-domain` and `frf-ports`. Implemen
 
 Implements the `IdentityVerifier` port using JWKS-based JWT verification.
 
-### Verification strategy (Oathkeeper-proxied)
-Oathkeeper is the authentication proxy. By the time a request reaches `frf-gateway`, Oathkeeper has already validated the upstream bearer token and re-minted a new signed JWT (via the `id_token` mutator). The gateway receives this re-minted token.
+### Verification strategy (flint-gate-proxied)
+flint-gate is the authentication proxy. By the time a request reaches `frf-gateway`, flint-gate has already validated the upstream bearer token and re-minted a new signed JWT (via the `claims_enhancement` hook). The gateway receives this re-minted token.
 
 `frf-identity-ory` verifies this re-minted JWT:
-1. Fetch JWKS from Oathkeeper's `/.well-known/jwks.json` (cached in memory)
+1. Fetch JWKS from flint-gate's `/signing-keys` admin endpoint (cached in memory)
 2. Decode + verify the JWT signature against the cached JWKS
 3. Extract claims: `sub`, `email`, `tenant_id` (custom claim), `roles` (custom claim)
 4. Return `VerifiedClaims`
@@ -32,7 +32,7 @@ pub struct OryIdentityVerifier {
 ```
 
 ### `VerifiedClaims` extraction
-Custom JWT claims expected (set by Oathkeeper id_token mutator):
+Custom JWT claims expected (set by flint-gate claims_enhancement hook):
 ```json
 {
   "sub": "user-uuid",
@@ -57,6 +57,6 @@ crates/frf-identity-ory/src/
 `verify()` tested with a known RSA-signed test JWT and a mock JWKS server (httpmock). Key rotation retry path tested.
 
 ## Non-goals
-- Does not implement the full Kratos SDK (`GET /sessions/whoami`) — that is the fallback for Phase 1 dev; implement only the Oathkeeper-proxied path.
+- Does not implement the full Kratos SDK (`GET /sessions/whoami`) — that is the fallback for Phase 1 dev; implement only the flint-gate-proxied path.
 - Does not implement token refresh or session management.
 - Does not handle PASETO or non-JWT token formats.

@@ -33,7 +33,7 @@ The test is a Playwright browser automation test that:
 7. Asserts no console errors from WASM initialization
 
 A `docker-compose.test.yml` is provided for the test stack with minimal service
-definitions (Postgres + Iggy only; Keto/Oathkeeper stubs via mock env vars).
+definitions (Postgres + Iggy only; Keto/flint-gate stubs via mock env vars).
 
 ## Non-goals
 - Does not test LiveKit signaling E2E (requires LiveKit Cloud credentials)

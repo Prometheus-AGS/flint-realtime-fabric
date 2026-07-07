@@ -63,7 +63,7 @@ pnpm test:e2e      # Playwright E2E (Layer 1 only — no gateway needed)
 
 ## Full compose stack
 
-Start the full stack (gateway + iggy + keto + oathkeeper + surrealdb + postgres):
+Start the full stack (gateway + iggy + keto + flint-gate + surrealdb + postgres):
 
 ```bash
 make compose-up

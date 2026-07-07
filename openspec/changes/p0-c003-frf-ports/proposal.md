@@ -15,7 +15,7 @@ _frf-ports compiles; frf-app can be wired against it without adapter crates pres
 2. Defines six async trait seams from RFC-FRF-002 §02:
    - `LogBroker` — publish/subscribe/seek on the event spine (Iggy behind this).
    - `AuthzProvider` — Zanzibar-style permission check (Keto behind this).
-   - `IdentityVerifier` — JWT/OIDC token verification (Kratos/Oathkeeper behind this).
+   - `IdentityVerifier` — JWT/OIDC token verification (Kratos/flint-gate behind this).
    - `CrdtStore` — checkpoint / restore CRDT state (SurrealDB behind this).
    - `MediaSignaler` — WebRTC offer/answer/ICE relay (str0m / LiveKit behind this).
    - `FederationBridge` — send/receive federated events (Tuwunel/Tranquil behind this).

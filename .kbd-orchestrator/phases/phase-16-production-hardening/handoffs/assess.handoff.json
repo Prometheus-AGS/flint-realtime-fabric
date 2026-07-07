@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-06T15:31:30Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "All G1-G5 targets verified still open (baseline). Auth bypass spans 3 compose files — fix must keep CI/dev functional. Open scope calls for plan: str0m real-vs-defer (G2.1), Matrix/ATProto federation in-scope-vs-defer (G2.5), unwrap_used rollout strategy (G1.3).",
+  "skipped": false,
+  "skipReason": null
+}

@@ -12,7 +12,7 @@ document notes: "design caching at subscribe time to avoid per-event Keto
 latency at scale."
 
 Phase 5 introduced `LibreFangBus` as the agent event bus. Its `ws_agent_stream`
-handler extracts `tenant_id` from `VerifiedClaims` (JWT-verified by Oathkeeper
+handler extracts `tenant_id` from `VerifiedClaims` (JWT-verified by flint-gate
 at the gateway boundary) and passes it to `bus.subscribe(&tenant_id)`. The bus
 routes events only to subscribers on that tenant's channel. No per-event Keto
 check is performed.
@@ -50,7 +50,7 @@ caching as the mitigation.
 The `LibreFangBus` uses **subscription-scoped tenant isolation**:
 
 1. At subscribe time, `tenant_id` is extracted from `VerifiedClaims` produced
-   by Oathkeeper JWT verification at the gateway boundary. The `tenant_id` is
+   by flint-gate JWT verification at the gateway boundary. The `tenant_id` is
    never supplied by the caller — it comes only from the verified token.
 
 2. A **subscribe-time Keto check** is performed before the subscription channel
@@ -74,7 +74,7 @@ The `LibreFangBus` uses **subscription-scoped tenant isolation**:
 ### Why subscription-scoped isolation is sufficient for Phase 6
 
 - **Source integrity**: `tenant_id` comes from `VerifiedClaims`, which are
-  produced by Oathkeeper after verifying the JWT signature. The gateway never
+  produced by flint-gate after verifying and re-minting the JWT. The gateway never
   accepts caller-supplied `tenant_id` directly.
 - **Channel isolation**: the `PublisherActor` / `TenantActorRegistry` only
   delivers events to subscribers registered under the exact same `tenant_id`.

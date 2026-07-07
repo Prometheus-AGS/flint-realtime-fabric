@@ -1,0 +1,61 @@
+# ⚠️  LOCAL DEVELOPMENT OVERRIDE — NEVER USE AS A DEPLOY BASE  ⚠️
+#
+# This file enables the `dev-endpoints` build feature and `DEV_NO_AUTH=true`, which
+# DISABLE AUTHENTICATION. It exists only for local development. The production image is
+# built from the bare `compose.yml` (no `dev-endpoints` feature), so this bypass cannot
+# exist in a release binary — but do not point a deployment at this override.
+#
+# Setup:
+#   cp compose.override.example.yml compose.override.yml
+#   # then edit compose.override.yml (it is gitignored) — set a local dev secret via .env
+#   docker compose up -d
+#     (docker compose merges compose.yml + compose.override.yml automatically)
+#
+# The real compose.override.yml is gitignored so no dev secret or auth-bypass config is
+# ever committed. This template ships only placeholders.
+
+name: flint-realtime-fabric
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Dev stack opts into dev-endpoints so DEV_NO_AUTH below can take effect.
+        # The base compose.yml image is built WITHOUT this feature.
+        CARGO_FEATURES: dev-endpoints
+    environment:
+      IGGY_CONNECTION_STRING: "iggy://iggy:iggy@iggy-server:8090"
+      # Skip identity verification in dev — flint-gate is not started in this profile
+      GATEWAY_JWKS_URL: "http://localhost:4457/signing-keys"
+      JWT_AUDIENCE: "dev"
+      KETO_BASE_URL: "http://localhost:4466"
+      RUST_LOG: "debug"
+      DEV_NO_AUTH: "true"
+    depends_on:
+      - iggy-server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # Disable all auth/infra services in dev — use `--profile full` to enable
+  keto:
+    profiles: ["full"]
+
+  flint-gate:
+    profiles: ["full"]
+    environment:
+      # Dev-only signing secret. Sourced from .env so no credential literal is committed.
+      # Set FLINT_GATE_JWT_SECRET in your local .env (see .env.example). The fallback here
+      # is a placeholder, NOT a usable credential.
+      FLINT_GATE_JWT_SECRET: "${FLINT_GATE_JWT_SECRET:-change-me-local-dev-only}"
+
+  surrealdb:
+    profiles: ["full"]
+
+  postgres:
+    profiles: ["full"]

@@ -69,7 +69,7 @@ impl<B: AgentEventBus> AgentService for AgentServiceImpl<B> {
 pub async fn ws_agent_stream<L, A, I, M, B>(
     ws: WebSocketUpgrade,
     State(state): State<Arc<AppState<L, A, I, M, B>>>,
-    // JWT claims from Oathkeeper header (per CLAUDE.md security constraints)
+    // JWT claims from flint-gate header (per CLAUDE.md security constraints)
     claims: VerifiedClaims,
 ) -> impl IntoResponse {
     ws.on_upgrade(move |socket| handle_agent_ws(socket, state, claims))

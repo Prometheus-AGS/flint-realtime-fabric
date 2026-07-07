@@ -1,0 +1,31 @@
+[package]
+name = "frf-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Operator + dev CLI for Flint Realtime Fabric (Keto tuples, CDC slots, broker offsets, checkpoints)"
+
+[[bin]]
+name = "frf"
+path = "src/main.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+frf-domain = { path = "../frf-domain" }
+frf-ports = { path = "../frf-ports" }
+frf-authz-keto = { path = "../frf-authz-keto" }
+frf-broker-iggy = { path = "../frf-broker-iggy" }
+frf-postgres-cdc = { path = "../frf-postgres-cdc" }
+clap = { workspace = true }
+anyhow = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+# Slot admin (create/drop) runs plain SQL over a normal (non-replication) connection.
+tokio-postgres = { workspace = true }

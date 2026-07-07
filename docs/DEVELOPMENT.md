@@ -48,7 +48,7 @@ pnpm test:e2e      # Playwright E2E — Layer 1 only, no gateway needed
 
 ## Full compose stack
 
-Start the full stack (gateway + iggy + keto + oathkeeper + surrealdb + postgres):
+Start the full stack (gateway + iggy + keto + flint-gate + surrealdb + postgres):
 
 ```bash
 make compose-up
@@ -77,8 +77,8 @@ make compose-down
 | iggy | 8090 | 8090 | Apache Iggy broker |
 | keto read | 4466 | 4466 | Ory Keto relation API |
 | keto write | 4467 | 4467 | Ory Keto write API |
-| oathkeeper proxy | 14455 | 4455 | Oathkeeper proxy |
-| oathkeeper API | 14456 | 4456 | JWKS / health |
+| flint-gate proxy | 14456 | 4456 | Auth proxy (JWT verification + minting) |
+| flint-gate admin | 14457 | 4457 | Admin API — signing keys at `/signing-keys` |
 | SurrealDB | 8001 | 8000 | REST + WS |
 | PostgreSQL | 15432 | 5432 | CDC + storage |
 

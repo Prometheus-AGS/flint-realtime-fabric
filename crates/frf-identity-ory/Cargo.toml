@@ -1,6 +1,6 @@
 [package]
 name = "frf-identity-ory"
-description = "Adapter: IdentityVerifier → Ory Oathkeeper (JWKS JWT verification)"
+description = "Adapter: IdentityVerifier → flint-gate (JWKS JWT verification)"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -25,3 +25,6 @@ httpmock.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 uuid.workspace = true
 serde_json.workspace = true
+
+[lints]
+workspace = true

@@ -14,9 +14,17 @@ pub struct OryIdentityVerifier {
     jwks_url: String,
     jwks_cache: JwksCache,
     audience: String,
+    /// Expected token issuer (`iss` claim). When `Some`, the issuer is validated
+    /// and mismatched/absent issuers are rejected. When `None`, issuer validation
+    /// is skipped — this should only happen in tests or explicitly-unsecured dev.
+    issuer: Option<String>,
 }
 
 impl OryIdentityVerifier {
+    /// Construct a verifier that validates signature and audience but NOT issuer.
+    ///
+    /// Prefer [`OryIdentityVerifier::with_issuer`] in production — an unvalidated
+    /// issuer means any `IdP` whose key resolves via the JWKS URL is trusted.
     #[must_use]
     pub fn new(jwks_url: impl Into<String>, audience: impl Into<String>) -> Self {
         Self {
@@ -24,6 +32,24 @@ impl OryIdentityVerifier {
             jwks_url: jwks_url.into(),
             jwks_cache: new_cache(),
             audience: audience.into(),
+            issuer: None,
+        }
+    }
+
+    /// Construct a verifier that additionally validates the `iss` claim against
+    /// `issuer`. Tokens with a missing or mismatched issuer are rejected.
+    #[must_use]
+    pub fn with_issuer(
+        jwks_url: impl Into<String>,
+        audience: impl Into<String>,
+        issuer: impl Into<String>,
+    ) -> Self {
+        Self {
+            http: reqwest::Client::new(),
+            jwks_url: jwks_url.into(),
+            jwks_cache: new_cache(),
+            audience: audience.into(),
+            issuer: Some(issuer.into()),
         }
     }
 
@@ -47,6 +73,14 @@ impl OryIdentityVerifier {
 
         let mut validation = Validation::new(Algorithm::RS256);
         validation.set_audience(&[&self.audience]);
+        if let Some(issuer) = &self.issuer {
+            // Rejects tokens whose `iss` is absent or does not match — prevents
+            // trusting any IdP that merely happens to resolve via the JWKS URL.
+            // `set_issuer` alone validates the value only when present; requiring
+            // the `iss` claim also rejects tokens that omit it entirely.
+            validation.set_issuer(&[issuer]);
+            validation.set_required_spec_claims(&["exp", "aud", "iss"]);
+        }
 
         let data = decode::<FrfClaims>(token, &decoding_key, &validation)
             .map_err(|e| IdentityError::Verification(e.to_string()))?;

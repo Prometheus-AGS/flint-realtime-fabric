@@ -5,8 +5,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        CARGO_FEATURES: dev-endpoints
+      # No CARGO_FEATURES — the release image is built WITHOUT `dev-endpoints`,
+      # so the DEV_NO_AUTH auth-bypass code path does not exist in this binary.
+      # Dev/CI stacks opt into the feature explicitly (compose.override.yml,
+      # compose.ci.yml).
     ports:
       - "28080:8080"
       - "29090:9090"
@@ -16,9 +18,9 @@ services:
       IGGY_CONNECTION_STRING: "iggy://iggy:iggy@iggy-server:8090"
       KETO_BASE_URL: "http://keto:4466"
       KETO_NAMESPACE: "default"
-      OATHKEEPER_JWKS_URL: "http://oathkeeper:4456/.well-known/jwks.json"
+      GATEWAY_JWKS_URL: "http://flint-gate:4457/signing-keys"
       JWT_AUDIENCE: "frf-gateway"
-      SFU_MODE: "sovereign"
+      SFU_MODE: "hosted"
       RUST_LOG: "info"
       CDC_ENABLED: "true"
       CDC_REPLICATION_URL: "postgres://frf:frf@postgres:5432/frf?replication=database"
@@ -26,15 +28,27 @@ services:
       CDC_PUBLICATION_NAME: "frf_pub"
       CDC_TENANT_ID: "00000000-0000-0000-0000-000000000001"
       CDC_CHANNEL_PATH: "entities"
+      # DEV_NO_AUTH is intentionally ABSENT here. This is the production-shaped
+      # stack: JWT verification via flint-gate is required. The dev override
+      # (compose.override.yml) re-adds DEV_NO_AUTH for local work; CI uses
+      # compose.ci.yml. Never set DEV_NO_AUTH in this file.
     depends_on:
       iggy-server:
         condition: service_healthy
       keto:
-        condition: service_started
+        # service_healthy (not just service_started) — keto is healthy only after
+        # keto-migrate completes and `keto serve` reports ready, so the gateway
+        # never boots against an unmigrated/unready authz store.
+        condition: service_healthy
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      # Gate on /readyz (readiness) — the gateway reports healthy only once
+      # Keto, JWKS, and Iggy are reachable, so anything with
+      # `depends_on: gateway: condition: service_healthy` waits for real readiness,
+      # not just the process being up. /healthz (liveness) is used by CI's minimal
+      # stack where those dependencies are excluded.
+      test: ["CMD", "curl", "-f", "http://localhost:8080/readyz"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -55,6 +69,18 @@ services:
       retries: 10
       start_period: 10s
 
+  # One-shot schema migration. Required before `keto serve` on any persistent DSN
+  # (a no-op for dsn:memory, harmless to always run). `keto` waits for this to
+  # complete successfully, so `keto serve` never starts against an unmigrated DB.
+  keto-migrate:
+    image: oryd/keto:v0.12
+    volumes:
+      - ./deploy/keto:/etc/config/keto
+    command: migrate up -c /etc/config/keto/keto.yml -y
+    environment:
+      LOG_LEVEL: info
+    restart: "no"
+
   keto:
     image: oryd/keto:v0.12
     ports:
@@ -65,6 +91,9 @@ services:
     command: serve -c /etc/config/keto/keto.yml
     environment:
       LOG_LEVEL: info
+    depends_on:
+      keto-migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:4466/health/ready || exit 1"]
       interval: 5s
@@ -72,20 +101,32 @@ services:
       retries: 10
       start_period: 10s
 
-  oathkeeper:
-    image: oryd/oathkeeper:v0.40
+  flint-gate:
+    build:
+      context: /Users/gqadonis/Projects/prometheus/flint-gate
+      dockerfile: Dockerfile
     ports:
-      - "14455:4455"
       - "14456:4456"
+      - "14457:4457"
+    environment:
+      DATABASE_URL: "postgres://frf:frf@postgres:5432/frf"
+      # Sourced from the environment / secret manager — never hardcoded. Compose
+      # fails fast if it is unset. Provide it via a .env file (gitignored) or your
+      # orchestrator's secret store. See .env.example.
+      FLINT_GATE_JWT_SECRET: "${FLINT_GATE_JWT_SECRET:?FLINT_GATE_JWT_SECRET must be set (see .env.example); never commit this value}"
+      FLINT_GATE_CONFIG: "/app/config/config.yaml"
+      RUST_LOG: "info,flint_gate=debug"
     volumes:
-      - ./deploy/oathkeeper:/etc/config/oathkeeper
-    command: serve proxy -c /etc/config/oathkeeper/config.yml
+      - ./deploy/flint-gate/config.yaml:/app/config/config.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:4456/health/ready || exit 1"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-      start_period: 10s
+      test: ["CMD-SHELL", "printf '' > /dev/tcp/localhost/4456 2>/dev/null && echo ok || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   surrealdb:
     image: surrealdb/surrealdb:latest

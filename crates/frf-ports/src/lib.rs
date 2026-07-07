@@ -5,6 +5,7 @@
 pub mod agent_bus;
 pub mod authz;
 pub mod crdt_store;
+pub mod entity_store;
 pub mod error;
 pub mod federation;
 pub mod identity;
@@ -16,6 +17,7 @@ pub mod policy;
 pub use agent_bus::{AgentEventBus, AgentEventStream};
 pub use authz::{AuthzProvider, RelationTuple};
 pub use crdt_store::{CrdtSnapshot, CrdtStore};
+pub use entity_store::{EntityChangeStream, EntityStore};
 pub use error::PortError;
 pub use federation::{FederatedEvent, FederationBridge, FederationProtocol};
 pub use identity::{IdentityVerifier, VerifiedClaims};
