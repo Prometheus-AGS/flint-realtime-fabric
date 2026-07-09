@@ -24,6 +24,10 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  # The base compose.yml's flint-gate service requires this at interpolation time (both `build` and
+  # `up`), so it must be set job-wide, not just on the run step. Ephemeral CI value for the throwaway
+  # stack — flint-gate is not exercised by the decode path (the runner self-serves an RS256 JWKS).
+  FLINT_GATE_JWT_SECRET: e2e-ci-not-for-prod
 
 jobs:
   decode-proof:
@@ -57,8 +61,6 @@ jobs:
       - name: Run the decoded-media proof
         # Native Linux host networking + 172.17.0.1 host addressing (run-media-decode.sh auto-detects
         # Linux). Asserts framesDecoded > 0; the job fails if the receiver never decodes a frame.
-        env:
-          FLINT_GATE_JWT_SECRET: e2e-ci-not-for-prod
         run: ./scripts/run-media-decode.sh
 
       - name: Collect gateway logs (always)
