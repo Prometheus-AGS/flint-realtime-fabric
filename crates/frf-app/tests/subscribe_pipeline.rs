@@ -66,6 +66,11 @@ fn test_claims() -> VerifiedClaims {
         tenant_id: TenantId::from_uuid(Uuid::nil()),
         subject: "user-123".to_owned(),
         email: None,
+        role: None,
+        principal_type: None,
+        agent_id: None,
+        workflow_id: None,
+        scope: None,
         roles: vec![],
     }
 }

@@ -12,6 +12,11 @@ pub struct FrfClaims {
     pub sub: String,
     pub email: Option<String>,
     pub tenant_id: Option<String>,
+    pub role: Option<String>,
+    pub principal_type: Option<String>,
+    pub agent_id: Option<String>,
+    pub workflow_id: Option<String>,
+    pub scope: Option<String>,
     pub roles: Option<Vec<String>>,
     /// JWT ID — used as the session identifier.
     pub jti: Option<String>,
@@ -46,6 +51,11 @@ pub fn to_verified_claims(claims: FrfClaims) -> Result<VerifiedClaims, IdentityE
         tenant_id: TenantId::from_uuid(tenant_uuid),
         subject: claims.sub,
         email: claims.email,
+        role: claims.role,
+        principal_type: claims.principal_type,
+        agent_id: claims.agent_id,
+        workflow_id: claims.workflow_id,
+        scope: claims.scope,
         roles: claims.roles.unwrap_or_default(),
     })
 }

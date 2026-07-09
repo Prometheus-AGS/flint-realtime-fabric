@@ -36,6 +36,11 @@ impl IdentityVerifier for AlwaysVerify {
             tenant_id: self.tenant_id,
             subject: "test-subject".to_owned(),
             email: None,
+            role: None,
+            principal_type: None,
+            agent_id: None,
+            workflow_id: None,
+            scope: None,
             roles: vec![],
         })
     }
@@ -189,6 +194,7 @@ fn make_state(
         log_broker: Arc::new(NoopBroker),
         action_policy: Arc::new(NoOpPolicyProvider),
         federation_bridges: vec![],
+        media_bridge: None,
         config: Arc::new(GatewayConfig::test_default()),
     })
 }

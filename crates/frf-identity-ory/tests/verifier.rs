@@ -41,6 +41,11 @@ fn make_jwt(_tenant_id: &str, exp_offset_secs: i64) -> String {
         "sub": Uuid::new_v4().to_string(),
         "email": "user@example.com",
         "tenant_id": Uuid::nil().to_string(),
+        "role": "agent",
+        "principal_type": "Agent",
+        "agent_id": "agent-1",
+        "workflow_id": "workflow-1",
+        "scope": "read write",
         "roles": ["viewer"],
         "jti": Uuid::new_v4().to_string(),
         "aud": ["frf-gateway"],
@@ -142,6 +147,11 @@ async fn verify_valid_jwt_returns_claims() {
 
     let claims = verifier.verify(&token).await.expect("verify failed");
     assert_eq!(claims.email.as_deref(), Some("user@example.com"));
+    assert_eq!(claims.role.as_deref(), Some("agent"));
+    assert_eq!(claims.principal_type.as_deref(), Some("Agent"));
+    assert_eq!(claims.agent_id.as_deref(), Some("agent-1"));
+    assert_eq!(claims.workflow_id.as_deref(), Some("workflow-1"));
+    assert_eq!(claims.scope.as_deref(), Some("read write"));
     assert!(!claims.roles.is_empty());
 }
 

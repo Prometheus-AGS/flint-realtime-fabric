@@ -10,6 +10,11 @@ pub struct VerifiedClaims {
     pub tenant_id: TenantId,
     pub subject: String,
     pub email: Option<String>,
+    pub role: Option<String>,
+    pub principal_type: Option<String>,
+    pub agent_id: Option<String>,
+    pub workflow_id: Option<String>,
+    pub scope: Option<String>,
     pub roles: Vec<String>,
 }
 
