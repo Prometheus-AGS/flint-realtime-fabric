@@ -14,6 +14,12 @@ name: Decode proof
 
 on:
   workflow_dispatch:
+  # A `push` trigger scoped to the proof branch runs the job from the branch's OWN copy of this
+  # workflow — unlike `workflow_dispatch`, which GitHub only registers from the default branch. This
+  # lets the decode proof run on a feature branch with `main` untouched (p35-c002). Remove/limit
+  # before merge so it does not run the heavy stack on every push to main.
+  push:
+    branches: ["sovereign-sfu-decode-proof"]
 
 env:
   CARGO_TERM_COLOR: always
