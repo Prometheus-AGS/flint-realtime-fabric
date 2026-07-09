@@ -8,6 +8,7 @@ pub mod entity_grpc_service;
 pub mod entity_store_mem;
 pub mod error;
 pub mod grpc_service;
+pub mod media_bridge;
 pub mod routes;
 pub mod signal_service;
 pub mod sync_grpc_service;
@@ -49,6 +50,9 @@ pub struct AppState<L, A, I, M, B, P> {
         frf_ports::FederationProtocol,
         Arc<dyn FederationBridge + Send + Sync>,
     )>,
+    /// Sovereign SFU bridge — present only for `SFU_MODE=sovereign`. Drives the str0m media
+    /// engine from the `/ws/v1/signal` inbound path (p23-c003). `None` for hosted deployments.
+    pub media_bridge: Option<Arc<media_bridge::MediaTransportBridge>>,
     pub config: Arc<GatewayConfig>,
 }
 

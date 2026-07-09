@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-09T23:14:01Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "Operator chose Target A: GitHub Actions ubuntu-latest. 2 changes, serial G1/G2→G3, no engine change. c001 p35-c001-ci-decode-job: Linux-portable runner (default path uses 172.17.0.1 for gateway→JWKS, no colima ssh, HOST_NET stays gated) + a new decode-proof CI job (ubuntu-latest, workflow_dispatch: build gateway image → docker compose up sovereign stack → run Playwright decode → assert framesDecoded>0; native host networking; secrets generated in-job, S1-clean). c002 p35-c002-decode-run-and-flip: trigger the job, flip only on framesDecoded>0 (uploads gateway logs + report as artifacts). No same-host macOS/Colima variants. First apply: p35-c001-ci-decode-job.",
+  "skipped": false,
+  "skipReason": null
+}

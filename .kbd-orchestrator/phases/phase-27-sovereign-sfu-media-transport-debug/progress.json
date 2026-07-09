@@ -1,0 +1,21 @@
+{
+  "phase": "phase-27-sovereign-sfu-media-transport-debug",
+  "changes_total": 4,
+  "changes_completed": 4,
+  "completed_changes": [
+    "p27-c001-media-instrumentation",
+    "p27-c002-trickle-ice-over-ws",
+    "p27-c003-room-join-fanout",
+    "p27-c004-decode-run-and-flip"
+  ],
+  "pending_changes": [],
+  "active_change": null,
+  "assessment_complete": true,
+  "plan_complete": true,
+  "execute_complete": true,
+  "reflect_complete": true,
+  "phase_complete": false,
+  "seededFrom": "phase-26-gateway-docker-adminui-embed-and-decode",
+  "createdAt": "2026-07-09T01:50:00Z",
+  "updatedAt": "2026-07-09T04:15:00Z"
+}

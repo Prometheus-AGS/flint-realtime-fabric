@@ -12,6 +12,9 @@ pub enum AtProtoBridgeError {
 
     #[error("ATProto event projection failed: {0}")]
     Projection(String),
+
+    #[error("ATProto PDS write error: {0}")]
+    Write(String),
 }
 
 impl From<AtProtoBridgeError> for PortError {

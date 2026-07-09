@@ -1,0 +1,11 @@
+{
+  "stage": "reflect",
+  "completedAt": "2026-07-08T09:39:31Z",
+  "outputs": [
+    "reflection.md"
+  ],
+  "nextStage": null,
+  "summaryForNext": "Phase-20 closed 6/6, first-pass QA 4/4 (zero BLOCKs). Built the sovereign SFU media plane to the DTLS-CONNECTED milestone behind a new MediaTransport port (ADR-005): async per-session str0m engine over a tokio UdpSocket (c003), trickle-ICE wiring (c004), crypto install + wait_for_connected (c005). Delta: G3 full RTP + G4 gate-flip delivered as a proven milestone + correct deferral, NOT faked — RTP split to phase-21 by ADR-005; the two-peer connected proof needs an offerer role the answerer-only port lacks, so it is #[ignore] integration-gated. SFU_MODE=sovereign stays off (connected != media). Corrective/next: phase-21-sovereign-rtp-forwarding already seeded — offerer role + un-gate the proof, RTP MediaData forwarding (SPLIT session.rs first, it's 498/500 lines), per-room fan-out+PLI, then flip the gate only when media flows; LiveKit+OIDC carried. Recommended next phase: phase-21-sovereign-rtp-forwarding.",
+  "skipped": false,
+  "skipReason": null
+}

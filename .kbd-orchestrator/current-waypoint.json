@@ -1,15 +1,18 @@
 {
-  "phase": "phase-17-plane-completion-and-release-audit",
-  "previousPhase": "phase-16-production-hardening",
-  "status": "reflected",
-  "exactNextCommand": "/kbd-next-phase",
-  "activeChange": null,
-  "changesCompleted": 10,
-  "changesTotal": 10,
-  "updatedAt": "2026-07-07T00:00:00Z",
+  "phase": "phase-35-sovereign-sfu-decode-ci-linux-proof",
+  "previousPhase": "phase-34-sovereign-sfu-decode-turn-relay-and-flip",
+  "status": "apply_pending",
+  "exactNextCommand": "/kbd-apply p28-c003-decode-run-and-flip",
+  "activeChange": "p28-c003-decode-run-and-flip",
+  "changesCompleted": 2,
+  "changesTotal": 3,
+  "updatedAt": "2026-07-09T05:40:00Z",
   "planComplete": true,
   "assessmentComplete": true,
   "executeComplete": false,
   "reflectComplete": false,
-  "backend": "openspec"
+  "backend": "openspec",
+  "next": "/kbd-apply p35-c002-decode-run-and-flip",
+  "changes_completed": 1,
+  "changes_total": 2
 }

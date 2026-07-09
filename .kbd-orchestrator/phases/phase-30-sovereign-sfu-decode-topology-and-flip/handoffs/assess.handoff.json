@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-09T14:39:30Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "G1 (candidate topology) CONFIRMED as the phase core. DECISIVE finding: Docker engine is Colima (Linux VM on macOS), so host-networking (C) and host-side srflx (B) both fail the host↔VM split — the only robust fix is Option A: run the browser INSIDE the Docker network (Chromium-in-container on the compose network) so browser + SFU candidates share one address space. resolve_advertised_ip already handles hostnames (no engine change). Engine proven correct phase-29 — this is a harness/compose restructure. OPEN operator decision: confirm Option A (recommended) before c001. Plan: c001 browser-in-Docker harness, c002 decode+conditional flip.",
+  "skipped": false,
+  "skipReason": null
+}

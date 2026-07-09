@@ -1,0 +1,25 @@
+{
+  "phase": "phase-20-sovereign-sfu-media-loop",
+  "changes_total": 6,
+  "changes_completed": 6,
+  "completed_changes": [
+    "p20-c001-media-transport-port-adr",
+    "p20-c002-media-transport-port-trait",
+    "p20-c003-str0m-async-session-loop",
+    "p20-c004-trickle-ice-wiring",
+    "p20-c005-dtls-connected-milestone",
+    "p20-c006-g5-reaffirm-and-phase-21-seed"
+  ],
+  "pending_changes": [],
+  "active_change": null,
+  "assessment_complete": true,
+  "plan_complete": true,
+  "execute_complete": true,
+  "reflect_complete": true,
+  "phase_complete": true,
+  "seededFrom": "phase-19-sovereign-media-and-federation-completion",
+  "createdAt": "2026-07-08T00:00:00Z",
+  "updatedAt": "2026-07-08T00:00:00Z",
+  "executeDispatched": true,
+  "backend": "openspec"
+}

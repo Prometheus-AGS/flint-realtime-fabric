@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-08T08:33:23Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "6 changes, ADR-gated. c001 ADR-005 (new MediaTransport port — the G1 arch blocker) → c002 port trait in frf-ports → c003 async per-session str0m loop (evolve c006 TransportLoop, add tokio net/time) → c004 trickle-ICE wiring (plumbing unit-tested, connectivity integration-gated) → c005 DTLS-connected milestone (RTP forwarding SPLIT to phase-21) → c006 re-affirm G5 + seed phase-21-sovereign-rtp-forwarding + close. Operator locked: new MediaTransport port, phase-20 stops at DTLS-connected (RTP→phase-21), no live infra (G5 carried/gated). SFU_MODE=sovereign stays off. First change: p20-c001-media-transport-port-adr.",
+  "skipped": false,
+  "skipReason": null
+}

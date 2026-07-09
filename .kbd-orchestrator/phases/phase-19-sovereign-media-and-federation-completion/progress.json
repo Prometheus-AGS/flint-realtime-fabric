@@ -1,0 +1,26 @@
+{
+  "phase": "phase-19-sovereign-media-and-federation-completion",
+  "changes_total": 7,
+  "changes_completed": 7,
+  "completed_changes": [
+    "p19-c001-admin-ui-lint-debt",
+    "p19-c002-atproto-outbound-gateway-wiring",
+    "p19-c003-dart-async-defer-reaffirm",
+    "p19-c004-oidc-idp-adr",
+    "p19-c005-livekit-inbound-relay-capability",
+    "p19-c006-str0m-udp-transport-loop-spike",
+    "p19-c007-phase-20-seed-and-docs-close"
+  ],
+  "pending_changes": [],
+  "active_change": null,
+  "assessment_complete": true,
+  "plan_complete": true,
+  "execute_complete": true,
+  "reflect_complete": true,
+  "phase_complete": true,
+  "seededFrom": "phase-18-media-federation-and-auth-flow",
+  "createdAt": "2026-07-07T00:00:00Z",
+  "updatedAt": "2026-07-08T00:00:00Z",
+  "executeDispatched": true,
+  "backend": "openspec"
+}

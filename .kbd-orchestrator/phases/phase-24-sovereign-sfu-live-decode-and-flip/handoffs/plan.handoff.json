@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-08T16:56:07Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "5 changes: c001 str0m bind-config seam (0.0.0.0 + advertise_ip + fixed UDP port, loopback default kept) → c002 compose sovereign+UDP → c003 Keto view seed → c004 Dagger decode job (framesDecoded>0, the proof) → c005 flip-or-reaffirm. Operator-confirmed: flip ONLY on genuine framesDecoded>0; if GAP-1/live-run runs long, land what's done + re-affirm gated (no forced flip). First: p24-c001-str0m-bind-config.",
+  "skipped": false,
+  "skipReason": null
+}

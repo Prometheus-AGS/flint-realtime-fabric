@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-09T15:38:06Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "2 changes, serial G1→G2. Decision locked: browser-in-Docker (only robust fix on Colima). c001 p30-c001-browser-in-docker-harness: Playwright/Chromium service (mcr.microsoft.com/playwright:v1.52.0) on the compose network + in-network GATEWAY_URL (gateway:8080) + --unsafely-treat-insecure-origin secure-context + STUN via coturn service name; runner runs spec in-container. No engine change expected. c002 p30-c002-decode-run-and-flip: re-run, flip only on framesDecoded>0. First apply: p30-c001-browser-in-docker-harness.",
+  "skipped": false,
+  "skipReason": null
+}

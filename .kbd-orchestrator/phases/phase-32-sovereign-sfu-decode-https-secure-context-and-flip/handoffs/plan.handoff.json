@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-09T17:17:36Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "2 changes, serial G1→G2, no engine change. c001 p32-c001-tls-sidecar-secure-context: Caddy TLS sidecar (reverse_proxy gateway:8080, auto self-signed, :8443) on the compose net + GATEWAY_URL=https://caddy:8443 (page https + wss auto) + Chromium --ignore-certificate-errors + DROP the p31 unsafe-origin flags. c002 p32-c002-decode-run-and-flip: run over HTTPS, flip only on framesDecoded>0; if it's another harness/VM layer, invoke the ENVIRONMENT-PIVOT recommendation (move proof to CI/another host — 9th attempt on an unstable local VM). Manual prereq before c002 (via !): colima start; build gateway image once. First apply: p32-c001-tls-sidecar-secure-context.",
+  "skipped": false,
+  "skipReason": null
+}

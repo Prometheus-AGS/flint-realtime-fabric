@@ -1,0 +1,23 @@
+{
+  "phase": "phase-22-sovereign-sfu-npeer-pli",
+  "changes_total": 4,
+  "changes_completed": 4,
+  "completed_changes": [
+    "p22-c001-npeer-fanout-proof",
+    "p22-c002-pli-keyframe-forwarding",
+    "p22-c003-gateway-sovereign-composition",
+    "p22-c004-carry-e2e-and-close"
+  ],
+  "pending_changes": [],
+  "active_change": null,
+  "assessment_complete": true,
+  "plan_complete": true,
+  "execute_complete": true,
+  "reflect_complete": true,
+  "phase_complete": false,
+  "seededFrom": "phase-21-sovereign-rtp-forwarding",
+  "createdAt": "2026-07-08T00:00:00Z",
+  "updatedAt": "2026-07-08T13:20:00Z",
+  "executeDispatched": true,
+  "backend": "openspec"
+}

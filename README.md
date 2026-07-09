@@ -15,10 +15,21 @@ core, the gateway, and every SDK.
 
 ## Current State
 
-**Phase 17 — plane completion & release audit (complete).** Phase 16 hardened the
-security boundary and shipped the core deliverables; phase 17 independently re-audited
-the release claim, wired a per-change QA gate, and completed the pure-Rust deferred
-planes. The workspace builds clean and every CI gate is green.
+**Phase 18 — media, federation & auth-flow (complete).** Phases 16–17 hardened the
+security boundary, shipped the core deliverables, and completed the pure-Rust planes;
+phase 18 fixed the remaining correctness bugs and completed the scoped deferred planes
+(Matrix inbound, ATProto outbound, a str0m WebRTC-negotiation spike, admin-ui token
+hardening, and a Dart transport shim). The workspace builds clean and every CI gate is
+green — see `docs/PHASE-18-SIGNOFF.md` and the CHANGELOG.
+
+Phase-18 highlights: the str0m signaling **routing bug is fixed** (unicast/room fan-out,
+no self-echo); **Matrix inbound** streams real `/sync` events (no Tuwunel dep); **ATProto
+outbound** writes to a PDS; the **str0m negotiation round-trip is proven** (full media loop
+deferred); admin-ui **auto-logs-out on token expiry / gateway 401**. Still deferred (gated
+off, documented in `docs/SECURITY.md` §6): full sovereign SFU media, LiveKit cross-node
+inbound, full OIDC login, and ATProto outbound gateway wiring.
+
+The phase-16/17 summary below still holds:
 
 - **Security** (hardened in 16, re-verified in 17): production `compose.yml` cannot carry
   the dev auth bypass (the override is now untracked); app-layer tenant-equality guard on

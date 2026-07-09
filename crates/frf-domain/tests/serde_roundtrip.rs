@@ -132,6 +132,7 @@ fn signal_envelope_roundtrip() {
         sfu_mode: SfuMode::Sovereign,
         payload: serde_json::json!({"sdp": "v=0..."}),
         timestamp: Utc::now(),
+        subject: Some("user:alice".to_string()),
     });
 }
 

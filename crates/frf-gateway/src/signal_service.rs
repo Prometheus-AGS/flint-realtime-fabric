@@ -24,12 +24,34 @@ use uuid::Uuid;
 ///   token are rejected with `UNAUTHENTICATED` before any domain logic runs.
 pub struct SpineSignalService<M> {
     signaler: Arc<M>,
+    /// The SFU mode this gateway is actually running, stamped onto signals so the wire
+    /// reports the real mode instead of a hardcoded constant.
+    sfu_mode: SfuMode,
+    /// Sovereign media bridge. `Some` only for `SFU_MODE=sovereign`: inbound signals are also
+    /// driven into the `StrOmTransport` media engine (`Offer`→`create_session`, etc.) and its
+    /// answer is relayed back. `None` for hosted mode (signaling relay only). Composing this
+    /// does NOT flip the gate — end-to-end media is still unproven (deferred).
+    media_bridge: Option<Arc<crate::media_bridge::MediaTransportBridge>>,
 }
 
 impl<M: MediaSignaler> SpineSignalService<M> {
     #[must_use]
-    pub fn new(signaler: Arc<M>) -> Self {
-        Self { signaler }
+    pub fn new(signaler: Arc<M>, sfu_mode: SfuMode) -> Self {
+        Self {
+            signaler,
+            sfu_mode,
+            media_bridge: None,
+        }
+    }
+
+    /// Attach the sovereign media bridge (builder-style). Only set for `SFU_MODE=sovereign`.
+    #[must_use]
+    pub fn with_media_bridge(
+        mut self,
+        bridge: Arc<crate::media_bridge::MediaTransportBridge>,
+    ) -> Self {
+        self.media_bridge = Some(bridge);
+        self
     }
 
     #[must_use]
@@ -133,7 +155,10 @@ fn json_to_prost_value(v: serde_json::Value) -> prost_types::Value {
     prost_types::Value { kind: Some(kind) }
 }
 
-fn proto_to_domain(proto: fv1::SignalEnvelope) -> Result<DomainSignalEnvelope, Status> {
+fn proto_to_domain(
+    proto: fv1::SignalEnvelope,
+    sfu_mode: SfuMode,
+) -> Result<DomainSignalEnvelope, Status> {
     let tenant_id = TenantId::from_uuid(parse_uuid(&proto.tenant_id, "tenant_id")?);
     let from_uuid = parse_uuid(&proto.from_session, "from_session")?;
     let from_session = SessionId::from_uuid(from_uuid);
@@ -153,10 +178,24 @@ fn proto_to_domain(proto: fv1::SignalEnvelope) -> Result<DomainSignalEnvelope, S
         tenant_id,
         room_id: proto.room_id,
         kind: proto_signal_kind_to_domain(proto.kind),
-        sfu_mode: SfuMode::Hosted,
+        sfu_mode,
         payload,
         timestamp: chrono::Utc::now(),
+        // The gRPC proto carries no authenticated subject; the WS path (p24-c003) does.
+        subject: None,
     })
+}
+
+/// Map the domain SFU mode to its proto enum value (`Sovereign = 1`, `Hosted = 2`).
+fn sfu_mode_to_proto(mode: SfuMode) -> i32 {
+    let proto = match mode {
+        SfuMode::Sovereign => fv1::SfuMode::Sovereign,
+        SfuMode::Hosted => fv1::SfuMode::Hosted,
+        // `#[non_exhaustive]` guard: a future mode maps to Unspecified rather than
+        // silently miscoding as an existing one.
+        _ => fv1::SfuMode::Unspecified,
+    };
+    proto as i32
 }
 
 fn domain_to_proto(env: &DomainSignalEnvelope) -> fv1::SignalEnvelope {
@@ -170,7 +209,7 @@ fn domain_to_proto(env: &DomainSignalEnvelope) -> fv1::SignalEnvelope {
         tenant_id: env.tenant_id.to_string(),
         room_id: env.room_id.clone(),
         kind: domain_signal_kind_to_proto(&env.kind),
-        sfu_mode: 2, // SFU_MODE_HOSTED
+        sfu_mode: sfu_mode_to_proto(env.sfu_mode),
         payload: payload_struct,
         timestamp: None,
     }
@@ -206,7 +245,8 @@ where
             .ok_or_else(|| Status::invalid_argument("empty signal stream"))?
             .map_err(|e| Status::internal(e.to_string()))?;
 
-        let first_domain = proto_to_domain(first)?;
+        let sfu_mode = self.sfu_mode;
+        let first_domain = proto_to_domain(first, sfu_mode)?;
         let session_id = first_domain.from_session;
         let tenant_id = first_domain.tenant_id;
 
@@ -217,21 +257,35 @@ where
             .await
             .map_err(|e| Status::internal(e.to_string()))?;
 
-        // Relay the first envelope to the SFU.
+        let (tx, rx) = mpsc::channel::<Result<fv1::SignalEnvelope, Status>>(32);
+
+        // Drive the first envelope into the sovereign media engine (if composed), relaying any
+        // answer, then into the signaling relay.
+        if let Some(bridge) = &self.media_bridge {
+            if let Some(answer) = bridge.handle(&first_domain).await {
+                let _ = tx.send(Ok(domain_to_proto(&answer))).await;
+            }
+        }
         self.signaler
             .send_signal(first_domain)
             .await
             .map_err(|e| Status::internal(e.to_string()))?;
 
-        let (tx, rx) = mpsc::channel::<Result<fv1::SignalEnvelope, Status>>(32);
-
-        // Task: inbound gRPC frames → MediaSignaler (client → SFU).
+        // Task: inbound gRPC frames → media bridge (sovereign) + MediaSignaler (client → SFU).
         let signaler_in = Arc::clone(&self.signaler);
+        let bridge_in = self.media_bridge.clone();
+        let tx_in = tx.clone();
         tokio::spawn(async move {
             while let Some(msg) = inbound.next().await {
                 match msg {
-                    Ok(proto_env) => match proto_to_domain(proto_env) {
+                    Ok(proto_env) => match proto_to_domain(proto_env, sfu_mode) {
                         Ok(domain_env) => {
+                            // Sovereign media plane: drive the engine, relay any answer.
+                            if let Some(bridge) = &bridge_in {
+                                if let Some(answer) = bridge.handle(&domain_env).await {
+                                    let _ = tx_in.send(Ok(domain_to_proto(&answer))).await;
+                                }
+                            }
                             if let Err(e) = signaler_in.send_signal(domain_env).await {
                                 tracing::warn!(error = %e, "failed to relay signal");
                             }
@@ -318,6 +372,39 @@ mod tests {
         assert_eq!(proto_signal_kind_to_domain(3), SignalKind::IceCandidate);
         // Unknown kind falls back to Hangup (clean session teardown).
         assert_eq!(proto_signal_kind_to_domain(99), SignalKind::Hangup);
+    }
+
+    #[test]
+    fn sfu_mode_reflects_configured_mode_not_hardcoded_hosted() {
+        // Previously proto_to_domain hardcoded Hosted and domain_to_proto emitted 2;
+        // now the reported mode must match the mode the gateway is configured with.
+        let uuid = uuid::Uuid::nil().to_string();
+        let proto_in = fv1::SignalEnvelope {
+            from_session: uuid.clone(),
+            to_session: String::new(),
+            tenant_id: uuid,
+            room_id: "room-1".to_owned(),
+            kind: 1,
+            sfu_mode: 0,
+            payload: None,
+            timestamp: None,
+        };
+
+        // Configured Sovereign → domain Sovereign → proto 1 (not the old hardcoded 2).
+        let domain = proto_to_domain(proto_in.clone(), SfuMode::Sovereign).expect("convert");
+        assert_eq!(domain.sfu_mode, SfuMode::Sovereign);
+        assert_eq!(
+            domain_to_proto(&domain).sfu_mode,
+            fv1::SfuMode::Sovereign as i32
+        );
+
+        // Configured Hosted → domain Hosted → proto 2.
+        let domain = proto_to_domain(proto_in, SfuMode::Hosted).expect("convert");
+        assert_eq!(domain.sfu_mode, SfuMode::Hosted);
+        assert_eq!(
+            domain_to_proto(&domain).sfu_mode,
+            fv1::SfuMode::Hosted as i32
+        );
     }
 
     #[test]

@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-09T19:13:18Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "Backend: OpenSpec, KBD-owned per-task loop. Target A local host-net. 2 changes, serial: c001 host-net-decode-stack (gateway+playwright+caddy+coturn network_mode:host on the Colima VM; MEDIA_ADVERTISE_IP=VM host IP; reconcile ports/extra_hosts/JWKS/Caddy/GATEWAY_URL; runner computes host IP) → c002 decode-run-and-flip (host-net run; flip only on framesDecoded>0; TURN-fallback rec if no pair). No engine change. Manual prereq (via !): colima start. First: /kbd-apply p33-c001-host-net-decode-stack.",
+  "skipped": false,
+  "skipReason": null
+}

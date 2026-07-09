@@ -1,0 +1,11 @@
+{
+  "stage": "reflect",
+  "completedAt": "2026-07-09T16:35:13Z",
+  "outputs": [
+    "reflection.md"
+  ],
+  "nextStage": null,
+  "summaryForNext": "0 goals fully MET. G1 (browser-in-Docker topology fix) IMPLEMENTED but UNVERIFIED — the decode run crashed at the gateway image build (Colima VM OOM) before any browser connected, so ice=connected was never observed. G2 NOT met (no framesDecoded>0; gate held OFF honestly). Media-path engineering is complete (all phase-24..29 defects fixed); the residual is environmental. Two harness bugs fixed en route (workspace mount, Playwright image version). Next: phase-31-sovereign-sfu-decode-prebuilt-image-and-flip — decouple the gateway image build from the run (build once out-of-band/CI, up --no-build; raise Colima memory; colima start first), then re-run and flip only on framesDecoded>0.",
+  "skipped": false,
+  "skipReason": null
+}

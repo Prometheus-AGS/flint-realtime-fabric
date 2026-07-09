@@ -1,0 +1,11 @@
+{
+  "stage": "reflect",
+  "completedAt": "2026-07-09T23:00:38Z",
+  "outputs": [
+    "reflection.md"
+  ],
+  "nextStage": null,
+  "summaryForNext": "0 goals fully met. G1 TURN infra correct (str0m accepts typ relay, iceServers+creds S1-clean) but 0 relay candidates reached the gateway — coturn --external-ip=127.0.0.1 = browser's own container loopback; same bridge address-confusion, 6th form. G2 NOT MET; gate held OFF. DECISION: escalate to CI/real Linux host (Target B) — 6 same-host candidate-topology variants have failed (loopback/bridge/mDNS/srflx/host-net/relay-ip); the environment is the categorical blocker, media path proven in pieces. Next: phase-35-sovereign-sfu-decode-ci-linux-proof — containerize the rig (JWT mint/JWKS/Keto seed) + run on ubuntu-latest (or self-hosted Linux); host networking native, candidates pair; flip only on framesDecoded>0. OPERATOR: which runner (GitHub Actions vs self-hosted). Hard non-goal: no more same-host macOS/Colima network variants.",
+  "skipped": false,
+  "skipReason": null
+}

@@ -19,6 +19,11 @@ async-stream = { workspace = true }
 tracing = { workspace = true }
 chrono = { workspace = true }
 tokio-tungstenite = { workspace = true }
+reqwest = { workspace = true }
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+httpmock = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

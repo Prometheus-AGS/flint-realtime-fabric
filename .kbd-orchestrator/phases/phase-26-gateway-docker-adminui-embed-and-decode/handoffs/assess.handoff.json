@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-08T19:14:59Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Defect characterized: frf-gateway RustEmbeds admin-ui/dist at COMPILE time (release, no debug-embed), but Dockerfile never builds/copies it. Host-build+COPY is RULED OUT (admin-ui/dist in .dockerignore) → fix = multi-stage in-Docker Node build (COPY --from=node). admin-ui is a pnpm workspace member (root pnpm-workspace.yaml) needing Node≥24 + corepack pnpm + root manifests for frozen install; build = tsc --noEmit && vite build; COPY dist into Rust context BEFORE cargo build. Then G2 re-run = first run to reach the SFU (genuine ICE/DTLS/RTP-over-UDP test). Plan: G1 Dockerfile fix → G2 real decode → G3 conditional flip → G4 carried.",
+  "skipped": false,
+  "skipReason": null
+}

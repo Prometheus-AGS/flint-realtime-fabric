@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-08T12:25:13Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Phase-22 grounded. Big re-scope: G1 (N-peer fan-out) is ALREADY IMPLEMENTED — RoomRouter::forward fans to all co-room peers; it's a test-only goal, not build. G2 (PLI) is codeable: str0m gives Event::KeyframeRequest inbound + Writer::request_keyframe — forward the request sender↔receiver via the router. LOAD-BEARING GAP = G3: the gateway sovereign branch (main.rs:269) is signaling-only and signal_service.rs drives MediaSignaler not MediaTransport — G3.1 (compose both ports + drive create_session/join_room/add_remote_candidate/local_signals from the signal path) is codeable (all port methods exist), but G3.2 (two real browser peers exchange DECODED media) is BROWSER-GATED — the load-bearing external gate, like the IdP was for OIDC. G4 (flip SFU_MODE=sovereign) is strictly downstream of G3.2 + covering the media-path boundary in SECURITY §1-5 first. Recommend: N-peer proof → PLI forwarding → gateway composition → operator decision on a Playwright+WebRTC E2E harness (flip if it proves media, else re-affirm gated). SFU_MODE=sovereign flips ONLY if media provably flows.",
+  "skipped": false,
+  "skipReason": null
+}

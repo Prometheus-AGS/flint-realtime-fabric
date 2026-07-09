@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-09T11:59:59Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "OpenSpec; 3-change dispatch. c001 (harness-visibility: drop connect pre-check + setTimeout(60s) + capture gateway logs before teardown) seeded + validates. c002 evidence-driven fix; c003 flips only on genuine framesDecoded>0. Seed each dir before begin-task. First: p28-c001-harness-visibility.",
+  "skipped": false,
+  "skipReason": null
+}

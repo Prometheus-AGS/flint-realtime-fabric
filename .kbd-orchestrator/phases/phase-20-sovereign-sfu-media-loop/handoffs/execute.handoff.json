@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-08T08:34:51Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "Backend=OpenSpec; 6-change dispatch contract written. QA gate on c002-c005 (frf-ports trait + str0m async engine); c001 ADR + c006 close are docs-skip. Driver=/kbd-apply one task/turn from repo root; frf-ports stays impl-free; SFU_MODE=sovereign stays off (reaches DTLS-connected, not media). First pending change: p20-c001-media-transport-port-adr.",
+  "skipped": false,
+  "skipReason": null
+}

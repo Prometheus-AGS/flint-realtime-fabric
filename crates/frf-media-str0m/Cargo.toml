@@ -14,8 +14,8 @@ workspace = true
 frf-domain = { path = "../frf-domain" }
 frf-ports = { path = "../frf-ports" }
 str0m = { workspace = true }
-tokio = { workspace = true, features = ["rt-multi-thread", "sync"] }
-tokio-stream = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "sync", "net", "time", "macros"] }
+tokio-stream = { workspace = true, features = ["sync"] }
 async-trait = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
@@ -23,7 +23,6 @@ bytes = { workspace = true }
 dashmap = { workspace = true }
 futures-util = { workspace = true }
 serde_json = { workspace = true }
-
-[dev-dependencies]
-# Used by the sfu.rs unit tests to build SignalEnvelope fixtures with timestamps.
+# Timestamps on outbound trickle-ICE / state SignalEnvelopes built in the session engine.
+# Also used by the sfu.rs / session.rs unit tests to build SignalEnvelope fixtures.
 chrono = { workspace = true }

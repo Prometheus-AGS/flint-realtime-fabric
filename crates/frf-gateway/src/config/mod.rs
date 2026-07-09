@@ -3,12 +3,21 @@ use std::net::SocketAddr;
 use anyhow::Context;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SfuMode {
     /// Sovereign SFU using `str0m` (no cloud dependency).
     Sovereign,
     /// Hosted SFU using `LiveKit`.
     Hosted,
+}
+
+impl From<SfuMode> for frf_domain::SfuMode {
+    fn from(mode: SfuMode) -> Self {
+        match mode {
+            SfuMode::Sovereign => frf_domain::SfuMode::Sovereign,
+            SfuMode::Hosted => frf_domain::SfuMode::Hosted,
+        }
+    }
 }
 
 /// Selects the `ActionPolicyProvider` implementation at startup.
@@ -68,6 +77,18 @@ pub struct GatewayConfig {
     // ATProto bridge — enabled when ATPROTO_JETSTREAM_URL is set.
     pub atproto_jetstream_url: Option<String>,
     pub atproto_collections: Vec<String>,
+    // ATProto outbound PDS writer — outbound federated writes are wired only when all
+    // three are set (all-or-none; enforced in `validate`). The app-password is a secret.
+    /// PDS base URL, e.g. `https://bsky.social`. Env: `ATPROTO_PDS_URL`.
+    pub atproto_pds_url: Option<String>,
+    /// Account identifier (handle or DID). Env: `ATPROTO_PDS_IDENTIFIER`.
+    pub atproto_pds_identifier: Option<String>,
+    /// App password (NOT the account password) — from a secret manager.
+    /// Env: `ATPROTO_PDS_APP_PASSWORD`. Never logged.
+    pub atproto_pds_app_password: Option<String>,
+    /// Lexicon collection outbound records are written into (e.g. `app.bsky.feed.post`).
+    /// Env: `ATPROTO_WRITE_COLLECTION`. Optional; bridge default applies when unset.
+    pub atproto_write_collection: Option<String>,
     /// Action policy engine selection. Env: `POLICY_ENGINE` (`none` | `cedar`).
     pub policy_engine: PolicyEngineMode,
     /// Per-client request rate limit (requests per second). Env: `RATE_LIMIT_PER_SEC`
@@ -119,6 +140,10 @@ impl GatewayConfig {
             cdc_publication_name: None,
             cdc_tenant_id: None,
             cdc_channel_path: None,
+            // `test_default` uses Sovereign deliberately — unlike the production `from_env`
+            // default (Hosted), it avoids the LiveKit-credentials requirement so unit tests
+            // don't need `LIVEKIT_*` set. This intentional divergence is why the two
+            // defaults differ; production always goes through `from_env` (Hosted).
             sfu_mode: SfuMode::Sovereign,
             registry_idle_secs: 300,
             registry_sweep_interval_secs: 60,
@@ -130,6 +155,10 @@ impl GatewayConfig {
             matrix_room_id: None,
             atproto_jetstream_url: None,
             atproto_collections: vec![],
+            atproto_pds_url: None,
+            atproto_pds_identifier: None,
+            atproto_pds_app_password: None,
+            atproto_write_collection: None,
             policy_engine: PolicyEngineMode::None,
             rate_limit_per_sec: 50,
             rate_limit_burst: 100,
@@ -191,6 +220,40 @@ impl GatewayConfig {
                 "FEDERATION_ENABLED=true requires FEDERATION_TENANT_ID \
                  (ingested events would otherwise land under a random per-boot tenant)"
             );
+            anyhow::ensure!(
+                self.federation_channel_id.is_some(),
+                "FEDERATION_ENABLED=true requires FEDERATION_CHANNEL_ID \
+                 (ingested events would otherwise land on a random per-boot channel, \
+                 where no subscriber's JWT-matched channel would receive them)"
+            );
+        }
+
+        // ATProto outbound writer is all-or-none: a half-configured writer (e.g. URL set
+        // but no app-password) would silently never authenticate, so fail fast naming the
+        // missing var. When none are set, the bridge is inbound-only (no requirement).
+        {
+            let pds = [
+                ("ATPROTO_PDS_URL", self.atproto_pds_url.as_ref()),
+                (
+                    "ATPROTO_PDS_IDENTIFIER",
+                    self.atproto_pds_identifier.as_ref(),
+                ),
+                (
+                    "ATPROTO_PDS_APP_PASSWORD",
+                    self.atproto_pds_app_password.as_ref(),
+                ),
+            ];
+            let any_set = pds.iter().any(|(_, v)| v.is_some());
+            if any_set {
+                for (var, value) in pds {
+                    anyhow::ensure!(
+                        value.is_some(),
+                        "ATProto outbound writer is partially configured: {var} must also \
+                         be set (all of ATPROTO_PDS_URL, ATPROTO_PDS_IDENTIFIER, \
+                         ATPROTO_PDS_APP_PASSWORD are required together, or none)"
+                    );
+                }
+            }
         }
 
         // In a production (non-`dev-endpoints`) build, JWT_ISSUER is mandatory: without
@@ -245,16 +308,8 @@ impl GatewayConfig {
             .map(|v| Uuid::parse_str(&v).context("CDC_TENANT_ID must be a valid UUID"))
             .transpose()?;
 
-        let federation_enabled = std::env::var("FEDERATION_ENABLED")
-            .is_ok_and(|v| v.eq_ignore_ascii_case("true") || v == "1");
-        let federation_tenant_id = std::env::var("FEDERATION_TENANT_ID")
-            .ok()
-            .map(|v| Uuid::parse_str(&v).context("FEDERATION_TENANT_ID must be a valid UUID"))
-            .transpose()?;
-        let federation_channel_id = std::env::var("FEDERATION_CHANNEL_ID")
-            .ok()
-            .map(|v| Uuid::parse_str(&v).context("FEDERATION_CHANNEL_ID must be a valid UUID"))
-            .transpose()?;
+        let (federation_enabled, federation_tenant_id, federation_channel_id) =
+            Self::federation_config_from_env()?;
 
         let grpc_port = match std::env::var("GRPC_PORT").as_deref() {
             Ok("0") => None,
@@ -283,6 +338,13 @@ impl GatewayConfig {
 
         let (rate_limit_per_sec, rate_limit_burst, max_body_bytes, cors_allowed_origins) =
             Self::middleware_config_from_env();
+
+        let (
+            atproto_pds_url,
+            atproto_pds_identifier,
+            atproto_pds_app_password,
+            atproto_write_collection,
+        ) = Self::atproto_writer_config_from_env();
 
         Ok(Self {
             bind_addr,
@@ -316,6 +378,10 @@ impl GatewayConfig {
             matrix_room_id: std::env::var("MATRIX_ROOM_ID").ok(),
             atproto_jetstream_url: std::env::var("ATPROTO_JETSTREAM_URL").ok(),
             atproto_collections,
+            atproto_pds_url,
+            atproto_pds_identifier,
+            atproto_pds_app_password,
+            atproto_write_collection,
             policy_engine: match std::env::var("POLICY_ENGINE")
                 .unwrap_or_default()
                 .to_ascii_lowercase()
@@ -329,6 +395,46 @@ impl GatewayConfig {
             max_body_bytes,
             cors_allowed_origins,
         })
+    }
+
+    /// Parse the federation opt-in + tenant/channel UUIDs from the environment.
+    /// Extracted from `from_env` to keep that function focused. UUID parse failures
+    /// surface as errors naming the offending variable.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `FEDERATION_TENANT_ID` or `FEDERATION_CHANNEL_ID` is set but
+    /// not a valid UUID.
+    fn federation_config_from_env() -> anyhow::Result<(bool, Option<Uuid>, Option<Uuid>)> {
+        let enabled = std::env::var("FEDERATION_ENABLED")
+            .is_ok_and(|v| v.eq_ignore_ascii_case("true") || v == "1");
+        let tenant_id = std::env::var("FEDERATION_TENANT_ID")
+            .ok()
+            .map(|v| Uuid::parse_str(&v).context("FEDERATION_TENANT_ID must be a valid UUID"))
+            .transpose()?;
+        let channel_id = std::env::var("FEDERATION_CHANNEL_ID")
+            .ok()
+            .map(|v| Uuid::parse_str(&v).context("FEDERATION_CHANNEL_ID must be a valid UUID"))
+            .transpose()?;
+        Ok((enabled, tenant_id, channel_id))
+    }
+
+    /// Parse the `ATProto` PDS-writer knobs from the environment. Empty strings are
+    /// treated as unset. Extracted from `from_env` to keep that function focused; the
+    /// all-or-none invariant is enforced in [`Self::validate`], not here.
+    fn atproto_writer_config_from_env() -> (
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+    ) {
+        let read = |var: &str| std::env::var(var).ok().filter(|s| !s.is_empty());
+        (
+            read("ATPROTO_PDS_URL"),
+            read("ATPROTO_PDS_IDENTIFIER"),
+            read("ATPROTO_PDS_APP_PASSWORD"),
+            read("ATPROTO_WRITE_COLLECTION"),
+        )
     }
 
     /// Parse the security-middleware knobs (rate limit, body cap, CORS origins)
@@ -363,92 +469,4 @@ impl GatewayConfig {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn federation_is_off_by_default() {
-        // Safe-by-default: federation must never be silently active. The gateway
-        // only wires Matrix/ATProto bridges when this is explicitly enabled.
-        let cfg = GatewayConfig::test_default();
-        assert!(!cfg.federation_enabled);
-        assert!(cfg.federation_tenant_id.is_none());
-        assert!(cfg.federation_channel_id.is_none());
-    }
-
-    #[test]
-    fn valid_default_config_passes_validation() {
-        // test_default is Sovereign SFU + CDC off + federation off, with JWT_ISSUER set →
-        // no unmet semantic requirements, so validation succeeds.
-        GatewayConfig::test_default()
-            .validate()
-            .expect("default config should be valid");
-    }
-
-    // The issuer-mandatory rule only exists in production (non-`dev-endpoints`) builds;
-    // in dev builds a missing issuer is a warning, not a hard error (see `main.rs`).
-    #[cfg(not(feature = "dev-endpoints"))]
-    #[test]
-    fn production_config_without_jwt_issuer_fails_validation() {
-        // Arrange: an otherwise-valid config missing JWT_ISSUER.
-        let mut cfg = GatewayConfig::test_default();
-        cfg.jwt_issuer = None;
-
-        // Act
-        let result = cfg.validate();
-
-        // Assert: rejected, with a message naming the offending variable.
-        let err = result.expect_err("missing JWT_ISSUER must fail validation in prod builds");
-        assert!(
-            err.to_string().contains("JWT_ISSUER"),
-            "error should name JWT_ISSUER, got: {err}"
-        );
-    }
-
-    #[test]
-    fn cdc_enabled_without_replication_url_fails_fast() {
-        let mut cfg = GatewayConfig::test_default();
-        cfg.cdc_enabled = true;
-        cfg.cdc_replication_url = None;
-        let err = cfg.validate().expect_err("expected validation to fail");
-        assert!(
-            err.to_string().contains("CDC_REPLICATION_URL"),
-            "error should name the missing field, got: {err}"
-        );
-    }
-
-    #[test]
-    fn cdc_enabled_with_all_fields_passes() {
-        let mut cfg = GatewayConfig::test_default();
-        cfg.cdc_enabled = true;
-        cfg.cdc_replication_url = Some("postgres://x".to_owned());
-        cfg.cdc_slot_name = Some("frf_slot".to_owned());
-        cfg.cdc_publication_name = Some("frf_pub".to_owned());
-        cfg.validate()
-            .expect("CDC config with all fields should be valid");
-    }
-
-    #[test]
-    fn federation_enabled_without_tenant_fails_fast() {
-        let mut cfg = GatewayConfig::test_default();
-        cfg.federation_enabled = true;
-        cfg.federation_tenant_id = None;
-        let err = cfg.validate().expect_err("expected validation to fail");
-        assert!(err.to_string().contains("FEDERATION_TENANT_ID"));
-    }
-
-    #[test]
-    fn hosted_sfu_without_livekit_creds_fails_fast() {
-        // Hosted SFU requires LiveKit env. This test env does not set LIVEKIT_*,
-        // so validation must fail fast rather than silently disabling signaling.
-        // (Guard: skip if the env happens to have creds set, to avoid a flaky
-        // false-negative in an environment that provides them.)
-        if std::env::var("LIVEKIT_API_KEY").is_ok() {
-            return;
-        }
-        let mut cfg = GatewayConfig::test_default();
-        cfg.sfu_mode = SfuMode::Hosted;
-        let err = cfg.validate().expect_err("expected validation to fail");
-        assert!(err.to_string().contains("LIVEKIT_"));
-    }
-}
+mod tests;

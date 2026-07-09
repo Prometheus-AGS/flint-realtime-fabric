@@ -1,0 +1,71 @@
+# Sovereign SFU decoded-media proof (p35-c001) — the environment where it can actually pass.
+#
+# Phases 28→34 proved every media-path layer correct in pieces but hit a fresh candidate-address
+# confusion on the local macOS + Colima-VM + Docker-bridge box (six forms). On a real Linux host host
+# networking is native and a bridge-network container reaches the host at 172.17.0.1, so the browser
+# and SFU share one routable stack and host/relay candidates pair. This job runs the whole decode proof
+# on ubuntu-latest and FAILS unless a real receiver observes framesDecoded > 0.
+#
+# Manual only (workflow_dispatch) — it builds the gateway image + boots the full sovereign stack + runs
+# two browsers, so it must not run on every push. TURN/JWT secrets are generated in-job (never
+# committed). Gateway str0m logs + the Playwright report upload as artifacts for the result record.
+
+name: Decode proof
+
+on:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  decode-proof:
+    name: Sovereign SFU decode proof (framesDecoded > 0)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Enable pnpm
+        run: corepack enable
+
+      - name: Install admin-ui deps
+        # Populates admin-ui/node_modules; the Playwright compose service mounts the repo and runs the
+        # spec IN-CONTAINER against its own baked Chromium (no runner-side browser install needed).
+        run: pnpm --dir admin-ui install --frozen-lockfile || pnpm --dir admin-ui install
+
+      - name: Build the sovereign gateway image
+        # Build once, alone (no OOM on a 16 GB runner). The runner then uses it with --no-build.
+        run: docker compose -f compose.yml -f compose.sovereign.yml build gateway
+
+      - name: Run the decoded-media proof
+        # Native Linux host networking + 172.17.0.1 host addressing (run-media-decode.sh auto-detects
+        # Linux). Asserts framesDecoded > 0; the job fails if the receiver never decodes a frame.
+        env:
+          FLINT_GATE_JWT_SECRET: e2e-ci-not-for-prod
+        run: ./scripts/run-media-decode.sh
+
+      - name: Collect gateway logs (always)
+        if: always()
+        run: docker compose -f compose.yml -f compose.sovereign.yml logs --no-color gateway > gateway.log 2>&1 || true
+
+      - name: Upload artifacts (logs + Playwright report)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: decode-proof-artifacts
+          path: |
+            gateway.log
+            admin-ui/playwright-report/
+            admin-ui/test-results/
+          if-no-files-found: ignore

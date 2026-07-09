@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-09T23:05:20Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Key finding: the rig is mostly ALREADY Linux-portable — colima ssh/host.docker.internal/HOST_NET just fall away on Linux (containers reach the host at 172.17.0.1; node/python3/localhost:4467 native), and ubuntu-latest's 16GB builds the gateway image with no Colima OOM. So G1 is smaller than seeded (address-adjust + a run entrypoint, not from-scratch containerization). BLOCKING OPERATOR DECISION: which runner — A GitHub Actions ubuntu-latest (net-new ci.yml decode job; durable/reproducible; recommended — removes the local box) or B self-hosted Linux (Linux-adjust run-media-decode.sh, operator-executed; faster iteration). Materially different change sets; plan must ASK. No frf-* engine change; no same-host macOS/Colima variants (non-goal).",
+  "skipped": false,
+  "skipReason": null
+}

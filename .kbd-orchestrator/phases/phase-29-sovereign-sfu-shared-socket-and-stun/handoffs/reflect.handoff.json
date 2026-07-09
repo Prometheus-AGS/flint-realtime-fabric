@@ -1,0 +1,11 @@
+{
+  "stage": "reflect",
+  "completedAt": "2026-07-09T14:33:29Z",
+  "outputs": [
+    "reflection.md"
+  ],
+  "nextStage": null,
+  "summaryForNext": "G1 MET (shared demux socket — two sessions on one port, no EADDRINUSE, ADR-008) + G2 MET (STUN srflx — remoteCandidates 0→1, ICE new→disconnected) + G3 NOT MET (framesDecoded=0, no Connected, gate held OFF honestly). Both phase-28 blockers cleared+proven; new blocker = same-host loopback-vs-bridge candidate topology (browser on host, SFU in container never share a routable pair). Next: phase-30-sovereign-sfu-decode-topology-and-flip — run browser inside Docker network (or bridge-reachable MEDIA_ADVERTISE_IP / host networking), re-run, flip only on framesDecoded>0.",
+  "skipped": false,
+  "skipReason": null
+}

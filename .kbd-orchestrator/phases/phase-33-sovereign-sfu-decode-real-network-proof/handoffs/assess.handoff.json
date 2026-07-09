@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-09T18:49:16Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "BLOCKING OPERATOR DECISION: which environment target for the decode proof — A (local host-net: gateway+playwright both network_mode:host on the Colima VM so both peers share one real network stack, host candidates pair; LOW effort; the option under-explored at phase-32), B (GitHub CI ubuntu-latest, already exists — containerize the host-side rig JWKS/mint/seed; HIGH effort, most durable), or C (local + coturn TURN --external-ip + creds + turn: iceServers + bridge-IP advertise; MEDIUM). The three are materially different change sets so the plan cannot proceed without the target. Recommend A first (fallback C, durable home B). No frf-* engine change in any path. Plan must ASK the operator (AskUserQuestion) before committing the change set.",
+  "skipped": false,
+  "skipReason": null
+}

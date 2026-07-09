@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-09T16:39:35Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "G1 CONFIRMED as the phase core: run-media-decode.sh:70 does an unconditional in-run 'docker compose build gateway' (heavy ui-builder Vite/tsc + rust builder stages) that OOM'd the VM in phase-30. Fix: presence-check the implicit image 'flint-realtime-fabric-gateway' → skip build if present, fail-fast with the out-of-band build command if absent; never rebuild in-run. Colima is 12GiB/6CPU so it was CONTENTION not a hard ceiling — decouple is the primary fix, more memory secondary. No engine/compose change. Operational prereq (manual, via !): daemon is DOWN → colima start, then build the image once. Plan: c001 prebuilt-image runner, c002 decode+conditional flip (first real verification of the phase-30 topology fix).",
+  "skipped": false,
+  "skipReason": null
+}

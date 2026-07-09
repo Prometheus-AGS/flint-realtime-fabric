@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-08T18:28:21Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Phase-24 blocker confirmed: dev override redefines gateway.depends_on (list replaces base map) + moves keto/postgres to profiles:[full] → 'undefined service keto'. Sovereign-only merge is valid. Two concrete G1 fixes: (A, recommended) flint-gate mint_jwt route (host 14457, HS256) → real E2E_JWT → exercises c003 authenticated authz + seed sub=dev-integration-user; (B fallback) minimal no-auth override (DEV_NO_AUTH + dev-endpoints build arg, no depends_on/profile changes) — bypasses authz. Next real risk after G1 is whether ICE/DTLS completes over host.docker.internal UDP — only a run reveals it. Plan: G1(A) → G2 run/framesDecoded>0 → G3 conditional flip → G4 carried.",
+  "skipped": false,
+  "skipReason": null
+}

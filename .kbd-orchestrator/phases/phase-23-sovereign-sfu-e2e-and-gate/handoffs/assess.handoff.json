@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-08T13:20:33Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Media plane composed; signal channel already JWT-gated + RoomRouter keys (TenantId,room) so cross-tenant fan-out is structurally impossible. Load-bearing gaps: G2 decoded-media browser proof (no WebRTC e2e spec / served client page yet), G3 per-event Keto view-check on fan-out (none present — a security decision that gates G4, likely ADR-007), G1 harness. Recommend order: G3 authz decision/ADR → G1 harness → G2 proof → G4 flip-or-reaffirm → G5 re-affirm. Open Q for operator: G3 Keto-vs-membership boundary; G2 topology (browser↔headless-str0m reusing rtc_spike recommended).",
+  "skipped": false,
+  "skipReason": null
+}

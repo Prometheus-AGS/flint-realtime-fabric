@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-09T16:43:05Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "Backend: OpenSpec, KBD-owned per-task loop. 2 changes, serial: c001 prebuilt-image-runner (presence-check on flint-realtime-fabric-gateway + fail-fast + PREBUILD_GATEWAY escape hatch + docs) → c002 decode-run-and-flip (against pre-built image on restarted daemon; flip only on framesDecoded>0). No engine change. Manual prereq before c002 (via !): colima start --memory 8; docker compose build gateway. Per-change QA gate; seed dir up-front; progress N/N before next-stage commands. First: /kbd-apply p31-c001-prebuilt-image-runner.",
+  "skipped": false,
+  "skipReason": null
+}

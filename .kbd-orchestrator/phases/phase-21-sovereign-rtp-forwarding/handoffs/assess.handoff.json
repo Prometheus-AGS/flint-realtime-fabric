@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-08T09:44:27Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Phase-21 grounded. FIRST: split session.rs (498/500) → driver.rs before any RTP code. Load-bearing finding: each session's Rtc lives in an ISOLATED driver task, so RTP forwarding A→B is CROSS-TASK message passing — needs a room registry (session→co-room peers) + per-session forwarding mpsc the driver select!s on and writes via rtc.writer(mid).write(pt,wallclock,rtp_time,Arc<[u8]>). That fan-out topology is ADR-worthy — settle before code. str0m API confirmed: writer(mid), Event::MediaData{mid,pt,rid,data}, offerer via sdp_api().add_media().apply()+accept_answer. G1 offerer role un-gates the two-peer connected proof (RTP proof prerequisite). G2/G3 end-to-end proofs are browser/peer-gated; G3 (PLI/N-peer) may split to phase-22. G4 gateway must compose BOTH StrOmSignaler+StrOmTransport, flip only when media flows. Recommend: split → offerer/proof → RTP-fanout ADR → forwarding → gate. SFU_MODE=sovereign stays off.",
+  "skipped": false,
+  "skipReason": null
+}

@@ -38,7 +38,6 @@ export function useEntitySubscription(query: EntityQuery): EntitySubscriptionSta
     return () => {
       ac.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query.channelId, query.consumerId, query.entityType]);
 
   return { events, connected, error };

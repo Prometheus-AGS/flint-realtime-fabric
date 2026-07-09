@@ -1,0 +1,11 @@
+{
+  "stage": "reflect",
+  "completedAt": "2026-07-09T17:06:20Z",
+  "outputs": [
+    "reflection.md"
+  ],
+  "nextStage": null,
+  "summaryForNext": "G1 MET (decouple works — image builds alone no OOM, full stack boots + decode spec starts; phase-30 OOM gone) + G2 NOT MET (getUserMedia undefined: in-network browser at http://gateway:8080 insecure origin, no navigator.mediaDevices; gate held OFF honestly). c002 fixed 4 harness layers (workspace mount, Playwright image v1.61, DECODE_ONLY webServer skip, secure-context flags); stopped live-iterating at the 5th (flag arcana, no media signal, VM crashed twice). Media path proven since phase-30; residual is harness secure-context. Next: phase-32-sovereign-sfu-decode-https-secure-context-and-flip — serve gateway over HTTPS (self-signed https://gateway:8443 + --ignore-certificate-errors) or *.localhost alias so getUserMedia works with NO unsafe flags, re-run, flip only on framesDecoded>0.",
+  "skipped": false,
+  "skipReason": null
+}

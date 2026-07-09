@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-07T22:38:45Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "7 changes ordered cheap-wins-first: c001 admin-ui lint (2 reproducing errors), c002 ATProto outbound gateway wiring (capability already built p18-c008), c003 Dart deferral re-affirm, c004 OIDC IdP ADR (no IdP in stack — decision not code), c005 LiveKit inbound-relay capability (integration-gated), c006 str0m live-UDP transport-loop spike (thin slice; full media split to phase-20), c007 phase-20 seed + docs close. Operator locked: str0m thin-slice+phase-20 split, G4 as ADR, G2 capability+integration-gated. First change: p19-c001-admin-ui-lint-debt.",
+  "skipped": false,
+  "skipReason": null
+}

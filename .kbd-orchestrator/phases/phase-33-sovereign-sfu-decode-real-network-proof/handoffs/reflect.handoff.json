@@ -1,0 +1,11 @@
+{
+  "stage": "reflect",
+  "completedAt": "2026-07-09T19:48:19Z",
+  "outputs": [
+    "reflection.md"
+  ],
+  "nextStage": null,
+  "summaryForNext": "0 goals met + a REGRESSION: Target A (host-net) structurally implemented (!reset ports fix, Colima IP derivation) but the gateway goes unhealthy under network_mode:host (Colima plumbing, not JWKS/media), so the decode never ran — backward vs phase-32's ICE checking. G1/G3 NOT MET; gate held OFF. Lesson: pivot TOWARD the last working state, not away — host-net swapped the working bridge stack. Next: phase-34-sovereign-sfu-decode-turn-relay-and-flip — on the phase-32 BRIDGE+HTTPS stack (not host-net), add a coturn TURN relay (--external-ip + realm + creds) + turn: iceServers + advertise gateway bridge IP so a relay candidate always routes; flip only on framesDecoded>0. If TURN-on-bridge also fails → CI/real Linux host (Target B). host-net (compose.host-net.yml) is a dead-end artifact, superseded.",
+  "skipped": false,
+  "skipReason": null
+}

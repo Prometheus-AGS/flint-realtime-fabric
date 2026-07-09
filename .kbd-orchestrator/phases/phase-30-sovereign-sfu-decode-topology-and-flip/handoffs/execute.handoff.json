@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-09T15:39:33Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "Backend: OpenSpec, KBD-owned per-task loop. 2 changes, serial: c001 browser-in-docker-harness (Playwright container on compose net + in-network gateway:8080 + secure-context flag + STUN via coturn service + runner runs spec in-container) → c002 decode-run-and-flip (flip only on framesDecoded>0). No engine change expected. Per-change QA gate; seed dir up-front; progress N/N before next-stage commands. First: /kbd-apply p30-c001-browser-in-docker-harness.",
+  "skipped": false,
+  "skipReason": null
+}

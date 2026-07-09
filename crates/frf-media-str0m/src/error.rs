@@ -12,6 +12,12 @@ pub enum StrOmError {
     Dtls(String),
     #[error("session not found: {0}")]
     SessionNotFound(String),
+    /// UDP socket / transport-loop failure (bind, `local_addr`, send/recv).
+    #[error("media transport error: {0}")]
+    Transport(String),
+    /// SDP offer/answer negotiation failure.
+    #[error("negotiation error: {0}")]
+    Negotiation(String),
     #[error("signal serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
     #[error("port error: {0}")]

@@ -1,0 +1,19 @@
+{
+  "phase": "phase-31-sovereign-sfu-decode-prebuilt-image-and-flip",
+  "changes_total": 2,
+  "changes_completed": 2,
+  "completed_changes": [
+    "p31-c001-prebuilt-image-runner",
+    "p31-c002-decode-run-and-flip"
+  ],
+  "pending_changes": [],
+  "active_change": null,
+  "assessment_complete": true,
+  "plan_complete": true,
+  "execute_complete": true,
+  "reflect_complete": true,
+  "phase_complete": true,
+  "seededFrom": "phase-30-sovereign-sfu-decode-topology-and-flip",
+  "createdAt": "2026-07-09T17:05:00Z",
+  "updatedAt": "2026-07-09T17:30:00Z"
+}

@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-09T11:55:56Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Harness-timing bug characterized: spec runs connect(15s)+probe(20s)=35s > Playwright default 30s test timeout (config line 24 is webServer timeout, not test — red herring; no setTimeout override) → aborts mid-probe before diagnostics print. Also: runner dumps gateway logs only on health-fail; the cleanup trap down -v destroys them before a decode-fail can read them. G1 fix: drop redundant connect pre-check + test.setTimeout(60s) + capture gateway logs before teardown. Then G2 read ice/remoteCandidates + gateway str0m logs → fix revealed media-path issue → G3 decode+flip. Open Q: confirm sender RTP reaches SFU + fans out to receiver (gateway inbound-MediaData log).",
+  "skipped": false,
+  "skipReason": null
+}

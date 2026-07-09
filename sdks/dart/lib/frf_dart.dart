@@ -1,13 +1,23 @@
 /// Dart SDK for Flint Realtime Fabric.
 ///
-/// The Rust FFI crate (`frf-ffi`) is **UniFFI-based**, exposing the CRDT functions
-/// (`crdtApplyDelta`, `crdtNewSnapshot`, `crdtSnapshotVersion`) and the full transport
-/// client (`FrfFfiClient`: connect / publish / subscribe / ack, with `EventCallback`).
-/// The Dart bindings re-exported below are generated from it via `uniffi-bindgen-dart` —
-/// the same UniFFI surface as the Swift and Kotlin bindings.
+/// Two surfaces:
+///   - **CRDT** (`FrfCrdt`, from `src/transport.dart`) — fully working, wraps the
+///     generated sync FFI (`crdtApplyDelta` / `crdtNewSnapshot` / `crdtSnapshotVersion`).
+///   - **Transport** (`FrfTransport`) — the intended connect/subscribe/publish/ack API.
+///     Currently throws `FrfTransportUnavailable`: the `uniffi-bindgen-dart` 0.1.3
+///     generator cannot emit the async transport ABI (see `GENERATED.md`). The API shape
+///     is stable so call sites won't change when a working impl lands.
 ///
-/// Regenerate after any change to `frf-ffi` with `./build_dart.sh` (requires
-/// `uniffi-bindgen-dart` and the Rust toolchain). Do not hand-edit `src/rust/frf.dart`.
+/// The generated UniFFI bindings (`src/rust/frf.dart`) are re-exported too, but prefer the
+/// `FrfCrdt` / `FrfTransport` shim — it is the honest, stable surface. Regenerate the
+/// bindings after any change to `frf-ffi` with `./build_dart.sh`; do not hand-edit
+/// `src/rust/frf.dart`.
 library frf_dart;
 
+// The hand-written shim: FrfCrdt (working) + FrfTransport (stable API, currently
+// unavailable) + FrfTransportUnavailable.
+export 'src/transport.dart';
+
+// The generated UniFFI bindings — CRDT functions and the (broken) transport client.
+// Hidden symbols are re-provided by the shim above with an honest surface.
 export 'src/rust/frf.dart';

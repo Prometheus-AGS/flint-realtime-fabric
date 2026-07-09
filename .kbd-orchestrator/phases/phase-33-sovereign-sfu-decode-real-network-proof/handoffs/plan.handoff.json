@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-09T19:11:30Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "Operator chose Target A: local host-net. 2 changes, serial G1→G3 (no TURN needed for A; TURN is the documented fallback). c001 p33-c001-host-net-decode-stack: put gateway+playwright+caddy+coturn on network_mode:host on the Colima VM; MEDIA_ADVERTISE_IP=VM host IP; reconcile the now-redundant ports/extra_hosts + host.docker.internal JWKS path + Caddy/GATEWAY_URL to host-net addresses; runner computes the VM host IP. c002 p33-c002-decode-run-and-flip: run host-net decode, flip only on framesDecoded>0; if host candidates still don't pair, recommend TURN fallback (Target C). No frf-* engine change. Manual prereq (via !): colima start. First apply: p33-c001-host-net-decode-stack.",
+  "skipped": false,
+  "skipReason": null
+}

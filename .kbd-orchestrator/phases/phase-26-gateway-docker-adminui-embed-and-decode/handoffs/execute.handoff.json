@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-08T20:41:42Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "OpenSpec; 3-change dispatch. c001 (Dockerfile Node build stage + COPY admin-ui/dist before cargo build; frf-wasm stub, no wasm step) seeded + validates. c003 flips only on genuine c002 framesDecoded>0. First: p26-c001-dockerfile-adminui-embed.",
+  "skipped": false,
+  "skipReason": null
+}

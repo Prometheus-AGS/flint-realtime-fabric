@@ -23,18 +23,17 @@ struct SessionChannel {
 /// - **Outbound (`send_signal`) is fully cross-node:** it publishes to the
 ///   `LiveKit` server via the `send_data` API, which fans the JSON payload out to
 ///   every participant in the tenant-namespaced room across all nodes.
-/// - **Inbound (`subscribe_signals`) is in-process only:** it serves each session
-///   from a local broadcast channel that receives this process's own outbound
-///   signals. It does **not** subscribe to the `LiveKit` server's data channel, so
-///   a signal published by *another* gateway node is delivered to `LiveKit` room
-///   participants but is **not** re-surfaced through this adapter's stream on this
-///   node.
+/// - **Inbound (`subscribe_signals`)** serves each session from a local broadcast
+///   channel. By default that channel receives only this process's own outbound
+///   signals; **cross-node inbound relay is available** via
+///   [`LiveKitSignaling::start_inbound_relay`] (see [`crate::inbound`]), which pumps a
+///   [`crate::inbound::LiveKitDataSource`] into the same per-session fan-out.
 ///
-/// KNOWN LIMITATION (deferred): full cross-node inbound relay requires the
-/// `LiveKit` realtime SDK (a WebRTC data-channel client) to listen for
-/// server-originated data events and feed them into `subscribe_signals`. That is
-/// a larger adapter addition and is deferred; single-process signaling and
-/// cross-node egress work today.
+/// CAPABILITY STATUS (p19-c005): the inbound-relay plumbing + trait seam are present and
+/// unit-tested. The `libwebrtc`-backed data source (the `LiveKit` realtime SDK) is gated
+/// behind the off-by-default `realtime` cargo feature and is proven end-to-end only
+/// against a live `LiveKit` server (integration-gated) — so the default gateway build
+/// stays light. Cross-node egress and single-process signaling work today.
 pub struct LiveKitSignaling {
     config: LiveKitConfig,
     client: Arc<RoomClient>,
@@ -64,6 +63,22 @@ impl LiveKitSignaling {
     /// Returns an error if any required env var is absent.
     pub fn from_env() -> anyhow::Result<Self> {
         Ok(Self::new(LiveKitConfig::from_env()?))
+    }
+
+    /// Fan a signal out to subscribed session channels: unicast to `to_session`
+    /// when set, otherwise broadcast to every subscribed session. Shared by the
+    /// outbound `send_signal` path and the inbound cross-node relay so both deliver
+    /// through the same per-session broadcast topology.
+    pub(crate) fn fan_out(&self, signal: &SignalEnvelope) {
+        if let Some(target_session) = signal.to_session {
+            if let Some(entry) = self.sessions.get(&target_session) {
+                let _ = entry.tx.send(signal.clone());
+            }
+        } else {
+            for entry in self.sessions.iter() {
+                let _ = entry.tx.send(signal.clone());
+            }
+        }
     }
 }
 
@@ -101,15 +116,7 @@ impl MediaSignaler for LiveKitSignaling {
         .map_err(|e| PortError::Transport(format!("spawn_blocking join error: {e}")))??;
 
         // Fan out locally to any subscriber session channel.
-        if let Some(target_session) = signal.to_session {
-            if let Some(entry) = self.sessions.get(&target_session) {
-                let _ = entry.tx.send(signal);
-            }
-        } else {
-            for entry in self.sessions.iter() {
-                let _ = entry.tx.send(signal.clone());
-            }
-        }
+        self.fan_out(&signal);
 
         Ok(())
     }

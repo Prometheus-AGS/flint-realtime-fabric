@@ -1,0 +1,128 @@
+# Sovereign SFU media override (p24-c002) — OPT-IN, NOT the production default.
+#
+# The base compose.yml gateway runs SFU_MODE=hosted with only a TCP port. This override
+# switches it to the sovereign str0m SFU and exposes the UDP media path a real browser needs:
+# a fixed UDP port (mapped host↔container) plus an advertised host-reachable candidate IP
+# (p24-c001 MediaConfig). It does NOT change compose.yml.
+#
+# Bring up:
+#   docker compose -f compose.yml -f compose.sovereign.yml up -d
+# The decode harness (media-decode.spec.ts, p23-c004) then runs against GATEWAY_URL with
+# SKIP_INTEGRATION=false to observe framesDecoded>0 (phase-24 c004).
+#
+# Note: SFU_MODE=sovereign here does NOT mean the plane is a proven production path — the gate
+# stays off in the shipped binary until the decode proof passes (phase-24 c005). This override
+# exists to *run that proof*, not to advertise the plane.
+
+name: flint-realtime-fabric
+
+services:
+  gateway:
+    ports:
+      # Fixed UDP media port, mapped host↔container so a browser can reach the str0m socket.
+      - "40000:40000/udp"
+    environment:
+      SFU_MODE: "sovereign"
+      # p24-c001 / p28-c002: bind all interfaces in-container, advertise a host-reachable candidate.
+      # The container publishes UDP 40000 to the host (`40000:40000/udp`), so a browser ON THE HOST
+      # reaches the SFU via host loopback 127.0.0.1:40000. Advertise `127.0.0.1` (str0m needs a
+      # concrete IP — `0.0.0.0` and a bare hostname are rejected). `MEDIA_ADVERTISE_IP` also accepts
+      # a hostname, resolved to an IP at negotiate time, for multi-host deployments.
+      MEDIA_BIND_ADDR: "0.0.0.0"
+      MEDIA_ADVERTISE_IP: "${MEDIA_ADVERTISE_IP:-127.0.0.1}"
+      MEDIA_UDP_PORT: "40000"
+      # p25-c001: the base compose.yml hardcodes the flint-gate JWKS URL; override it so the
+      # gateway verifies against the run's self-served RS256 JWKS (the runner sets this env to a
+      # host.docker.internal URL). Defaults back to flint-gate when the runner does not set it.
+      GATEWAY_JWKS_URL: "${GATEWAY_JWKS_URL:-http://flint-gate:4457/signing-keys}"
+      # p26-c002: the production gateway build refuses to boot without JWT_ISSUER (p16 hardening).
+      # The runner's minted token carries a matching `iss` (see mint-e2e-jwt.mjs). Overridable so
+      # a real IdP deployment can set its own issuer.
+      JWT_ISSUER: "${JWT_ISSUER:-frf-e2e}"
+    extra_hosts:
+      # Ensure host.docker.internal resolves on Linux engines (it is automatic on Docker Desktop).
+      - "host.docker.internal:host-gateway"
+
+  # p30-c001 (phase-29 topology): the decode browser must run INSIDE this network, not on the host.
+  # On the Colima Linux-VM engine a host-side browser's ICE candidates (macOS host space) never pair
+  # with the SFU's (VM bridge) — even with STUN, the srflx reflects the VM view. Running Chromium in
+  # a container on this network puts both endpoints in one address space so a pair completes.
+  # The service idles (`sleep infinity`); the runner `docker compose exec`s the Playwright CLI in it.
+  playwright:
+    # Pin to the INSTALLED @playwright/test version (admin-ui resolves 1.61.0) so the image's baked
+    # browser binaries match the mounted CLI — a mismatch means "browser not found" (p30-c002).
+    image: mcr.microsoft.com/playwright:v1.61.0
+    working_dir: /work/admin-ui
+    volumes:
+      # Mount the WHOLE repo (p30-c002): admin-ui is a pnpm workspace with `workspace:*` deps that
+      # only resolve from the repo root, and its node_modules symlinks point at the root store. The
+      # host already has a complete install, so the container reuses it — no in-container install.
+      - .:/work
+    environment:
+      # Reach the gateway via the TLS sidecar (p32-c001) so the browser has a genuine HTTPS secure
+      # context — `getUserMedia`/`mediaDevices` require it, and the p31 unsafe-origin flags did not
+      # register `mediaDevices` in the headless container. `WS_URL` derives `wss://caddy:8443`.
+      GATEWAY_URL: "https://caddy:8443"
+      STUN_URL: "stun:coturn:3478"
+      SKIP_INTEGRATION: "false"
+      CI: "true"
+    # Idle so the runner can exec the decode spec on demand; depends on the gateway + TLS front.
+    command: ["sleep", "infinity"]
+    depends_on:
+      gateway:
+        condition: service_healthy
+      caddy:
+        condition: service_started
+
+  # p32-c001 (phase-31 secure context): `getUserMedia`/`mediaDevices` require a SECURE context, and
+  # the p31 unsafe-origin flags did not register `mediaDevices` in the headless Playwright container.
+  # Caddy fronts the plain-HTTP gateway with an auto self-signed internal cert on :8443, reverse-
+  # proxying both HTTP and the `/ws/v1/signal` WebSocket upgrade. The browser reaches `https://caddy:8443`
+  # (a genuine secure context) and trusts the cert via `--ignore-certificate-errors` — no unsafe flags.
+  caddy:
+    image: caddy:2.8
+    command:
+      # Inline Caddyfile: TLS-terminate on :8443 with Caddy's internal CA, proxy everything to the
+      # gateway (WebSocket upgrades pass through transparently). `--config -` reads the Caddyfile from
+      # stdin via a heredoc-style adapter arg is not portable, so use a bind-free `caddy reverse-proxy`.
+      - "caddy"
+      - "reverse-proxy"
+      - "--from"
+      - "https://caddy:8443"
+      - "--to"
+      - "http://gateway:8080"
+      - "--internal-certs"
+    depends_on:
+      gateway:
+        condition: service_healthy
+
+  # p29-c002 (phase-28 B1): Chrome emits its host candidates as mDNS `<uuid>.local` names that
+  # str0m cannot parse, so the browser must gather a server-reflexive (`srflx`) candidate instead.
+  # A hermetic local STUN server lets it do so with no outbound internet from the browser — the
+  # decode probe points its RTCPeerConnection at `stun:127.0.0.1:3478` (STUN_URL). coturn in
+  # minimal STUN-only mode (no TURN relay, no auth) is sufficient to reflect the browser's address.
+  # p34-c001: upgraded from STUN-only to a TURN RELAY. On the bridge, host/srflx candidates don't pair
+  # (phase-32); a relay candidate carries coturn's real relay IP and always routes, and str0m accepts
+  # `typ relay` (parser.rs:232). Long-term credential comes from ${TURN_SECRET} (env — NEVER committed);
+  # `--external-ip` is the relay address the in-network browser reaches (defaults to 127.0.0.1 for the
+  # same-host loopback run; the runner may override with the gateway/bridge IP).
+  coturn:
+    image: coturn/coturn:4.6.2
+    command:
+      - "-n"                       # no config file — all flags on the command line
+      - "--no-tls"
+      - "--no-dtls"
+      - "--listening-port=3478"
+      - "--listening-ip=0.0.0.0"
+      - "--realm=frf"
+      # Long-term static credential (simpler than time-limited REST for a test harness): the browser
+      # uses username=frf, credential=${TURN_SECRET}. The secret is env-sourced, NEVER committed.
+      - "--lt-cred-mech"
+      - "--user=frf:${TURN_SECRET:?TURN_SECRET must be set by the decode runner — never commit it}"
+      - "--external-ip=${TURN_EXTERNAL_IP:-127.0.0.1}"
+      - "--min-port=49160"
+      - "--max-port=49200"
+    ports:
+      - "3478:3478/udp"
+      - "3478:3478/tcp"
+      - "49160-49200:49160-49200/udp"   # relay port range the browser reaches

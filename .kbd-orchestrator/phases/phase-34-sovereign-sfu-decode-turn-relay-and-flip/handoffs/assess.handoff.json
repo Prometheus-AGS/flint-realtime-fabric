@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-09T20:00:03Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "G1 (TURN on bridge) CONFIRMED + DE-RISKED: str0m 0.21 SDP parser accepts typ relay (parser.rs:232 → CandidateKind::Relayed) — a relay candidate carries coturn's real relay IP and parses (unlike .local), so add_remote_candidate pairs it; NO engine change. Scope: coturn --stun-only → TURN (--realm + long-term creds + --external-ip=coturn bridge IP), harness iceServers add turn:coturn:3478 + username/credential (both PCs), MEDIA_ADVERTISE_IP=gateway bridge IP; credential via env, not committed. All on the phase-32 BRIDGE stack (not host-net, phase-33 dead end). Plan: c001 coturn TURN + iceServers, c002 decode+conditional flip. CI (Target B) is the recorded fallback if TURN-on-bridge still fails.",
+  "skipped": false,
+  "skipReason": null
+}

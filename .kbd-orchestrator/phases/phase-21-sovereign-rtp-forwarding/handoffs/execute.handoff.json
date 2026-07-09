@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-08T09:48:51Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "Backend=OpenSpec; 5-change dispatch contract. QA gate on c001/c002/c004 (refactor + engine); c003 ADR + c005 close docs-skip. Driver=/kbd-apply one task/turn from repo root. Keep driver.rs/session.rs/room.rs each ≤500 (c001 exists because session.rs hit 498). SFU_MODE=sovereign stays off through c001-c004; flipped in c005 ONLY if 1-to-1 media flows. First pending change: p21-c001-split-session-driver.",
+  "skipped": false,
+  "skipReason": null
+}

@@ -1,0 +1,22 @@
+{
+  "phase": "phase-24-sovereign-sfu-live-decode-and-flip",
+  "changes_total": 5,
+  "changes_completed": 5,
+  "completed_changes": [
+    "p24-c001-str0m-bind-config",
+    "p24-c002-compose-sovereign-media",
+    "p24-c003-keto-view-seed",
+    "p24-c004-dagger-decode-job",
+    "p24-c005-flip-or-reaffirm"
+  ],
+  "pending_changes": [],
+  "active_change": null,
+  "assessment_complete": true,
+  "plan_complete": true,
+  "execute_complete": true,
+  "reflect_complete": true,
+  "phase_complete": false,
+  "seededFrom": "phase-23-sovereign-sfu-e2e-and-gate",
+  "createdAt": "2026-07-08T16:05:00Z",
+  "updatedAt": "2026-07-08T19:00:00Z"
+}

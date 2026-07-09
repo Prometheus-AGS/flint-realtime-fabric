@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-09T11:06:04Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "OpenSpec; 4-change dispatch. c001 (media instrumentation: str0m driver lifecycle logs + harness ICE-state) seeded + validates. Full-trickle ICE fix in c002; RoomJoin in c003; c004 flips only on genuine framesDecoded>0. Reminder: seed each change dir before begin-task. First: p27-c001-media-instrumentation.",
+  "skipped": false,
+  "skipReason": null
+}

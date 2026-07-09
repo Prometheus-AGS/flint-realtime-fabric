@@ -1606,132 +1606,12 @@ class FrfFfi {
   late final void Function(ffi.Pointer<_UniFfiFfiBufferElement> argPtr, ffi.Pointer<_UniFfiFfiBufferElement> returnPtr) _frfFfiClientSubscribeFfiBuffer = _lib.lookupFunction<ffi.Void Function(ffi.Pointer<_UniFfiFfiBufferElement> argPtr, ffi.Pointer<_UniFfiFfiBufferElement> returnPtr), void Function(ffi.Pointer<_UniFfiFfiBufferElement> argPtr, ffi.Pointer<_UniFfiFfiBufferElement> returnPtr)>('uniffi_ffibuffer_frf_ffi_fn_method_frffficlient_subscribe');
 
   void frfFfiClientInvokeSubscribe(int handle, String channelId, String consumerId, int fromOffset, EventCallback callback) {
-    final ffi.Pointer<_UniFfiFfiBufferElement> argBuf = calloc<_UniFfiFfiBufferElement>(9);
-    final ffi.Pointer<_UniFfiFfiBufferElement> returnBuf = calloc<_UniFfiFfiBufferElement>(4);
-    final foreignArgPtrs = <ffi.Pointer<ffi.Uint8>>[];
-    final rustRetBufferPtrs = <ffi.Pointer<_UniFfiRustBuffer>>[];
-    try {
-      final int clonedHandle;
-      {
-        final cloneStatusPtr = calloc<_UniFfiRustCallStatus>();
-        try {
-          cloneStatusPtr.ref.code = _uniFfiRustCallStatusSuccess;
-          cloneStatusPtr.ref.errorBuf
-            ..capacity = 0
-            ..len = 0
-            ..data = ffi.nullptr;
-          clonedHandle = _frfFfiClientClone(handle, cloneStatusPtr);
-          if (cloneStatusPtr.ref.code != _uniFfiRustCallStatusSuccess) {
-            throw StateError('UniFFI clone failed with status ${cloneStatusPtr.ref.code}');
-          }
-        } finally {
-          calloc.free(cloneStatusPtr);
-        }
-      }
-      (argBuf + 0).ref.u64 = clonedHandle;
-      final Uint8List channelIdBytes = Uint8List.fromList(utf8.encode(channelId));
-      final ffi.Pointer<ffi.Uint8> channelIdPtr = channelIdBytes.isEmpty ? ffi.nullptr : calloc<ffi.Uint8>(channelIdBytes.length);
-      if (channelIdBytes.isNotEmpty) { channelIdPtr.asTypedList(channelIdBytes.length).setAll(0, channelIdBytes); }
-      foreignArgPtrs.add(channelIdPtr);
-      final ffi.Pointer<_UniFfiRustCallStatus> channelIdFromBytesStatusPtr = calloc<_UniFfiRustCallStatus>();
-      channelIdFromBytesStatusPtr.ref.code = _uniFfiRustCallStatusSuccess;
-      channelIdFromBytesStatusPtr.ref.errorBuf
-        ..capacity = 0
-        ..len = 0
-        ..data = ffi.nullptr;
-      final ffi.Pointer<_UniFfiForeignBytes> channelIdForeignPtr = calloc<_UniFfiForeignBytes>();
-      channelIdForeignPtr.ref
-        ..len = channelIdBytes.length
-        ..data = channelIdPtr;
-      final _UniFfiRustBuffer channelIdRustBuffer = _uniFfiRustBufferFromBytes(channelIdForeignPtr.ref, channelIdFromBytesStatusPtr);
-      calloc.free(channelIdForeignPtr);
-      final int channelIdFromBytesCode = channelIdFromBytesStatusPtr.ref.code;
-      final _UniFfiRustBuffer channelIdFromBytesErrBuf = channelIdFromBytesStatusPtr.ref.errorBuf;
-      calloc.free(channelIdFromBytesStatusPtr);
-      if (channelIdFromBytesCode != _uniFfiRustCallStatusSuccess) {
-        final ffi.Pointer<_UniFfiRustBuffer> channelIdFromBytesErrBufPtr = calloc<_UniFfiRustBuffer>();
-        channelIdFromBytesErrBufPtr.ref
-          ..capacity = channelIdFromBytesErrBuf.capacity
-          ..len = channelIdFromBytesErrBuf.len
-          ..data = channelIdFromBytesErrBuf.data;
-        rustRetBufferPtrs.add(channelIdFromBytesErrBufPtr);
-        throw StateError('UniFFI rustbuffer_from_bytes failed with status $channelIdFromBytesCode');
-      }
-      (argBuf + 1).ref.u64 = channelIdRustBuffer.capacity;
-      (argBuf + 2).ref.u64 = channelIdRustBuffer.len;
-      (argBuf + 3).ref.ptr = channelIdRustBuffer.data.cast<ffi.Void>();
-      final Uint8List consumerIdBytes = Uint8List.fromList(utf8.encode(consumerId));
-      final ffi.Pointer<ffi.Uint8> consumerIdPtr = consumerIdBytes.isEmpty ? ffi.nullptr : calloc<ffi.Uint8>(consumerIdBytes.length);
-      if (consumerIdBytes.isNotEmpty) { consumerIdPtr.asTypedList(consumerIdBytes.length).setAll(0, consumerIdBytes); }
-      foreignArgPtrs.add(consumerIdPtr);
-      final ffi.Pointer<_UniFfiRustCallStatus> consumerIdFromBytesStatusPtr = calloc<_UniFfiRustCallStatus>();
-      consumerIdFromBytesStatusPtr.ref.code = _uniFfiRustCallStatusSuccess;
-      consumerIdFromBytesStatusPtr.ref.errorBuf
-        ..capacity = 0
-        ..len = 0
-        ..data = ffi.nullptr;
-      final ffi.Pointer<_UniFfiForeignBytes> consumerIdForeignPtr = calloc<_UniFfiForeignBytes>();
-      consumerIdForeignPtr.ref
-        ..len = consumerIdBytes.length
-        ..data = consumerIdPtr;
-      final _UniFfiRustBuffer consumerIdRustBuffer = _uniFfiRustBufferFromBytes(consumerIdForeignPtr.ref, consumerIdFromBytesStatusPtr);
-      calloc.free(consumerIdForeignPtr);
-      final int consumerIdFromBytesCode = consumerIdFromBytesStatusPtr.ref.code;
-      final _UniFfiRustBuffer consumerIdFromBytesErrBuf = consumerIdFromBytesStatusPtr.ref.errorBuf;
-      calloc.free(consumerIdFromBytesStatusPtr);
-      if (consumerIdFromBytesCode != _uniFfiRustCallStatusSuccess) {
-        final ffi.Pointer<_UniFfiRustBuffer> consumerIdFromBytesErrBufPtr = calloc<_UniFfiRustBuffer>();
-        consumerIdFromBytesErrBufPtr.ref
-          ..capacity = consumerIdFromBytesErrBuf.capacity
-          ..len = consumerIdFromBytesErrBuf.len
-          ..data = consumerIdFromBytesErrBuf.data;
-        rustRetBufferPtrs.add(consumerIdFromBytesErrBufPtr);
-        throw StateError('UniFFI rustbuffer_from_bytes failed with status $consumerIdFromBytesCode');
-      }
-      (argBuf + 4).ref.u64 = consumerIdRustBuffer.capacity;
-      (argBuf + 5).ref.u64 = consumerIdRustBuffer.len;
-      (argBuf + 6).ref.ptr = consumerIdRustBuffer.data.cast<ffi.Void>();
-      (argBuf + 7).ref.u64 = fromOffset;
-      (argBuf + 8).ref.u64 = callback;
-      _frfFfiClientSubscribeFfiBuffer(argBuf, returnBuf);
-      final int statusCode = (returnBuf + 0).ref.i8;
-      if (statusCode != _uniFfiRustCallStatusSuccess) {
-        final ffi.Pointer<_UniFfiRustBuffer> errBufPtr = calloc<_UniFfiRustBuffer>();
-        errBufPtr.ref
-          ..capacity = (returnBuf + 1).ref.u64
-          ..len = (returnBuf + 2).ref.u64
-          ..data = (returnBuf + 3).ref.ptr.cast<ffi.Uint8>();
-        rustRetBufferPtrs.add(errBufPtr);
-        if (statusCode == _uniFfiRustCallStatusError) {
-          final Uint8List errBytes = errBufPtr.ref.len == 0 ? Uint8List(0) : Uint8List.fromList(errBufPtr.ref.data.asTypedList(errBufPtr.ref.len));
-          throw _uniffiLiftClientFfiErrorException(errBytes);
-        }
-        throw StateError('UniFFI ffibuffer call failed with status $statusCode');
-      }
-      return;
-    } finally {
-      for (final ptr in foreignArgPtrs) {
-        if (ptr != ffi.nullptr) {
-          calloc.free(ptr);
-        }
-      }
-      for (final bufPtr in rustRetBufferPtrs) {
-        if (bufPtr.ref.data == ffi.nullptr && bufPtr.ref.len == 0 && bufPtr.ref.capacity == 0) {
-          continue;
-        }
-        final ffi.Pointer<_UniFfiRustCallStatus> freeStatusPtr = calloc<_UniFfiRustCallStatus>();
-        freeStatusPtr.ref.code = _uniFfiRustCallStatusSuccess;
-        freeStatusPtr.ref.errorBuf
-          ..capacity = 0
-          ..len = 0
-          ..data = ffi.nullptr;
-        _uniFfiRustBufferFree(bufPtr.ref, freeStatusPtr);
-        calloc.free(freeStatusPtr);
-        calloc.free(bufPtr);
-      }
-      calloc.free(argBuf);
-      calloc.free(returnBuf);
-    }
+    // POST-GENERATION PATCH (p18-c009): uniffi-bindgen-dart 0.1.3 emits a foreign-callback
+    // lowering that does not type-check (it assigns the EventCallback object to a u64 arg
+    // slot). The original ~135-line body is replaced with a compile-valid throw, matching
+    // the generator's own `connect` stub. Use the FrfTransport shim for a stable API; re-run
+    // build_dart.sh to regenerate when a fixed uniffi-bindgen-dart is available.
+    throw UnsupportedError("runtime invocation for this UniFFI ABI (foreign callback) is not implemented yet (subscribe)");
   }
 }
 
@@ -1968,7 +1848,10 @@ final class FrfFfiClient {
   /// Returns [`ClientFfiError::Connect`] if the endpoint is invalid or the
   /// transport connection fails.
   static Future<FrfFfiClient> connect(String endpoint, String? token) {
-    return _bindings().frfFfiClientCreateConnect(endpoint, token);
+    // POST-GENERATION PATCH (p18-c009): the generated `frfFfiClientCreateConnect` returns a
+    // non-Future and throws (async constructor ABI ungenerated), which does not satisfy this
+    // Future<FrfFfiClient> signature. Throw directly so the file compiles; use FrfTransport.
+    throw UnsupportedError('runtime invocation for this UniFFI ABI (async constructor) is not implemented yet (connect)');
   }
 
   /// Acknowledge consumption up to `offset` for a channel/consumer.

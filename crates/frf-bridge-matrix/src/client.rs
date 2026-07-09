@@ -1,9 +1,19 @@
+use std::time::Duration;
+
 use async_trait::async_trait;
 use frf_domain::ids::{ChannelId, TenantId};
 use frf_ports::{error::PortError, federation::FederatedEvent};
-use futures_util::stream::{self, BoxStream};
+use futures_util::stream::BoxStream;
 
+use crate::convert::matrix_event_to_federated;
 use crate::error::MatrixBridgeError;
+
+/// Long-poll timeout the homeserver holds a `/sync` open for (ms).
+const SYNC_TIMEOUT_MS: u64 = 30_000;
+/// Initial backoff after a failed `/sync`, doubled up to the cap.
+const INITIAL_BACKOFF: Duration = Duration::from_millis(500);
+/// Maximum backoff between failed `/sync` attempts.
+const MAX_BACKOFF: Duration = Duration::from_secs(30);
 
 /// A raw Matrix room event as returned by the homeserver client API.
 #[derive(Debug, Clone)]
@@ -40,12 +50,10 @@ pub trait MatrixClient: Send + Sync {
 
 /// REST-based Matrix client using the Client-Server API.
 ///
-/// This stub polls `/sync` for room events. In production, replace with a
-/// persistent `tokio-tungstenite` WebSocket connection or a Tuwunel library dep.
-///
-/// `BLOCKED_ON_TUWUNEL`: Tuwunel does not yet expose a stable Rust library crate.
-/// Track <https://github.com/girlbossceo/tuwunel/issues> for crate publication.
-/// Replace this REST stub with a native Tuwunel client once the crate is available.
+/// Inbound: long-polls `/sync` (threading the `next_batch` token, with backoff) and
+/// projects each room's timeline events. Outbound: HTTP PUT to the room send endpoint.
+/// Both use bearer auth. A Tuwunel-native client could replace this later — but reqwest
+/// `/sync` needs no extra dependency, so it is not blocked on the Tuwunel crate.
 pub struct ReqwestMatrixClient {
     http: reqwest::Client,
     homeserver_url: String,
@@ -72,15 +80,37 @@ impl MatrixClient for ReqwestMatrixClient {
         tenant_id: TenantId,
         channel_id: ChannelId,
     ) -> BoxStream<'static, Result<FederatedEvent, PortError>> {
-        // Stub: returns an empty stream until Tuwunel dep is wired.
-        // Replace with a long-poll /sync loop or a persistent WS connection.
-        tracing::info!(
-            room_id = %room_id,
-            "MatrixBridge room_event_stream: stub — no events until Tuwunel is wired"
-        );
+        // Real inbound: long-poll the Matrix Client-Server `/sync` endpoint, thread the
+        // `next_batch` token forward, and project each new timeline event for this room
+        // into a FederatedEvent. Reconnects with exponential backoff on transient errors.
+        // (A Tuwunel-native client could replace this later, but reqwest /sync needs no
+        // extra dependency.)
+        let http = self.http.clone();
+        let homeserver = self.homeserver_url.clone();
+        let token = self.access_token.clone();
 
-        let _ = (room_id, tenant_id, channel_id);
-        Box::pin(stream::empty())
+        Box::pin(async_stream::stream! {
+            let mut since: Option<String> = None;
+            let mut backoff = INITIAL_BACKOFF;
+
+            loop {
+                match sync_once(&http, &homeserver, &token, since.as_deref()).await {
+                    Ok((next_batch, events)) => {
+                        backoff = INITIAL_BACKOFF; // reset on success
+                        since = Some(next_batch);
+                        for raw in events_for_room(&events, &room_id) {
+                            yield matrix_event_to_federated(raw, &room_id, tenant_id, channel_id)
+                                .map_err(PortError::from);
+                        }
+                    }
+                    Err(e) => {
+                        tracing::warn!(room_id = %room_id, error = %e, "matrix /sync failed — backing off");
+                        tokio::time::sleep(backoff).await;
+                        backoff = (backoff * 2).min(MAX_BACKOFF);
+                    }
+                }
+            }
+        })
     }
 
     async fn send_event(
@@ -106,9 +136,76 @@ impl MatrixClient for ReqwestMatrixClient {
     }
 }
 
+/// Perform one `GET /sync` long-poll. Returns the `next_batch` token and the parsed
+/// response body. `since` threads the previous batch forward (absent on the first poll).
+async fn sync_once(
+    http: &reqwest::Client,
+    homeserver: &str,
+    token: &str,
+    since: Option<&str>,
+) -> Result<(String, serde_json::Value), MatrixBridgeError> {
+    let url = format!("{homeserver}/_matrix/client/v3/sync");
+    let timeout = SYNC_TIMEOUT_MS.to_string();
+    let mut query: Vec<(&str, &str)> = vec![("timeout", &timeout)];
+    if let Some(s) = since {
+        query.push(("since", s));
+    }
+
+    let body: serde_json::Value = http
+        .get(&url)
+        .bearer_auth(token)
+        .query(&query)
+        // Give the request a little longer than the server-side long-poll timeout.
+        .timeout(Duration::from_millis(SYNC_TIMEOUT_MS + 10_000))
+        .send()
+        .await?
+        .error_for_status()?
+        .json()
+        .await?;
+
+    let next_batch = body
+        .get("next_batch")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or_default()
+        .to_owned();
+
+    Ok((next_batch, body))
+}
+
+/// Extract this room's new timeline events from a `/sync` response body:
+/// `rooms.join.<room_id>.timeline.events[]`.
+fn events_for_room(body: &serde_json::Value, room_id: &str) -> Vec<RawMatrixEvent> {
+    let Some(events) = body
+        .get("rooms")
+        .and_then(|r| r.get("join"))
+        .and_then(|j| j.get(room_id))
+        .and_then(|room| room.get("timeline"))
+        .and_then(|t| t.get("events"))
+        .and_then(serde_json::Value::as_array)
+    else {
+        return Vec::new();
+    };
+
+    events
+        .iter()
+        .map(|ev| RawMatrixEvent {
+            event_id: ev
+                .get("event_id")
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_owned),
+            sender: ev
+                .get("sender")
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_owned),
+            content: ev
+                .get("content")
+                .cloned()
+                .unwrap_or(serde_json::Value::Null),
+        })
+        .collect()
+}
+
 /// Test-only in-memory Matrix client that yields a fixed set of events.
-#[cfg(test)]
-use crate::convert::matrix_event_to_federated;
 #[cfg(test)]
 pub struct MockMatrixClient {
     pub events: Vec<RawMatrixEvent>,
@@ -133,7 +230,7 @@ impl MatrixClient for MockMatrixClient {
             })
             .collect();
 
-        Box::pin(stream::iter(projected))
+        Box::pin(futures_util::stream::iter(projected))
     }
 
     async fn send_event(
@@ -142,5 +239,52 @@ impl MatrixClient for MockMatrixClient {
         _content: serde_json::Value,
     ) -> Result<(), MatrixBridgeError> {
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn events_for_room_extracts_this_rooms_timeline() {
+        // A realistic /sync body: two events in the target room, one in another room.
+        let body = serde_json::json!({
+            "next_batch": "s72_1",
+            "rooms": {
+                "join": {
+                    "!target:hs": {
+                        "timeline": {
+                            "events": [
+                                { "event_id": "$e1", "sender": "@a:hs", "content": { "body": "hi" } },
+                                { "event_id": "$e2", "sender": "@b:hs", "content": { "body": "yo" } }
+                            ]
+                        }
+                    },
+                    "!other:hs": {
+                        "timeline": { "events": [{ "event_id": "$x", "content": {} }] }
+                    }
+                }
+            }
+        });
+
+        let events = events_for_room(&body, "!target:hs");
+        assert_eq!(events.len(), 2);
+        assert_eq!(events[0].event_id.as_deref(), Some("$e1"));
+        assert_eq!(events[0].sender.as_deref(), Some("@a:hs"));
+        assert_eq!(events[1].event_id.as_deref(), Some("$e2"));
+    }
+
+    #[test]
+    fn events_for_room_returns_empty_when_room_absent() {
+        let body = serde_json::json!({ "next_batch": "s1", "rooms": { "join": {} } });
+        assert!(events_for_room(&body, "!missing:hs").is_empty());
+    }
+
+    #[test]
+    fn events_for_room_handles_malformed_body() {
+        // No rooms key at all → empty, not a panic.
+        let body = serde_json::json!({ "next_batch": "s1" });
+        assert!(events_for_room(&body, "!any:hs").is_empty());
     }
 }

@@ -1,0 +1,23 @@
+{
+  "phase": "phase-23-sovereign-sfu-e2e-and-gate",
+  "changes_total": 6,
+  "changes_completed": 6,
+  "completed_changes": [
+    "p23-c001-media-authz-adr",
+    "p23-c002-keto-view-check-on-join",
+    "p23-c003-browser-e2e-harness",
+    "p23-c004-decoded-media-proof",
+    "p23-c005-security-doc-media-boundary",
+    "p23-c006-flip-or-reaffirm-gate"
+  ],
+  "pending_changes": [],
+  "active_change": null,
+  "assessment_complete": true,
+  "plan_complete": true,
+  "execute_complete": true,
+  "reflect_complete": true,
+  "phase_complete": false,
+  "seededFrom": "phase-22-sovereign-sfu-npeer-pli",
+  "createdAt": "2026-07-08T00:00:00Z",
+  "updatedAt": "2026-07-08T16:00:00Z"
+}

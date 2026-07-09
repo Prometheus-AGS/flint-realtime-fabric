@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-07T18:11:15Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "Backend: OpenSpec, 10 changes, driven via /kbd-apply. QA gate + constraints.md carried from phase-17 (no re-wire needed). QA ON for c001-c003/c006-c008 (--kind rust) and c005/c009 (--kind frontend); c004 docs-only, c010 verification. Scope guard: full str0m SFU, LiveKit cross-node inbound, full OIDC login deferred to phase-19. First pending: p18-c001 (str0m routing bug — HIGH, unblocks signaling).",
+  "skipped": false,
+  "skipReason": null
+}

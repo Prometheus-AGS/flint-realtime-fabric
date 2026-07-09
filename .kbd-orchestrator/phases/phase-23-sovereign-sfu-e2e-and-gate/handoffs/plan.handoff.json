@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-08T13:23:42Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "6 changes ordered: c001 ADR-007 media authz → c002 Keto view-check at room-join (in bridge, str0m stays authz-free) → c003 browser harness → c004 decoded-media proof (browser↔headless str0m, the gate-unblocker) → c005 SECURITY docs → c006 flip-or-reaffirm (flips only if c004 proves decoded media). First: p23-c001-media-authz-adr.",
+  "skipped": false,
+  "skipReason": null
+}

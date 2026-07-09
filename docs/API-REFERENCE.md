@@ -43,6 +43,12 @@ WebRTC signaling relay.
 |-----|------|--------------------|
 | `Signal` | bidi-stream | stream `SignalEnvelope` ↔ stream `SignalEnvelope` |
 
+Routing: a signal is delivered to `to_session` (unicast) or, when unset, fanned out to the
+other members of `room_id` — never echoed to the sender (p18-c001). The reported
+`sfu_mode` reflects the gateway's configured mode (p18-c003). The media plane itself
+(str0m sovereign SFU) is still signaling-only / negotiation-spike; hosted (LiveKit) is the
+live media path — see `docs/SECURITY.md` §6.
+
 The browser admin UI also has an Axum WebSocket endpoint `/ws/v1/signal?room=&tenant=&token=`
 that streams `SignalFrame` JSON (see the gateway routes).
 

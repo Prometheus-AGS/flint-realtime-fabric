@@ -1,16 +1,16 @@
 {
   "schemaVersion": "1",
-  "updatedAt": "2026-07-07T16:56:53Z",
+  "updatedAt": "2026-07-09T23:20:06Z",
   "cursor": [
-    "phase-17-plane-completion-and-release-audit"
+    "phase-35-sovereign-sfu-decode-ci-linux-proof"
   ],
   "root": {
     "type": "phase",
-    "id": "phase-17-plane-completion-and-release-audit",
-    "status": "executing",
+    "id": "phase-35-sovereign-sfu-decode-ci-linux-proof",
+    "status": "apply_pending",
     "progress": {
-      "done": 9,
-      "total": 10
+      "done": 0,
+      "total": 2
     },
     "children": [],
     "annotations": []

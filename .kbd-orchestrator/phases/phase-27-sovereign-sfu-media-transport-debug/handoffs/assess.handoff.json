@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-09T11:00:29Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Static analysis found THREE concrete media-negotiation defects (likely the actual causes of the decode timeout, not just missing logs): FIND-1 harness never exchanges ICE candidates (no onicecandidate/addIceCandidate) → answerer gateway can't complete ICE → 30s timeout; FIND-2 gateway trickle candidates/local_signals never relayed to browser over WS (route streams MediaSignaler, not StrOmTransport.local_signals); FIND-3 no RoomJoin → sender+receiver in separate default rooms → RoomRouter never fans out. Plus instrumentation gaps (str0m driver doesn't info-log ICE/MediaData; harness reports only a reason string). Plan: G1 instrument → G2 fix the three (likely non-trickle bundled offer simplest for ICE; RoomJoin for fan-out) → G3 decode+flip → G4 carried. Open Q: trickle-vs-bundled ICE approach.",
+  "skipped": false,
+  "skipReason": null
+}

@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-09T23:15:59Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "Backend: OpenSpec, KBD-owned per-task loop. Target A GitHub Actions. 2 changes, serial: c001 ci-decode-job (Linux-portable runner via 172.17.0.1 JWKS + gated colima/HOST_NET; new decode-proof workflow_dispatch job on ubuntu-latest: build gateway image → docker compose up sovereign stack → Playwright decode → assert framesDecoded>0; secrets in-job, S1-clean) → c002 decode-run-and-flip (trigger the CI job, flip only on framesDecoded>0, artifacts for the result record). No engine change; no same-host variants. First: /kbd-apply p35-c001-ci-decode-job.",
+  "skipped": false,
+  "skipReason": null
+}

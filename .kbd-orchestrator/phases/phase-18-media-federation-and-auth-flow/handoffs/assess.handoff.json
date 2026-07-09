@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-07T18:00:22Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Code-grounded audit of all 4 planes. Seed ordering was WRONG: G1 (admin-ui login) is BLOCKED — flint-gate has no interactive login endpoint (only token-exchange/client_credentials), Kratos not deployed; needs a backend/IdP decision (A1) before any frontend work. G2 str0m hides a HIGH routing bug (send_signal keys on from_session, ignores to_session/room_id — no peer reaches another, masked by same-session test) + str0m unused (0.7 pinned, 0.21 latest); spike ~1-2d after bug fix, full build ~2-4wk XL. G3 federation: 3 dirs work, 3 stub (Matrix inbound, ATProto outbound, LiveKit inbound) + channel-ID validate gap (XS). G4 Dart: uniffi-bindgen-dart 0.1.3 is latest, no upstream fix — hand-written shim is the only path; docs stale. Recommend: cheap correctness first (B1 routing, B2 channel guard, B3/B4 doc/config), then A1 decision, then plane builds by cost. 4 open questions for plan.",
+  "skipped": false,
+  "skipReason": null
+}

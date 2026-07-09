@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-09T11:58:02Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "3 changes: c001 harness-visibility (drop connect pre-check + test.setTimeout(60s) + capture gateway logs before teardown → diagnostics surface) → c002 diagnose-and-fix (read ice/remoteCandidates + str0m logs, record PHASE-28-DIAGNOSIS.md, fix the revealed media-path issue — evidence-driven) → c003 decode-run-and-flip (framesDecoded>0 → flip; else re-affirm). c002 open-shaped by design. First: p28-c001-harness-visibility.",
+  "skipped": false,
+  "skipReason": null
+}

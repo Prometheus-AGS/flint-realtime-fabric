@@ -36,18 +36,58 @@ encapsulated in Rust.
 
 ## Known limitation (uniffi-bindgen-dart 0.1.3)
 
-The generator currently emits **type-incorrect Dart for async constructors and
-foreign-callback methods**. Concretely:
+The generator currently emits **broken Dart for async constructors and foreign-callback
+methods**. Concretely, in the regenerated `frf.dart`:
 
-- `FrfFfiClient.connect` is generated returning `FrfFfiClient` instead of
-  `Future<FrfFfiClient>`.
-- `FrfFfiClient.subscribe` passes the `EventCallback` object where a `u64` handle is
-  expected.
+- `FrfFfiClient.connect` *declares* `Future<FrfFfiClient>`, but its body returns a
+  non-Future and throws `UnsupportedError('runtime invocation for this UniFFI ABI ... not
+  implemented yet (connect)')` — so it does not type-check and would throw at runtime.
+- `FrfFfiClient.subscribe` passes the `EventCallback` object where a lowered `u64` handle
+  is expected.
 
 So the **synchronous CRDT surface is usable today**, but the **async transport surface
-(`connect` / `subscribe`) does not yet type-check**. The generated file is committed and
-analyzer-excluded (`analysis_options.yaml`) rather than hand-patched — never edit
-generated code. Swift/Kotlin (via UniFFI directly) are unaffected; only the Dart async
-codegen is limited. Tracked as a follow-up: re-run `build_dart.sh` when
-`uniffi-bindgen-dart` fixes async/callback codegen, or wrap the transport surface in a
-hand-written Dart shim over the sync FFI.
+(`connect` / `subscribe`) does not work**. Swift/Kotlin (via UniFFI directly) are
+unaffected; only the Dart async codegen is limited. `uniffi-bindgen-dart 0.1.3` is the
+latest published version and does NOT fix this.
+
+## Post-generation patch (p18-c009)
+
+As generated, `frf.dart` **does not even compile** — the two broken methods are type
+errors, so any package that imports the file fails to build. To make the file compile (so
+consumers can use the working CRDT surface), two methods were replaced with compile-valid
+`UnsupportedError` throws, matching the generator's own `connect` stub:
+
+- `FrfFfi.frfFfiClientCreateConnect` / `FrfFfiClient.connect`
+- `FrfFfi.frfFfiClientInvokeSubscribe` (the ~135-line broken foreign-callback body)
+
+Both are marked `POST-GENERATION PATCH (p18-c009)` in `frf.dart`. **When you re-run
+`build_dart.sh` with a fixed `uniffi-bindgen-dart`, these patches go away** (the freshly
+generated file should compile) — re-apply them only if the generator is still broken.
+
+The **stable public surface is the hand-written shim** (`src/transport.dart`, exported
+from `frf_dart.dart`):
+- `FrfCrdt` — the working CRDT API (delegates to the generated sync functions).
+- `FrfTransport` — the intended `connect`/`subscribe`/`publish`/`ack` API; currently
+  throws `FrfTransportUnavailable` with an actionable message. The API shape is stable so
+  call sites won't change when a working transport impl lands (fixed generator, or a full
+  hand-lowering of the UniFFI async runtime).
+
+## Deferral re-affirmed (2026-07-07, p19-c003)
+
+Checked for a fixed `uniffi-bindgen-dart` on **2026-07-07**:
+
+- Installed generator: **`uniffi-bindgen-dart v0.1.3`** (`cargo install --list`).
+- crates.io and pub.dev were checked for a newer release; **no newer async/callback-fixing
+  version was found**. 0.1.3 remains the latest, and its async transport codegen is still
+  broken.
+
+**Decision: the async-transport deferral stands.** Regenerating today reproduces the same
+broken `frf.dart`, so there is nothing to remove the p18-c009 post-generation patch
+against. No async transport code is written while the generator is unfixed — doing so would
+misrepresent a working transport that does not exist.
+
+**Removal trigger (do this when a fixed generator ships):** re-run `build_dart.sh` with the
+new `uniffi-bindgen-dart`; if the freshly generated `frf.dart` compiles, **delete the two
+`POST-GENERATION PATCH (p18-c009)` blocks** and wire `FrfTransport` to the real async
+methods. Until then, this section is the dated record that the deferral is deliberate, not
+forgotten.

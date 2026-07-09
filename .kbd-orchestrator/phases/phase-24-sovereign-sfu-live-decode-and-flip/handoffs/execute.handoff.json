@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-08T16:57:51Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "OpenSpec backend; 5-change dispatch in execution.md. c001 (str0m bind-config seam) seeded + validates. Drive via /kbd-apply one task/turn; c005 flips only on genuine c004 framesDecoded>0 (operator-confirmed). First: p24-c001-str0m-bind-config.",
+  "skipped": false,
+  "skipReason": null
+}

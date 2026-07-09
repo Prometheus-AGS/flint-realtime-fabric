@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-07T18:05:39Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "10 changes, cheap-correctness-first. Scope (operator): G1 re-scoped to token-flow hardening (no IdP), G2 routing-fix + spike only (full SFU → phase-19), G3 Matrix-inbound + ATProto-outbound + channel-guard (LiveKit inbound → phase-19), G4 hand-written Dart shim. Order: c001 str0m routing bug (HIGH, unblocks signaling) → c002-c004 cheap fixes → c005 token hardening → c006 str0m spike → c007/c008 federation → c009 Dart shim → c010 docs+sign-off. First change: p18-c001.",
+  "skipped": false,
+  "skipReason": null
+}

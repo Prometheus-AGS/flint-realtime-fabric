@@ -1,0 +1,24 @@
+{
+  "phase": "phase-21-sovereign-rtp-forwarding",
+  "changes_total": 5,
+  "changes_completed": 5,
+  "completed_changes": [
+    "p21-c001-split-session-driver",
+    "p21-c002-offerer-role-and-connected-proof",
+    "p21-c003-rtp-fanout-adr",
+    "p21-c004-rtp-forwarding-1to1",
+    "p21-c005-sovereign-gate-and-phase-22-seed"
+  ],
+  "pending_changes": [],
+  "active_change": null,
+  "assessment_complete": true,
+  "plan_complete": true,
+  "execute_complete": true,
+  "reflect_complete": true,
+  "phase_complete": true,
+  "seededFrom": "phase-20-sovereign-sfu-media-loop",
+  "createdAt": "2026-07-08T00:00:00Z",
+  "updatedAt": "2026-07-08T00:00:00Z",
+  "executeDispatched": true,
+  "backend": "openspec"
+}

@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-09T17:20:08Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "Backend: OpenSpec, KBD-owned per-task loop. 2 changes, serial: c001 tls-sidecar-secure-context (Caddy reverse_proxy gateway:8080 → https://caddy:8443 + wss auto; --ignore-certificate-errors; drop p31 unsafe flags) → c002 decode-run-and-flip (over HTTPS; flip only on framesDecoded>0; env-pivot recommendation if another harness/VM layer). No engine change. Manual prereq before c002 (via !): colima start; build gateway image once. First: /kbd-apply p32-c001-tls-sidecar-secure-context.",
+  "skipped": false,
+  "skipReason": null
+}

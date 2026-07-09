@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-08T09:47:07Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "5 changes, refactor-first + ADR-gated. c001 split session.rs→driver.rs (clears the 498/500 blocker, behavior-preserving) → c002 offerer role + un-gate the two-peer DTLS-connected loopback proof → c003 ADR-006 (RTP fan-out: central room registry in StrOmTransport + per-session forwarding mpsc) → c004 1-to-1 RTP forwarding (Event::MediaData→writer(mid).write, proven in-process or integration-gated) → c005 flip SFU_MODE=sovereign ONLY if media flows (else re-affirm gated) + seed phase-22-sovereign-sfu-npeer-pli + close. Operator locked: central registry+mpsc fan-out, phase-21 stops at 1-to-1 (N-peer/PLI→phase-22), no live infra (in-process loopback + integration-gate). SFU_MODE=sovereign stays off unless media flows. First change: p21-c001-split-session-driver.",
+  "skipped": false,
+  "skipReason": null
+}

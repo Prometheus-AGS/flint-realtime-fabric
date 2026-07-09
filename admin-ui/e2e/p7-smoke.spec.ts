@@ -18,7 +18,8 @@
 
 import { test, expect } from "@playwright/test";
 
-const SKIP_INTEGRATION = !!process.env["SKIP_INTEGRATION"] || !process.env["GATEWAY_URL"];
+const SKIP_INTEGRATION =
+  process.env["SKIP_INTEGRATION"] === "true" || !process.env["GATEWAY_URL"];
 const GATEWAY_URL = process.env["GATEWAY_URL"] ?? "http://localhost:8080";
 
 // ---------------------------------------------------------------------------

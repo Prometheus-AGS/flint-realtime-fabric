@@ -19,7 +19,7 @@ pub enum SignalKind {
 
 /// SFU routing mode for a session.
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SfuMode {
     /// str0m sans-I/O sovereign SFU.
@@ -41,4 +41,10 @@ pub struct SignalEnvelope {
     /// SDP or ICE candidate JSON payload.
     pub payload: serde_json::Value,
     pub timestamp: DateTime<Utc>,
+    /// Authenticated identity (JWT subject) of the sender, stamped server-side after token
+    /// verification (p24-c003). Used for the ADR-007 media `view` check so the grant is stable
+    /// and seedable. `None` on legacy/in-process paths — the bridge then falls back to
+    /// `from_session`.
+    #[serde(default)]
+    pub subject: Option<String>,
 }

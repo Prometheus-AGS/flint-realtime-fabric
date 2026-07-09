@@ -1,7 +1,8 @@
 import { createConnectTransport } from "@connectrpc/connect-web";
-import type { Interceptor } from "@connectrpc/connect";
+import { Code, ConnectError, type Interceptor } from "@connectrpc/connect";
 import { SpineClient } from "@prometheusags/frf-sdk";
 import { useAuthStore } from "../features/auth/stores/authStore.js";
+import { handleUnauthorized } from "../features/auth/services/authService.js";
 
 // The gateway serves Connect / gRPC-web on its gRPC port (GRPC_PORT, default 9090),
 // NOT the Axum HTTP port. Direct dev gateway → :9090; the compose stack maps the
@@ -22,7 +23,16 @@ const authInterceptor: Interceptor = (next) => async (req) => {
   if (token) {
     req.header.set("Authorization", `Bearer ${token}`);
   }
-  return next(req);
+  try {
+    return await next(req);
+  } catch (err) {
+    // The gateway rejected the credential (expired/invalid): clear it so the UI drops
+    // back to the login gate instead of retrying a doomed request.
+    if (err instanceof ConnectError && err.code === Code.Unauthenticated) {
+      handleUnauthorized();
+    }
+    throw err;
+  }
 };
 
 const transport = createConnectTransport({

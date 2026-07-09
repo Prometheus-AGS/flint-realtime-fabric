@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-08T19:20:27Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "3 changes: c001 Dockerfile Node-24 build stage (pnpm workspace install + vite build using the frf-wasm STUB — no Rust→wasm step needed — then COPY dist into Rust context before cargo build) → c002 live-decode-run (first run to reach the SFU; real ICE/DTLS/RTP-over-UDP test; record framesDecoded or media-path diagnosis) → c003 flip-or-reaffirm (flip ONLY on genuine c002 pass). Planning simplification: frf-wasm absent+gitignored, vite.config stubs it, so vite build succeeds without wasm. First: p26-c001-dockerfile-adminui-embed.",
+  "skipped": false,
+  "skipReason": null
+}

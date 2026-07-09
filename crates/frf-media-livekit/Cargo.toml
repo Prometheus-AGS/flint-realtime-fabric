@@ -22,9 +22,16 @@ futures-util = { workspace = true }
 dashmap = { workspace = true }
 anyhow = { workspace = true }
 
+[features]
+# Off by default. The seam for the libwebrtc-backed `LiveKitDataSource` (the `livekit`
+# realtime SDK), which pulls a heavy native WebRTC stack. Enabling it is scoped to a
+# deployment that runs the cross-node inbound relay against a live LiveKit server; the
+# default gateway build stays light. The relay plumbing + trait seam are always present.
+realtime = []
+
 [dev-dependencies]
 mockall = { workspace = true }
-tokio = { workspace = true, features = ["rt", "macros"] }
+tokio = { workspace = true, features = ["rt", "macros", "sync"] }
 
 [lints]
 workspace = true

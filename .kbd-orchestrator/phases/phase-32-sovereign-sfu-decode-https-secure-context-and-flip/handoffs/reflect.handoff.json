@@ -1,0 +1,11 @@
+{
+  "stage": "reflect",
+  "completedAt": "2026-07-09T18:44:08Z",
+  "outputs": [
+    "reflection.md"
+  ],
+  "nextStage": null,
+  "summaryForNext": "G1 MET — Caddy TLS sidecar fixed the secure context; getUserMedia works, sessions negotiate, ICE reaches checking (furthest in 24→32; secure-context blocker gone, unsafe flags removed). G2 NOT MET — framesDecoded=0: browser offers only mDNS .local candidates (no usable srflx), gateway advertises 127.0.0.1 (browser loopback in-container), no routable pair, ICE checking→Disconnected; gate held OFF. The layered peel reached the MEDIA layer — now debugging WebRTC connectivity, not tooling. 9th attempt on same-host VM; environment is the blocker. Next: phase-33-sovereign-sfu-decode-real-network-proof — PIVOT to a Linux/CI host with host networking (browser+SFU on one real network, gateway advertises real IP) + add a TURN relay (coturn --external-ip + turn: iceServers) so a pair always forms; then flip only on framesDecoded>0.",
+  "skipped": false,
+  "skipReason": null
+}

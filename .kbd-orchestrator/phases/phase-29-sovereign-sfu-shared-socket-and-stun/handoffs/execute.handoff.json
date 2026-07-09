@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-09T13:37:47Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "Backend: OpenSpec, KBD-owned per-task loop via /kbd-apply. 3 changes, strict serial: c001 shared-demux-socket (ADR-008 + refactor + demux.rs split + multi-session test) → c002 stun-srflx-path (coturn compose + harness iceServers + .local skip) → c003 decode-run-and-flip (flip only on framesDecoded>0). Per-change QA gate (read verdict AND archive output); seed change dir up-front. First: /kbd-apply p29-c001-shared-demux-socket.",
+  "skipped": false,
+  "skipReason": null
+}

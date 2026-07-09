@@ -75,6 +75,8 @@ tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-tungstenite = "0.26"
 tokio-stream = { workspace = true, features = ["net"] }
 chrono = { workspace = true }
+# Test-only: generate a real SDP offer for the MediaTransportBridge tests.
+str0m = { workspace = true }
 
 [lints]
 workspace = true

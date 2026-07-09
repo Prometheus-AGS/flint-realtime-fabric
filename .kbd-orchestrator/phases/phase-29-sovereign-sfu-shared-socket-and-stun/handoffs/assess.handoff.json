@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-09T13:29:57Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Both phase-28 blockers CONFIRMED in source: B2 — per-session UdpSocket::bind(fixed_port) at session.rs:154 causes EADDRINUSE on the 2nd session; fix is one shared socket demuxed by Rtc::accepts() (str0m chat.rs:154 is the proven port target, ADR required). B1 — Chrome mDNS .local host candidates unparseable by add_remote_candidate; fix is a STUN srflx path (harness iceServers + compose STUN) + defensive .local skip. Order G1→G2→G3 (G2 untestable until the shared socket exists). Plan: c001 shared socket, c002 STUN, c003 decode+conditional flip.",
+  "skipped": false,
+  "skipReason": null
+}

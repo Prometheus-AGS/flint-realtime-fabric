@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-08T18:33:29Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "OpenSpec; 3-change dispatch. c001 (authenticated decode runner: flint-gate JWT + seed, drop broken fallback) seeded + validates. c003 flips only on genuine c002 framesDecoded>0. Execute-time detail: confirm flint-gate mint_jwt mechanism (proxy hook vs direct HS256). First: p25-c001-authenticated-decode-runner.",
+  "skipped": false,
+  "skipReason": null
+}

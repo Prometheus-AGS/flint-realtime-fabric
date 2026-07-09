@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-09T11:04:09Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "4 changes, full-trickle ICE (operator-chosen) + honest conditional flip (re-confirmed): c001 instrumentation (str0m driver lifecycle logs + harness ICE-state) → c002 trickle-ice-over-ws (FIND-1/2: gateway local_signals→WS relay + harness onicecandidate/addIceCandidate) → c003 room-join-fanout (FIND-3: harness RoomJoin so RoomRouter fans out) → c004 decode-run-and-flip (framesDecoded>0 → flip; else re-affirm). local_signals is on the MediaTransport port; WS relay lives in frf-gateway. First: p27-c001-media-instrumentation.",
+  "skipped": false,
+  "skipReason": null
+}

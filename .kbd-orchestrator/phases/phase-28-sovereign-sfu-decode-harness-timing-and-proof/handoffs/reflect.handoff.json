@@ -1,0 +1,11 @@
+{
+  "stage": "reflect",
+  "completedAt": "2026-07-09T13:16:14Z",
+  "outputs": [
+    "reflection.md"
+  ],
+  "nextStage": null,
+  "summaryForNext": "G1 MET (diagnostics surfaced), G2 PARTIAL (0.0.0.0 candidate-IP bug fixed — valid 127.0.0.1 candidate), G3 NOT MET (framesDecoded=0, gate held OFF honestly). Two blockers found: B2 fixed-UDP-port EADDRINUSE + B1 Chrome mDNS .local rejection. Next: phase-29-sovereign-sfu-shared-socket-and-stun — shared demuxing socket then STUN srflx/mDNS, re-run, flip only on framesDecoded>0.",
+  "skipped": false,
+  "skipReason": null
+}

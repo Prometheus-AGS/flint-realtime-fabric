@@ -1,0 +1,11 @@
+{
+  "stage": "reflect",
+  "completedAt": "2026-07-08T12:17:25Z",
+  "outputs": [
+    "reflection.md"
+  ],
+  "nextStage": null,
+  "summaryForNext": "Phase-21 closed 5/5. Built the sovereign SFU media path on the phase-20 connected engine: session/driver split (c001), a REAL in-process two-peer DTLS-connected proof (c002, un-ignored), the RTP fan-out ADR-006 (central RoomRouter + per-session mpsc), and 1-to-1 RTP forwarding wired+layer-proven (c004). Delta: G3/G4 (end-to-end browser media + SFU_MODE flip) deliberately deferred — the engine is layer-proven but two-connected-peers-exchange-decoded-media is browser-gated, so SFU_MODE=sovereign STAYS OFF. Artifact quality 2/3 first-pass: c004 was a self-inflicted miss — archived on a QA-gate clippy BLOCK before reading the verdict, caught+fixed+re-verified to ALL PASS (lesson: read the gate verdict, not just verify). Recommended next phase: phase-22-sovereign-sfu-npeer-pli (N-peer fan-out + PLI + gateway composition + end-to-end browser proof + the gate flip), already seeded.",
+  "skipped": false,
+  "skipReason": null
+}

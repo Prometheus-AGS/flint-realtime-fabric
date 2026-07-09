@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-09T13:35:37Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "3 changes, strict serial G1→G2→G3 (B1 untestable until the shared socket lands). c001 p29-c001-shared-demux-socket: one shared UdpSocket demuxed by Rtc::accepts() (single owning task, ADR-008) — highest risk, first. c002 p29-c002-stun-srflx-path: local coturn in compose + harness iceServers + defensive .local skip. c003 p29-c003-decode-run-and-flip: re-run, flip only on framesDecoded>0. Decisions locked: single-owning-task demux + local coturn. First apply: p29-c001-shared-demux-socket.",
+  "skipped": false,
+  "skipReason": null
+}

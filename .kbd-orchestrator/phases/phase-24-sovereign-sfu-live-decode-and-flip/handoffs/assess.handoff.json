@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-08T16:43:55Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Env is CAPABLE (docker running + Chromium installed) — phase-23's 'can't run here' is gone. But the real blocker is GAP-1: str0m binds UdpSocket loopback (127.0.0.1, ephemeral) with no config seam, so ICE can't complete browser↔gateway across processes. Plan order: (1) str0m bind/advertise config seam [the real work], (2) compose sovereign+UDP mapping, (3) Keto view seed, (4) Dagger decode job → framesDecoded>0, (5) flip-or-reaffirm, (6) G4 carried. Flip stays conditional on a real G2 pass. Open Qs: advertised-IP + UDP-port strategy; split GAP-1 if larger than a phase.",
+  "skipped": false,
+  "skipReason": null
+}

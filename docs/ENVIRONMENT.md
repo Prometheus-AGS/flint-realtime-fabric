@@ -70,12 +70,16 @@ manager · **Dev-only** = must NOT be set in production.
 |----------|:---:|:------:|---------|---------|
 | `FEDERATION_ENABLED` | | | `false` | Opt-in for Matrix/ATProto bridges (half-implemented for v1). |
 | `FEDERATION_TENANT_ID` | ⚠️ | | — | Tenant for ingested federated events. Required when federation is enabled. |
-| `FEDERATION_CHANNEL_ID` | | | — | Channel for ingested federated events. |
+| `FEDERATION_CHANNEL_ID` | ⚠️ | | — | Channel for ingested federated events. **Required when federation is enabled** — the gateway refuses to boot without it (else events land on a random per-boot channel; p18-c002). |
 | `MATRIX_HOMESERVER_URL` | | | — | Matrix homeserver (outbound send only for v1). |
 | `MATRIX_ACCESS_TOKEN` | | ✅ | — | Matrix access token (secret). |
 | `MATRIX_ROOM_ID` | | | — | Matrix room to bridge. |
-| `ATPROTO_JETSTREAM_URL` | | | — | ATProto Jetstream firehose (inbound only for v1). |
+| `ATPROTO_JETSTREAM_URL` | | | — | ATProto Jetstream firehose (inbound). |
 | `ATPROTO_COLLECTIONS` | | | _(empty)_ | Comma-separated ATProto collections to ingest. |
+| `ATPROTO_PDS_URL` | ⚠️ | | — | PDS base URL (e.g. `https://bsky.social`) for **outbound** writes. **All-or-none** with the two below — set all three to enable outbound, or none (inbound-only). The gateway refuses to boot if only some are set (p19-c002). |
+| `ATPROTO_PDS_IDENTIFIER` | ⚠️ | | — | PDS account identifier (handle or DID) for outbound writes. Required with the PDS-writer group. |
+| `ATPROTO_PDS_APP_PASSWORD` | ⚠️ | ✅ | — | PDS **app-password** (NOT the account password) for outbound writes. **Secret** — from a secret manager, never committed or logged. Required with the PDS-writer group. |
+| `ATPROTO_WRITE_COLLECTION` | | | `app.bsky.feed.post` | Lexicon collection outbound records are written into. Optional. |
 
 ## Actor registry / eviction
 

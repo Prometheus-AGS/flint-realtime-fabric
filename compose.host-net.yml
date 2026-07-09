@@ -1,0 +1,63 @@
+# Host-network decode override (p33-c001) — Target A: browser + SFU on ONE routable network stack.
+#
+# Phase-32 got ICE to `checking` but no pair formed: the bridge-container browser's candidates and the
+# SFU's never shared a routable address (0 srflx; `.local` skipped; gateway advertised 127.0.0.1 = the
+# browser's own loopback in-container). Colima is itself a Linux VM, so `network_mode: host` puts a
+# container on the VM's real network. Running gateway + playwright + caddy + coturn all host-net means
+# they share one stack — every service is reachable at `localhost:<port>` within the VM, and the
+# gateway's advertised 127.0.0.1 host candidate is the SAME loopback the (host-net) browser uses, so
+# host candidates pair directly. No bridge split, no TURN.
+#
+# Layer LAST so it wins:
+#   docker compose -f compose.yml -f compose.sovereign.yml -f compose.host-net.yml up -d …
+#
+# Under host-net, `ports:` and `extra_hosts` are invalid/inert — they are nulled out here. Service-name
+# DNS (`gateway`, `caddy`, `coturn`) does NOT resolve; use `localhost:<port>`.
+
+name: flint-realtime-fabric
+
+services:
+  gateway:
+    network_mode: host
+    # host-net forbids published `ports:` and `extra_hosts`. Compose MERGES list fields (append), so a
+    # plain `ports: []` does NOT drop inherited entries — use `!reset` (Compose 2.24+) to clear them.
+    ports: !reset []
+    extra_hosts: !reset []
+    environment:
+      # The browser is now on the same host net, so the gateway's 127.0.0.1 host candidate is the very
+      # loopback the browser uses — host candidates pair. BIND_ADDR must be a concrete host bind.
+      BIND_ADDR: "0.0.0.0:8080"
+      MEDIA_BIND_ADDR: "0.0.0.0"
+      MEDIA_ADVERTISE_IP: "127.0.0.1"
+      MEDIA_UDP_PORT: "40000"
+      # JWKS is served on the host (VM) port; under host-net reach it at localhost (no
+      # host.docker.internal). The runner sets ${JWKS_PORT}.
+      GATEWAY_JWKS_URL: "${GATEWAY_JWKS_URL:-http://localhost:8791/jwks.json}"
+      JWT_ISSUER: "${JWT_ISSUER:-frf-e2e}"
+
+  # Caddy TLS front, host-net: terminate on :8443 and proxy to the gateway at localhost:8080. The
+  # browser reaches https://localhost:8443 (a secure context) over the shared host net.
+  caddy:
+    network_mode: host
+    command:
+      - "caddy"
+      - "reverse-proxy"
+      - "--from"
+      - "https://localhost:8443"
+      - "--to"
+      - "http://localhost:8080"
+      - "--internal-certs"
+
+  coturn:
+    network_mode: host
+    ports: !reset []
+
+  # Playwright runs host-net so the browser's candidates are on the same stack as the SFU. It reaches
+  # the gateway at https://localhost:8443 (WS derives wss://localhost:8443) and STUN at localhost:3478.
+  playwright:
+    network_mode: host
+    environment:
+      GATEWAY_URL: "https://localhost:8443"
+      STUN_URL: "stun:localhost:3478"
+      SKIP_INTEGRATION: "false"
+      CI: "true"

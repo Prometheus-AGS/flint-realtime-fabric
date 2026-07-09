@@ -1,0 +1,20 @@
+{
+  "phase": "phase-28-sovereign-sfu-decode-harness-timing-and-proof",
+  "changes_total": 3,
+  "changes_completed": 3,
+  "completed_changes": [
+    "p28-c001-harness-visibility",
+    "p28-c002-diagnose-and-fix",
+    "p28-c003-decode-run-and-flip"
+  ],
+  "pending_changes": [],
+  "active_change": null,
+  "assessment_complete": true,
+  "plan_complete": true,
+  "execute_complete": true,
+  "reflect_complete": true,
+  "phase_complete": true,
+  "seededFrom": "phase-27-sovereign-sfu-media-transport-debug",
+  "createdAt": "2026-07-09T04:20:00Z",
+  "updatedAt": "2026-07-09T13:10:00Z"
+}

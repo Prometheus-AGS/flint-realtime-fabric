@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-08T08:30:04Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Phase-20 grounded against real code. Load-bearing finding: the MediaSignaler port is signaling-only (no media surface) and StrOmSignaler is a signaling relay with no Rtc/UDP/RTP — so G1 'replace the channel-only signaler' needs an SFU media-plane ARCHITECTURE ADR first (extend the port vs a new MediaTransport port vs internal engine), exactly as ADR-004 gated OIDC. The c006 TransportLoop is a blocking-socket spike; G1 needs async tokio UdpSocket (add net/time features). G2 ICE plumbing + G3 RTP topology are codeable but their real proofs (connectivity, two-peers-exchange-media) are browser-gated integration exits; G3 may warrant its own sub-phase. G4 gate-flip is last, only if media flows. G5 (LiveKit live / admin-ui OIDC) external-infra gated. Recommend: ADR first, then async loop, then ICE wiring, then RTP topology. SFU_MODE=sovereign stays off.",
+  "skipped": false,
+  "skipReason": null
+}

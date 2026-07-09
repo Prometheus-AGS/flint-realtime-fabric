@@ -1,0 +1,19 @@
+{
+  "phase": "phase-30-sovereign-sfu-decode-topology-and-flip",
+  "changes_total": 2,
+  "changes_completed": 2,
+  "completed_changes": [
+    "p30-c001-browser-in-docker-harness",
+    "p30-c002-decode-run-and-flip"
+  ],
+  "pending_changes": [],
+  "active_change": null,
+  "assessment_complete": true,
+  "plan_complete": true,
+  "execute_complete": true,
+  "reflect_complete": true,
+  "phase_complete": true,
+  "seededFrom": "phase-29-sovereign-sfu-shared-socket-and-stun",
+  "createdAt": "2026-07-09T15:25:00Z",
+  "updatedAt": "2026-07-09T16:55:00Z"
+}

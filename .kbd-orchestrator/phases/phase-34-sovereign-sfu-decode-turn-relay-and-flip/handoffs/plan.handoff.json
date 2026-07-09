@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-09T20:03:04Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "2 changes, serial G1→G2 on the BRIDGE stack (not host-net), no engine change (str0m accepts typ relay, confirmed). c001 p34-c001-coturn-turn-relay: coturn --stun-only → TURN (--realm + --static-auth-secret + --external-ip=coturn bridge IP) + harness iceServers add turn:coturn:3478 + username/credential (both PCs, threaded via env) + MEDIA_ADVERTISE_IP=gateway bridge IP; TURN credential from env, never committed. c002 p34-c002-decode-run-and-flip: run bridge+TURN, flip only on framesDecoded>0; if the relay pair still fails, recommend CI pivot (Target B). Manual prereq (via !): colima start. First apply: p34-c001-coturn-turn-relay.",
+  "skipped": false,
+  "skipReason": null
+}

@@ -1,0 +1,20 @@
+{
+  "phase": "phase-35-sovereign-sfu-decode-ci-linux-proof",
+  "changes_total": 2,
+  "changes_completed": 1,
+  "completed_changes": [
+    "p35-c001-ci-decode-job"
+  ],
+  "pending_changes": [
+    "p35-c002-decode-run-and-flip"
+  ],
+  "active_change": "p35-c002-decode-run-and-flip",
+  "assessment_complete": true,
+  "plan_complete": true,
+  "execute_complete": false,
+  "reflect_complete": false,
+  "phase_complete": false,
+  "seededFrom": "phase-34-sovereign-sfu-decode-turn-relay-and-flip",
+  "createdAt": "2026-07-09T22:25:00Z",
+  "updatedAt": "2026-07-09T23:20:00Z"
+}

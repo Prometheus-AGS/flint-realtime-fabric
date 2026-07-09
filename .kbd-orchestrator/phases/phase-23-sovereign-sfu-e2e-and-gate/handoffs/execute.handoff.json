@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-08T13:25:58Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "OpenSpec backend; 6-change dispatch contract in execution.md. c001 (ADR-007 media authz) seeded + validates. Drive via /kbd-apply one task per turn; c006 flips gate only on real c004 decoded-media pass. First pending: p23-c001-media-authz-adr.",
+  "skipped": false,
+  "skipReason": null
+}

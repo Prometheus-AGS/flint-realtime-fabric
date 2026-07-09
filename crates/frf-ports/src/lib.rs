@@ -11,6 +11,7 @@ pub mod federation;
 pub mod identity;
 pub mod log_broker;
 pub mod media;
+pub mod media_transport;
 pub mod op_store;
 pub mod policy;
 
@@ -23,6 +24,7 @@ pub use federation::{FederatedEvent, FederationBridge, FederationProtocol};
 pub use identity::{IdentityVerifier, VerifiedClaims};
 pub use log_broker::{EventStream, LogBroker};
 pub use media::{DynMediaSignaler, MediaSignaler, SignalStream};
+pub use media_transport::{ConnectionState, DynMediaTransport, MediaTransport};
 pub use op_store::{ApplyDelta, OpStore, PendingOp};
 pub use policy::{
     ActionPolicyProvider, BoxedPolicyProvider, DynPolicyProvider, NoOpPolicyProvider, PolicyError,

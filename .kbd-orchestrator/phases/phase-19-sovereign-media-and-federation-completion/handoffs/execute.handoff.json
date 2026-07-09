@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-07T22:40:07Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "Backend=OpenSpec; 7-change dispatch contract written. QA gate on c001/c002/c005/c006 (Rust + admin-ui code); c003/c004/c007 docs-skip. Driver=/kbd-apply one task/turn from repo root; never bare /opsx:apply. First pending change: p19-c001-admin-ui-lint-debt.",
+  "skipped": false,
+  "skipReason": null
+}

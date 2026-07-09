@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-09T17:15:03Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "G1 (secure context) CONFIRMED as the phase core. RECOMMENDED: Caddy TLS sidecar fronting gateway:8080 — GATEWAY_URL=https://caddy:8443 gives the page https:// (secure context, so navigator.mediaDevices exists) AND wss:// for signaling automatically (WS_URL derives from GATEWAY_URL); Caddy proxies HTTP + WS upgrade; browser --ignore-certificate-errors trusts the self-signed; DROP the p31 unsafe-origin flags. *.localhost rejected (resolves to 127.0.0.1 = browser, not gateway, in-container). Gateway-terminated TLS rejected (engine change for a harness need). No frf-* change. Plan: c001 TLS sidecar + secure-context harness, c002 decode+conditional flip. Keep the environment-pivot decision live (goals): if HTTPS still yields no frame, move proof to CI/another host.",
+  "skipped": false,
+  "skipReason": null
+}

@@ -1,0 +1,20 @@
+{
+  "phase": "phase-25-sovereign-sfu-decode-retry-and-flip",
+  "changes_total": 3,
+  "changes_completed": 3,
+  "completed_changes": [
+    "p25-c001-authenticated-decode-runner",
+    "p25-c002-live-decode-run",
+    "p25-c003-flip-or-reaffirm"
+  ],
+  "pending_changes": [],
+  "active_change": null,
+  "assessment_complete": true,
+  "plan_complete": true,
+  "execute_complete": true,
+  "reflect_complete": true,
+  "phase_complete": false,
+  "seededFrom": "phase-24-sovereign-sfu-live-decode-and-flip",
+  "createdAt": "2026-07-08T19:05:00Z",
+  "updatedAt": "2026-07-08T21:20:00Z"
+}

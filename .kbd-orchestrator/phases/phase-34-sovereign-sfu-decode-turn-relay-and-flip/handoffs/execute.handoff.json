@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-09T20:04:44Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "Backend: OpenSpec, KBD-owned per-task loop. 2 changes, serial on the BRIDGE stack: c001 coturn-turn-relay (STUN→TURN: realm + static-auth-secret + external-ip; harness iceServers turn: + creds both PCs via env; MEDIA_ADVERTISE_IP=gateway bridge IP) → c002 decode-run-and-flip (flip only on framesDecoded>0; CI-pivot rec if relay pair fails). No engine change (str0m accepts typ relay). TURN cred via env, never committed (S1). Manual prereq (via !): colima start. First: /kbd-apply p34-c001-coturn-turn-relay.",
+  "skipped": false,
+  "skipReason": null
+}
