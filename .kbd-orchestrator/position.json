@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1",
-  "updatedAt": "2026-07-09T23:20:06Z",
+  "updatedAt": "2026-07-09T23:45:06Z",
   "cursor": [
     "phase-35-sovereign-sfu-decode-ci-linux-proof"
   ],
@@ -9,7 +9,7 @@
     "id": "phase-35-sovereign-sfu-decode-ci-linux-proof",
     "status": "apply_pending",
     "progress": {
-      "done": 0,
+      "done": 1,
       "total": 2
     },
     "children": [],

@@ -7,6 +7,36 @@ the stable interface).
 
 ## [Unreleased]
 
+### Phase 35 — sovereign SFU decode: CI/Linux proof; environment unblocked
+
+Escalated the decode proof to GitHub Actions `ubuntu-latest` — and it **worked**: the whole stack now
+builds + boots + runs the two-browser decode end-to-end on real Linux, removing the six-phase
+same-host environment blocker. The decode itself is `framesDecoded=0` at `ice=checking`, so
+**`SFU_MODE=sovereign` stays off** — but this is now a normal debugging loop on a working harness, not
+an environmental dead-end.
+
+#### Deliverables
+
+- **CI decode job + Linux-portable runner** (p35-c001): `.github/workflows/decode-proof.yml`
+  (`workflow_dispatch` + branch push) builds the gateway image on `ubuntu-latest`, boots the sovereign
+  stack, runs the Playwright decode, asserts `framesDecoded > 0`, uploads artifacts. The runner
+  auto-detects Linux and uses `172.17.0.1` (docker0 gateway) for host addressing (replaces
+  `host.docker.internal`); `MEDIA_ADVERTISE_IP`/`TURN_EXTERNAL_IP` follow suit. New `media-e2e` spec.
+- **CI decode run + gate decision** (p35-c002): run 29057452278 (branch `sovereign-sfu-decode-proof`,
+  `main` untouched) — after two CI interpolation fixes (`FLINT_GATE_JWT_SECRET`, `TURN_SECRET`
+  generated job-wide, S1-clean) — built the image, booted the stack, and ran the decode:
+  `getUserMedia` works, ICE reaches `checking` (`remoteCandidates=1`), `framesDecoded=0`. Recorded in
+  `docs/PHASE-35-DECODE-RESULT.md`. Found a harness bug: the script's `down -v` EXIT trap tears down
+  the gateway before the workflow captures its str0m log (empty `gateway.log`).
+
+#### Gate decision — held OFF (environment unblocked; normal debugging loop remains)
+
+No `framesDecoded > 0`, so `SFU_MODE=sovereign` is **NOT** flipped (`main.rs` untouched). Unlike phases
+28→34, the residual is **not** environmental — the proof runs end-to-end on Linux CI. Next: fix the
+gateway-log capture (copy the in-script log to an artifact / skip in-script `down -v` in CI), read the
+Linux candidate exchange, adjust the advertised/relay addressing, re-run, flip on a genuine decoded
+frame.
+
 ### Phase 34 — sovereign SFU decode: TURN relay; gate decision + CI escalation
 
 Added a TURN relay on the bridge and confirmed str0m accepts `typ relay`, but **0 relay candidates

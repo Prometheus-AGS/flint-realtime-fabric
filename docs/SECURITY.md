@@ -301,6 +301,18 @@ covered by §1–§5) or gated off / labeled unimplemented — no half-secured l
     browser + SFU share one real stack, host candidates pair, TURN (already wired) is
     belt-and-suspenders, and the gateway advertises a real reachable IP. No more local same-host
     variants.
+  - **Phase-35 escalated the proof to GitHub Actions `ubuntu-latest` — and it WORKED: the whole stack
+    now builds + boots + runs the two-browser decode end-to-end on real Linux.** After two trivial CI
+    interpolation fixes (`FLINT_GATE_JWT_SECRET`, `TURN_SECRET` must exist at `docker compose build`
+    time — now generated job-wide, S1-clean), CI run 29057452278 built the gateway image (no OOM),
+    booted the sovereign stack, ran the Playwright decode: `getUserMedia` works, signaling + offer
+    happen, ICE reaches `checking` (`remoteCandidates=1`) — but `framesDecoded=0`
+    (`docs/PHASE-35-DECODE-RESULT.md`). **The six-phase environment blocker is removed** — the proof
+    runs on a real Linux host. Two follow-ups remain: a harness bug tears down the gateway (`down -v`
+    on the script's EXIT trap) before the workflow captures its str0m log, so the Linux candidate
+    detail wasn't visible this run; and the Linux candidate addressing (`MEDIA_ADVERTISE_IP`/coturn
+    `--external-ip`) needs verifying once the log is captured. This is a normal debugging loop on a
+    **working** proof harness, not an environmental dead-end.
   - Therefore **`SFU_MODE=sovereign` stays gated off** (defaults to `hosted`, boots with a
     warning). Do not enable it in production expecting media to flow until the decode proof passes
     against real infra; hosted (LiveKit) remains the media path. See ADR-005/006/007,
