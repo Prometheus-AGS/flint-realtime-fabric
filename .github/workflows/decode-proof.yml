@@ -54,6 +54,12 @@ jobs:
         # spec IN-CONTAINER against its own baked Chromium (no runner-side browser install needed).
         run: pnpm --dir admin-ui install --frozen-lockfile || pnpm --dir admin-ui install
 
+      - name: Generate an ephemeral TURN secret
+        # coturn's ${TURN_SECRET:?...} is interpolated by `docker compose build/up` (the whole file),
+        # so it must exist for the build step too — not only inside run-media-decode.sh. Generate a
+        # throwaway per-run secret and export it to the job env (kept out of committed source, S1).
+        run: echo "TURN_SECRET=$(head -c 24 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9')" >> "$GITHUB_ENV"
+
       - name: Build the sovereign gateway image
         # Build once, alone (no OOM on a 16 GB runner). The runner then uses it with --no-build.
         run: docker compose -f compose.yml -f compose.sovereign.yml build gateway
