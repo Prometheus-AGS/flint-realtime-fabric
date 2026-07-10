@@ -113,7 +113,6 @@ impl StrOmTransport {
                 let (control_tx, control_rx) = mpsc::channel(32);
                 tokio::spawn(run_demux(
                     socket,
-                    local_addr,
                     control_rx,
                     Arc::clone(&self.router),
                 ));
@@ -183,14 +182,16 @@ impl StrOmTransport {
     }
 
     /// Negotiate the answer for `offer_sdp` against the **shared** socket's bound address,
-    /// returning the started `Rtc`, the answer SDP, and the local **host candidate**'s SDP
-    /// string (relayed outbound as trickle ICE). No per-session bind (ADR-008) — the session's
-    /// `Rtc` advertises the shared socket's address and is demultiplexed by `Rtc::accepts()`.
+    /// returning the started `Rtc`, the answer SDP, the local **host candidate**'s SDP string
+    /// (relayed outbound as trickle ICE), and the advertised `SocketAddr`. No per-session bind
+    /// (ADR-008) — the session's `Rtc` advertises the shared socket's address and is
+    /// demultiplexed by `Rtc::accepts()`. The advertised addr is stored in `DemuxSession` so
+    /// `route_datagram` can construct `Receive` with the correct destination (p36-c002f).
     fn negotiate(
         &self,
         local_addr: SocketAddr,
         offer_sdp: &str,
-    ) -> Result<(Rtc, String, String), StrOmError> {
+    ) -> Result<(Rtc, String, String, SocketAddr), StrOmError> {
         // The candidate advertised to the remote peer: resolve the configured advertise host to a
         // concrete IP (an IP as-is; a hostname like `host.docker.internal` via DNS) — the bind
         // address is often `0.0.0.0`, which str0m rejects as an ICE candidate. Fall back to the
@@ -204,14 +205,13 @@ impl StrOmTransport {
             None => local_addr,
         };
 
-        // p36-c002e: SFUs should run ICE-lite. Without it, str0m (as the ICE-controlled agent)
-        // sends its own STUN binding requests to the browser's relay candidate. Those requests
-        // race against the browser's CREATE_PERMISSION + STUN checks and time out before a
-        // valid pair is nominated — the ICE agent then enters Disconnected and stops responding
-        // to the browser's subsequent binding requests entirely. ICE-lite makes str0m respond-
-        // only: the browser (ICE-full, controlling) does all the checking and nominates; str0m
-        // responds to every STUN request with SUCCESS_RESPONSE. This is the standard SFU pattern
-        // and is required for relay (TURN) connectivity to work reliably.
+        // p36-c002e: SFUs should run ICE-lite — the browser (ICE-full, controlling) does all
+        // the checking and nominates; str0m responds to every STUN request with SUCCESS_RESPONSE.
+        // p36-c002f: route_datagram must pass advertised_addr (not the socket bind address
+        // 0.0.0.0) as the Receive destination. str0m's ICE agent validates incoming STUN
+        // requests against local candidate addresses; the host candidate is 172.18.0.6:40000 so
+        // a destination of 0.0.0.0:40000 never matches — all 241 STUN checks were silently
+        // discarded (coturn peer rp=0). DemuxSession now carries advertised_addr for this.
         let mut rtc = Rtc::builder().set_ice_lite(true).build(Instant::now());
         let candidate = Candidate::host(advertised_addr, "udp")
             .map_err(|e| StrOmError::Transport(format!("host candidate: {e}")))?;
@@ -225,7 +225,7 @@ impl StrOmTransport {
             .accept_offer(offer)
             .map_err(|e| StrOmError::Negotiation(e.to_string()))?;
 
-        Ok((rtc, answer.to_sdp_string(), host_candidate))
+        Ok((rtc, answer.to_sdp_string(), host_candidate, advertised_addr))
     }
 }
 
@@ -241,7 +241,8 @@ impl MediaTransport for StrOmTransport {
         // Bind the shared socket + demux loop on first use, then negotiate this session's `Rtc`
         // against the shared bound address (ADR-008 — no per-session bind).
         let local_addr = self.ensure_demux().await?.local_addr;
-        let (rtc, answer, host_candidate) = self.negotiate(local_addr, offer_sdp)?;
+        let (rtc, answer, host_candidate, advertised_addr) =
+            self.negotiate(local_addr, offer_sdp)?;
         // Lifecycle visibility (p27-c001): the run shows the offer was accepted and which host
         // candidate the SFU advertised — the first checkpoint when diagnosing an ICE stall.
         tracing::info!(
@@ -282,6 +283,7 @@ impl MediaTransport for StrOmTransport {
         let demux_session = Box::new(DemuxSession {
             rtc,
             meta,
+            advertised_addr,
             state_tx,
             local_signals_tx: local_signals_tx.clone(),
             cmd_rx,

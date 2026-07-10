@@ -4,4 +4,4 @@
 - [x] T2: Set `MEDIA_ADVERTISE_IP: "gateway"` in `compose.sovereign.yml` gateway service env (replaces the env-var interpolation `${MEDIA_ADVERTISE_IP:-127.0.0.1}`)
 - [x] T3: Override coturn `entrypoint` + `command` in `compose.sovereign.yml` to use `/bin/sh -c` shell expansion so `--external-ip=$(hostname -i | cut -d' ' -f1)` resolves at container start
 - [x] T4: Verify `cargo check -p frf-media-str0m` still passes (no Rust code changed, but confirm)
-- [ ] T5: Push changes to `sovereign-sfu-decode-proof` branch (triggers CI decode-proof.yml)
+- [x] T5: Push changes to `sovereign-sfu-decode-proof` branch (triggers CI decode-proof.yml)

@@ -28,6 +28,11 @@ use crate::room::{ForwardedFrame, RoomRouter};
 pub(crate) struct DemuxSession {
     pub(crate) rtc: Rtc,
     pub(crate) meta: SessionMeta,
+    /// The advertised (candidate) address for this session's local host candidate.
+    /// str0m's ICE agent validates incoming STUN against local candidate addresses, so
+    /// `Receive::new()` must use this address — not the socket's bind address (`0.0.0.0`) —
+    /// as the destination. (p36-c002f)
+    pub(crate) advertised_addr: SocketAddr,
     pub(crate) state_tx: watch::Sender<ConnectionState>,
     pub(crate) local_signals_tx: broadcast::Sender<SignalEnvelope>,
     pub(crate) cmd_rx: mpsc::Receiver<SessionCommand>,
@@ -96,7 +101,6 @@ fn apply_command(session_id: SessionId, session: &mut DemuxSession, cmd: Session
 /// each session's timers. Ends when `control_rx` closes (the transport was dropped).
 pub(crate) async fn run_demux(
     socket: UdpSocket,
-    local_addr: SocketAddr,
     mut control_rx: mpsc::Receiver<DemuxControl>,
     router: Arc<RoomRouter>,
 ) {
@@ -134,7 +138,7 @@ pub(crate) async fn run_demux(
             () = sleep => { /* timers fired below */ }
             recv = socket.recv_from(&mut buf) => {
                 match recv {
-                    Ok((n, source)) => route_datagram(&mut sessions, source, local_addr, &buf[..n]),
+                    Ok((n, source)) => route_datagram(&mut sessions, source, &buf[..n]),
                     Err(e) => {
                         tracing::warn!(error = %e, "shared-socket recv_from error — ending demux");
                         return;
@@ -158,24 +162,30 @@ pub(crate) async fn run_demux(
 }
 
 /// Route one inbound datagram to the session whose `Rtc` accepts it (`Rtc::accepts`, ADR-008).
+///
+/// Each session's `advertised_addr` (not the socket bind address `0.0.0.0`) is used as the
+/// destination in `Receive::new()`. str0m's ICE agent validates incoming STUN requests against
+/// local candidate addresses; a candidate added as `172.18.0.6:40000` will not match a destination
+/// of `0.0.0.0:40000`, causing the agent to silently discard all STUN requests without responding.
+/// (p36-c002f)
 fn route_datagram(
     sessions: &mut HashMap<SessionId, DemuxSession>,
     source: SocketAddr,
-    local_addr: SocketAddr,
     data: &[u8],
 ) {
-    let Ok(receive) = Receive::new(Protocol::Udp, source, local_addr, data) else {
-        tracing::warn!("malformed inbound datagram — skipping");
-        return;
-    };
-    let input = Input::Receive(Instant::now(), receive);
-    if let Some(session) = sessions.values_mut().find(|s| s.rtc.accepts(&input)) {
-        if let Err(e) = session.rtc.handle_input(input) {
-            tracing::warn!(error = %e, "handle_input error on routed datagram");
+    for session in sessions.values_mut() {
+        let Ok(receive) = Receive::new(Protocol::Udp, source, session.advertised_addr, data) else {
+            continue;
+        };
+        let input = Input::Receive(Instant::now(), receive);
+        if session.rtc.accepts(&input) {
+            if let Err(e) = session.rtc.handle_input(input) {
+                tracing::warn!(error = %e, "handle_input error on routed datagram");
+            }
+            return;
         }
-    } else {
-        tracing::debug!(%source, "no session accepts inbound datagram — dropping");
     }
+    tracing::debug!(%source, "no session accepts inbound datagram — dropping");
 }
 
 /// Fire each session's timeout and drain its ready commands + forwarded media. A session whose

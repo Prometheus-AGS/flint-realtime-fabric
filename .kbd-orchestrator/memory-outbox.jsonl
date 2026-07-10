@@ -8,25 +8,17 @@
 {"queuedAt":"2026-07-08T19:04:26Z","method":"add_memory","arguments":{"content":"Phase phase-25-sovereign-sfu-decode-retry-and-flip reflection learnings:","user_id":"prometheus-skill-pack"}}
 {"queuedAt":"2026-07-09T10:38:48Z","method":"add_memory","arguments":{"content":"Phase phase-26-gateway-docker-adminui-embed-and-decode reflection learnings:","user_id":"prometheus-skill-pack"}}
 {"queuedAt":"2026-07-09T10:39:37Z","method":"add_memory","arguments":{"content":"Phase phase-26-gateway-docker-adminui-embed-and-decode reflection learnings:","user_id":"prometheus-skill-pack"}}
-{"queuedAt":"2026-07-09T11:48:35Z","method":"add_memory","arguments":{"content":"Phase phase-27-sovereign-sfu-media-transport-debug reflection learnings:","user_id":"prometheus-skill-pack"}}
 {"queuedAt":"2026-07-09T11:49:22Z","method":"add_memory","arguments":{"content":"Phase phase-27-sovereign-sfu-media-transport-debug reflection learnings:","user_id":"prometheus-skill-pack"}}
 {"queuedAt":"2026-07-09T13:14:29Z","method":"add_memory","arguments":{"content":"Phase phase-28-sovereign-sfu-decode-harness-timing-and-proof reflection learnings:","user_id":"prometheus-skill-pack"}}
 {"queuedAt":"2026-07-09T13:16:12Z","method":"add_memory","arguments":{"content":"Phase phase-28-sovereign-sfu-decode-harness-timing-and-proof reflection learnings:","user_id":"prometheus-skill-pack"}}
-{"queuedAt":"2026-07-09T13:37:46Z","method":"create_task_stream","arguments":{"name":"kbd:prometheus-skill-pack:phase-29-sovereign-sfu-shared-socket-and-stun"}}
 {"queuedAt":"2026-07-09T14:32:18Z","method":"add_memory","arguments":{"content":"Phase phase-29-sovereign-sfu-shared-socket-and-stun reflection learnings:","user_id":"prometheus-skill-pack"}}
-{"queuedAt":"2026-07-09T15:39:32Z","method":"create_task_stream","arguments":{"name":"kbd:prometheus-skill-pack:phase-30-sovereign-sfu-decode-topology-and-flip"}}
 {"queuedAt":"2026-07-09T16:34:21Z","method":"add_memory","arguments":{"content":"Phase phase-30-sovereign-sfu-decode-topology-and-flip reflection learnings:","user_id":"prometheus-skill-pack"}}
 {"queuedAt":"2026-07-09T16:35:11Z","method":"add_memory","arguments":{"content":"Phase phase-30-sovereign-sfu-decode-topology-and-flip reflection learnings:","user_id":"prometheus-skill-pack"}}
-{"queuedAt":"2026-07-09T16:43:05Z","method":"create_task_stream","arguments":{"name":"kbd:prometheus-skill-pack:phase-31-sovereign-sfu-decode-prebuilt-image-and-flip"}}
 {"queuedAt":"2026-07-09T17:05:22Z","method":"add_memory","arguments":{"content":"Phase phase-31-sovereign-sfu-decode-prebuilt-image-and-flip reflection learnings:","user_id":"prometheus-skill-pack"}}
 {"queuedAt":"2026-07-09T17:06:17Z","method":"add_memory","arguments":{"content":"Phase phase-31-sovereign-sfu-decode-prebuilt-image-and-flip reflection learnings:","user_id":"prometheus-skill-pack"}}
-{"queuedAt":"2026-07-09T17:20:07Z","method":"create_task_stream","arguments":{"name":"kbd:prometheus-skill-pack:phase-32-sovereign-sfu-decode-https-secure-context-and-flip"}}
-{"queuedAt":"2026-07-09T18:43:11Z","method":"add_memory","arguments":{"content":"Phase phase-32-sovereign-sfu-decode-https-secure-context-and-flip reflection learnings:","user_id":"prometheus-skill-pack"}}
 {"queuedAt":"2026-07-09T18:44:07Z","method":"add_memory","arguments":{"content":"Phase phase-32-sovereign-sfu-decode-https-secure-context-and-flip reflection learnings:","user_id":"prometheus-skill-pack"}}
-{"queuedAt":"2026-07-09T19:13:17Z","method":"create_task_stream","arguments":{"name":"kbd:prometheus-skill-pack:phase-33-sovereign-sfu-decode-real-network-proof"}}
 {"queuedAt":"2026-07-09T19:47:25Z","method":"add_memory","arguments":{"content":"Phase phase-33-sovereign-sfu-decode-real-network-proof reflection learnings:","user_id":"prometheus-skill-pack"}}
 {"queuedAt":"2026-07-09T19:48:18Z","method":"add_memory","arguments":{"content":"Phase phase-33-sovereign-sfu-decode-real-network-proof reflection learnings:","user_id":"prometheus-skill-pack"}}
-{"queuedAt":"2026-07-09T20:04:43Z","method":"create_task_stream","arguments":{"name":"kbd:prometheus-skill-pack:phase-34-sovereign-sfu-decode-turn-relay-and-flip"}}
-{"queuedAt":"2026-07-09T22:59:48Z","method":"add_memory","arguments":{"content":"Phase phase-34-sovereign-sfu-decode-turn-relay-and-flip reflection learnings:","user_id":"prometheus-skill-pack"}}
 {"queuedAt":"2026-07-09T23:00:36Z","method":"add_memory","arguments":{"content":"Phase phase-34-sovereign-sfu-decode-turn-relay-and-flip reflection learnings:","user_id":"prometheus-skill-pack"}}
-{"queuedAt":"2026-07-09T23:15:59Z","method":"create_task_stream","arguments":{"name":"kbd:prometheus-skill-pack:phase-35-sovereign-sfu-decode-ci-linux-proof"}}
+{"queuedAt":"2026-07-10T01:18:37Z","method":"add_memory","arguments":{"content":"Phase phase-35-sovereign-sfu-decode-ci-linux-proof reflection learnings:","user_id":"prometheus-skill-pack"}}
+{"queuedAt":"2026-07-10T01:21:08Z","method":"add_memory","arguments":{"content":"Phase phase-35-sovereign-sfu-decode-ci-linux-proof reflection learnings:","user_id":"prometheus-skill-pack"}}

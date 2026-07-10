@@ -125,6 +125,13 @@ services:
   # (ICE-full, controlling) does all the checking; str0m responds with SUCCESS_RESPONSE to
   # every STUN it receives; browser nominates → ICE completes. No outbound STUN from SFU =
   # no race condition with TURN setup timing.
+  # p36-c002f: ICE-lite still produced peer rp=0 (str0m sent ZERO responses to 241 STUN
+  # checks). Root cause: demux.rs `route_datagram` constructed Receive::new() with
+  # local_addr=0.0.0.0:40000 (socket bind address). str0m's ICE agent validates incoming
+  # STUN requests against local candidate addresses; the host candidate is 172.18.0.6:40000
+  # so destination 0.0.0.0:40000 never matched — all STUN requests were silently discarded by
+  # stun_server_handle_request(). Fix: DemuxSession now carries advertised_addr, and
+  # route_datagram uses it (not local_addr) as the Receive destination.
   coturn:
     image: coturn/coturn:4.6.2
     command:
