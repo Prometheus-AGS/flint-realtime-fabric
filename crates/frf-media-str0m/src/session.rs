@@ -204,7 +204,15 @@ impl StrOmTransport {
             None => local_addr,
         };
 
-        let mut rtc = Rtc::builder().build(Instant::now());
+        // p36-c002e: SFUs should run ICE-lite. Without it, str0m (as the ICE-controlled agent)
+        // sends its own STUN binding requests to the browser's relay candidate. Those requests
+        // race against the browser's CREATE_PERMISSION + STUN checks and time out before a
+        // valid pair is nominated — the ICE agent then enters Disconnected and stops responding
+        // to the browser's subsequent binding requests entirely. ICE-lite makes str0m respond-
+        // only: the browser (ICE-full, controlling) does all the checking and nominates; str0m
+        // responds to every STUN request with SUCCESS_RESPONSE. This is the standard SFU pattern
+        // and is required for relay (TURN) connectivity to work reliably.
+        let mut rtc = Rtc::builder().set_ice_lite(true).build(Instant::now());
         let candidate = Candidate::host(advertised_addr, "udp")
             .map_err(|e| StrOmError::Transport(format!("host candidate: {e}")))?;
         let host_candidate = candidate.to_sdp_string();

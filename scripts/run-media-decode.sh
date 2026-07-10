@@ -177,22 +177,19 @@ docker compose "${COMPOSE[@]}" exec -T \
   -e TURN_CREDENTIAL="${TURN_SECRET}" \
   playwright node_modules/.bin/playwright test media-decode --project=chromium || harness_rc=$?
 
+# p36-c002e: capture logs always (success or failure) — the artifact is the decode-proof record.
+# Capture BEFORE the EXIT trap fires `docker compose down -v` (containers are gone after that).
+docker compose "${COMPOSE[@]}" logs --no-color --tail 2000 gateway coturn > /tmp/p29-gateway.log 2>&1 || true
+docker compose "${COMPOSE[@]}" logs --no-color --tail 500 coturn > /tmp/p29-coturn.log 2>&1 || true
+cp /tmp/p29-gateway.log "${GITHUB_WORKSPACE:-/tmp}/gateway-capture.log" 2>/dev/null || true
+cp /tmp/p29-coturn.log "${GITHUB_WORKSPACE:-/tmp}/coturn-capture.log" 2>/dev/null || true
+echo "[run-media-decode] gateway logs → ${GITHUB_WORKSPACE:-/tmp}/gateway-capture.log" >&2
+echo "[run-media-decode] coturn logs → ${GITHUB_WORKSPACE:-/tmp}/coturn-capture.log" >&2
+
 if [ "$harness_rc" -ne 0 ]; then
-  echo "[run-media-decode] harness FAILED (rc=${harness_rc}) — capturing gateway logs before teardown…" >&2
-  # p36-c002: capture gateway + coturn logs (coturn confirms --external-ip resolved; gateway
-  # shows the str0m advertised= candidate). Write to gateway-capture.log — a distinct name so
-  # the workflow's "Collect gateway logs" step cannot overwrite it (that step runs after `down -v`
-  # removes the containers and produces an empty gateway.log, which was silently clobbering our
-  # copy in runs 29069204711 and 29092400906 because both wrote to gateway.log at the same path).
-  docker compose "${COMPOSE[@]}" logs --no-color --tail 2000 gateway coturn > /tmp/p29-gateway.log 2>&1 || true
-  # p36-c002b: also dump coturn separately so its startup + external-ip line is clearly visible.
-  docker compose "${COMPOSE[@]}" logs --no-color --tail 500 coturn > /tmp/p29-coturn.log 2>&1 || true
+  echo "[run-media-decode] harness FAILED (rc=${harness_rc})" >&2
   echo "[run-media-decode] coturn log (first 20 lines):" >&2
   head -20 /tmp/p29-coturn.log >&2 || true
-  cp /tmp/p29-gateway.log "${GITHUB_WORKSPACE:-/tmp}/gateway-capture.log" 2>/dev/null || true
-  cp /tmp/p29-coturn.log "${GITHUB_WORKSPACE:-/tmp}/coturn-capture.log" 2>/dev/null || true
-  echo "[run-media-decode] gateway logs → ${GITHUB_WORKSPACE:-/tmp}/gateway-capture.log" >&2
-  echo "[run-media-decode] coturn logs → ${GITHUB_WORKSPACE:-/tmp}/coturn-capture.log" >&2
   exit "$harness_rc"
 fi
 

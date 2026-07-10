@@ -114,14 +114,17 @@ services:
   # network — the Playwright container, coturn, and the gateway are all on 172.18.0.0/16. coturn
   # without --external-ip uses the incoming-interface IP as the relay address, which is the bridge
   # IP. That is exactly what the browser needs to reach.
-  # p36-c002d diagnosis: gateway-capture.log (CI run 29096332364) confirmed coturn allocates relay
-  # ports (172.18.0.2:49163 etc.) but ZERO relay candidates reach str0m — only mDNS `.local`
-  # host candidates arrive and str0m rejects them all ("bad address: invalid IP address syntax").
-  # Root cause: relay candidates arrive ~400-800ms after mDNS (LTCM 2 RTT + ICE gather), and
-  # the ICE window / test timeout elapsed before the relay trickle reached str0m. Fix in
-  # media-decode.spec.ts + decode-probe.ts: iceTransportPolicy:"relay" forces the browser to
-  # skip mDNS/host gather entirely — only `typ relay` candidates from coturn are gathered,
-  # they arrive with real bridge IPs, str0m accepts them, and ICE pairs immediately.
+  # p36-c002d: iceTransportPolicy:"relay" eliminated mDNS candidates. CI run 29097816184 showed
+  # localCandidates=1 remoteCandidates=1 (improvement) but still ice=checking. Coturn stats
+  # (gateway-capture.log): browser→coturn 489 pkts, coturn→str0m 481 pkts, str0m→coturn 14
+  # pkts, coturn→browser 22 pkts. Root cause: str0m running full ICE (not ICE-lite) sent its
+  # own STUN binding requests to the browser's relay. These raced the CREATE_PERMISSION window
+  # and timed out. str0m's ICE engine then entered Disconnected and stopped responding to the
+  # browser's subsequent binding requests (hence only 14 responses for 481 checks). Fix
+  # (p36-c002e): enable ICE-lite on str0m's Rtc. SFUs should always run ICE-lite: the browser
+  # (ICE-full, controlling) does all the checking; str0m responds with SUCCESS_RESPONSE to
+  # every STUN it receives; browser nominates → ICE completes. No outbound STUN from SFU =
+  # no race condition with TURN setup timing.
   coturn:
     image: coturn/coturn:4.6.2
     command:
