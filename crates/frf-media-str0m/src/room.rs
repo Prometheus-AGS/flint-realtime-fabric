@@ -15,15 +15,22 @@ use std::sync::Arc;
 
 use dashmap::DashMap;
 use frf_domain::{SessionId, TenantId};
-use str0m::media::{KeyframeRequest, MediaTime, Mid, Pt};
+use str0m::format::PayloadParams;
+use str0m::media::{KeyframeRequest, MediaKind, MediaTime, Mid, Pt};
 use tokio::sync::mpsc;
 
 /// One media frame handed from a source session's driver to a destination's driver.
 ///
 /// `data` is `Arc<[u8]>` (str0m's own payload type) so the cross-task hand-off is a cheap
 /// refcount bump, not a copy.
+///
+/// `kind` (audio / video) and `params` are carried from the sender's `MediaData` so the
+/// receiver can locate its own MID for this kind (p36-c002h: sender and receiver may assign
+/// different MID numbers to the same media kind) and translate the PT via `match_params`.
 #[derive(Debug, Clone)]
 pub struct ForwardedMedia {
+    pub kind: MediaKind,
+    pub params: PayloadParams,
     pub mid: Mid,
     pub pt: Pt,
     pub time: MediaTime,
@@ -137,7 +144,16 @@ mod tests {
     use super::*;
 
     fn media() -> ForwardedMedia {
+        use str0m::format::{Codec, CodecSpec, FormatParams, PayloadParams};
+        let spec = CodecSpec {
+            codec: Codec::Vp8,
+            clock_rate: 90_000.into(),
+            channels: None,
+            format: FormatParams::default(),
+        };
         ForwardedMedia {
+            kind: MediaKind::Video,
+            params: PayloadParams::new(Pt::new_with_value(96), None, spec),
             mid: Mid::from("0"),
             pt: Pt::new_with_value(96),
             time: MediaTime::ZERO,

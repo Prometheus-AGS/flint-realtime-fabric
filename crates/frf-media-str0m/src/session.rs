@@ -306,6 +306,7 @@ impl MediaTransport for StrOmTransport {
             local_signals_tx: local_signals_tx.clone(),
             cmd_rx,
             forward_rx,
+            mid_kinds: std::collections::HashMap::new(),
         });
         self.ensure_demux()
             .await?

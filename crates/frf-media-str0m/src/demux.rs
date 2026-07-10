@@ -16,6 +16,7 @@ use std::time::Instant;
 use frf_domain::SessionId;
 use frf_domain::SignalEnvelope;
 use frf_ports::ConnectionState;
+use str0m::media::{MediaKind, Mid};
 use str0m::net::{Protocol, Receive};
 use str0m::{Candidate, Input, Output, Rtc};
 use tokio::net::UdpSocket;
@@ -37,6 +38,10 @@ pub(crate) struct DemuxSession {
     pub(crate) local_signals_tx: broadcast::Sender<SignalEnvelope>,
     pub(crate) cmd_rx: mpsc::Receiver<SessionCommand>,
     pub(crate) forward_rx: mpsc::Receiver<ForwardedFrame>,
+    /// MID→kind map built from `Event::MediaAdded` (p36-c002h). Sender and receiver
+    /// independently assign MID numbers to m-lines; this map is used by `write_forwarded` on
+    /// the receiver side to locate the correct writer by kind rather than by the sender's MID.
+    pub(crate) mid_kinds: HashMap<Mid, MediaKind>,
 }
 
 /// Control messages the transport sends to the demux loop to add or drop a session.
@@ -71,6 +76,7 @@ async fn drive_outputs(
                     &session.local_signals_tx,
                     router,
                     &session.meta,
+                    &mut session.mid_kinds,
                 );
             }
             Err(e) => {
@@ -207,7 +213,7 @@ fn service_sessions(sessions: &mut HashMap<SessionId, DemuxSession>, router: &Ro
             }
             // Ready forwarded media (non-blocking).
             while let Ok(frame) = session.forward_rx.try_recv() {
-                apply_forwarded(&mut session.rtc, &frame);
+                apply_forwarded(&mut session.rtc, &frame, &session.mid_kinds);
             }
         }
         if drop_it {
