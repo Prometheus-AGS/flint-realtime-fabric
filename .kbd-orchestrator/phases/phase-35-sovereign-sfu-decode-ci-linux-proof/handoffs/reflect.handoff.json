@@ -1,0 +1,11 @@
+{
+  "stage": "reflect",
+  "completedAt": "2026-07-10T01:21:20Z",
+  "outputs": [
+    ".kbd-orchestrator/phases/phase-35-sovereign-sfu-decode-ci-linux-proof/reflection.md"
+  ],
+  "nextStage": null,
+  "summaryForNext": "G2 MET (stack boots + decode runs on ubuntu-latest CI); G3 NOT MET (framesDecoded=0 ice=checking, gate OFF); harness bug found (EXIT trap tears down gateway before log capture); next: fix log capture + read Linux candidate exchange + fix ICE pairing + re-run + flip.",
+  "skipped": false,
+  "skipReason": null
+}

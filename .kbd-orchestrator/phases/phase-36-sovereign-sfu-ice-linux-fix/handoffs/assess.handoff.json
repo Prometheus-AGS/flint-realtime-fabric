@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-07-10T04:17:54Z",
+  "outputs": [
+    ".kbd-orchestrator/phases/phase-36-sovereign-sfu-ice-linux-fix/assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Two root causes confirmed: (1) gateway-log written to /tmp/ but workflow reads workspace root — one-line copy fix; (2) MEDIA_ADVERTISE_IP=172.17.0.1 is docker0 host bridge, unreachable from Compose bridge — fix to hostname 'gateway' (str0m resolves via DNS); (3) TURN_EXTERNAL_IP same issue — fix coturn entrypoint to shell-expand hostname -i. Plan: 2-3 changes, G3 fix + CI re-run + flip.",
+  "skipped": false,
+  "skipReason": null
+}

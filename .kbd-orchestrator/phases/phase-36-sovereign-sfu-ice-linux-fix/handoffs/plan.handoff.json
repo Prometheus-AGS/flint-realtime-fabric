@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-07-10T04:23:33Z",
+  "outputs": [
+    ".kbd-orchestrator/phases/phase-36-sovereign-sfu-ice-linux-fix/plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "3 changes: c001 (ICE fix + log capture — run-media-decode.sh 1 line + compose.sovereign.yml 2 edits, triggers CI), c002 (read CI result + flip gate), c003 (PR — gated on flip). Execute c001 first; c002 and c003 follow CI outcome.",
+  "skipped": false,
+  "skipReason": null
+}

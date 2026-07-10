@@ -176,7 +176,10 @@ docker compose "${COMPOSE[@]}" exec -T \
 if [ "$harness_rc" -ne 0 ]; then
   echo "[run-media-decode] harness FAILED (rc=${harness_rc}) — capturing gateway logs before teardown…" >&2
   docker compose "${COMPOSE[@]}" logs --no-color --tail 200 gateway > /tmp/p29-gateway.log 2>&1 || true
-  echo "[run-media-decode] gateway logs → /tmp/p29-gateway.log (grep 'sovereign:')" >&2
+  # Copy to the CI workspace root so the workflow's artifact-upload step finds it
+  # (the EXIT trap fires `down -v` AFTER this exit, so the copy must happen here).
+  cp /tmp/p29-gateway.log "${GITHUB_WORKSPACE:-/tmp}/gateway.log" 2>/dev/null || true
+  echo "[run-media-decode] gateway logs → /tmp/p29-gateway.log + ${GITHUB_WORKSPACE:-/tmp}/gateway.log" >&2
   exit "$harness_rc"
 fi
 

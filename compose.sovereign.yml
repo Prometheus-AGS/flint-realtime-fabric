@@ -24,12 +24,14 @@ services:
     environment:
       SFU_MODE: "sovereign"
       # p24-c001 / p28-c002: bind all interfaces in-container, advertise a host-reachable candidate.
-      # The container publishes UDP 40000 to the host (`40000:40000/udp`), so a browser ON THE HOST
-      # reaches the SFU via host loopback 127.0.0.1:40000. Advertise `127.0.0.1` (str0m needs a
-      # concrete IP — `0.0.0.0` and a bare hostname are rejected). `MEDIA_ADVERTISE_IP` also accepts
-      # a hostname, resolved to an IP at negotiate time, for multi-host deployments.
+      # p36-c001: use the service name "gateway" as the advertised IP. str0m's config.rs resolves
+      # hostnames via to_socket_addrs() at negotiate time; Docker injects service names into each
+      # container's /etc/hosts, so "gateway" resolves to this container's own Compose-bridge IP.
+      # The Playwright container (same bridge) reaches that IP directly. Previously 172.17.0.1 was
+      # used (docker0 host bridge), which is a DIFFERENT bridge — unreachable from the Compose
+      # project network — causing ice=checking to stall indefinitely (phases 35 run 29057452278).
       MEDIA_BIND_ADDR: "0.0.0.0"
-      MEDIA_ADVERTISE_IP: "${MEDIA_ADVERTISE_IP:-127.0.0.1}"
+      MEDIA_ADVERTISE_IP: "gateway"
       MEDIA_UDP_PORT: "40000"
       # p25-c001: the base compose.yml hardcodes the flint-gate JWKS URL; override it so the
       # gateway verifies against the run's self-served RS256 JWKS (the runner sets this env to a
@@ -103,25 +105,28 @@ services:
   # minimal STUN-only mode (no TURN relay, no auth) is sufficient to reflect the browser's address.
   # p34-c001: upgraded from STUN-only to a TURN RELAY. On the bridge, host/srflx candidates don't pair
   # (phase-32); a relay candidate carries coturn's real relay IP and always routes, and str0m accepts
-  # `typ relay` (parser.rs:232). Long-term credential comes from ${TURN_SECRET} (env — NEVER committed);
-  # `--external-ip` is the relay address the in-network browser reaches (defaults to 127.0.0.1 for the
-  # same-host loopback run; the runner may override with the gateway/bridge IP).
+  # `typ relay` (parser.rs:232). Long-term credential comes from ${TURN_SECRET} (env — NEVER committed).
+  # p36-c001: --external-ip must be the IP the Playwright container uses to reach coturn's relay.
+  # Previously TURN_EXTERNAL_IP=172.17.0.1 (docker0 host bridge) — unreachable from the Compose
+  # bridge (same root cause as MEDIA_ADVERTISE_IP). Fix: override entrypoint to /bin/sh -c so
+  # $(hostname -i) shell-expands to coturn's own Compose-bridge IP at container startup.
   coturn:
     image: coturn/coturn:4.6.2
+    entrypoint: ["/bin/sh", "-c"]
     command:
-      - "-n"                       # no config file — all flags on the command line
-      - "--no-tls"
-      - "--no-dtls"
-      - "--listening-port=3478"
-      - "--listening-ip=0.0.0.0"
-      - "--realm=frf"
-      # Long-term static credential (simpler than time-limited REST for a test harness): the browser
-      # uses username=frf, credential=${TURN_SECRET}. The secret is env-sourced, NEVER committed.
-      - "--lt-cred-mech"
-      - "--user=frf:${TURN_SECRET:?TURN_SECRET must be set by the decode runner — never commit it}"
-      - "--external-ip=${TURN_EXTERNAL_IP:-127.0.0.1}"
-      - "--min-port=49160"
-      - "--max-port=49200"
+      - >-
+        exec /usr/bin/turnserver
+        -n
+        --no-tls
+        --no-dtls
+        --listening-port=3478
+        --listening-ip=0.0.0.0
+        --realm=frf
+        --lt-cred-mech
+        "--user=frf:${TURN_SECRET:?TURN_SECRET must be set by the decode runner}"
+        "--external-ip=$$(hostname -i | cut -d' ' -f1)"
+        --min-port=49160
+        --max-port=49200
     ports:
       - "3478:3478/udp"
       - "3478:3478/tcp"

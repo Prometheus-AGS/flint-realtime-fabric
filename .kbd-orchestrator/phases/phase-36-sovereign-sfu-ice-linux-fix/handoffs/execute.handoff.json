@@ -1,0 +1,11 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-07-10T04:26:46Z",
+  "outputs": [
+    ".kbd-orchestrator/phases/phase-36-sovereign-sfu-ice-linux-fix/execution.md"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "OpenSpec backend; 3 changes; first change p36-c001 fixes log-capture + ICE addressing (compose env + coturn entrypoint); apply now via /kbd-apply p36-c001-ice-fix-and-log-capture.",
+  "skipped": false,
+  "skipReason": null
+}
