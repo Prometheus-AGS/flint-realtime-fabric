@@ -51,13 +51,14 @@ export TURN_EXTERNAL_IP="${TURN_EXTERNAL_IP:-127.0.0.1}"
 if [ -z "${HOST_ADDR:-}" ]; then
   if [ "$(uname -s)" = "Linux" ]; then HOST_ADDR="172.17.0.1"; else HOST_ADDR="host.docker.internal"; fi
 fi
-# On Linux, advertise the SFU's host candidate at the docker0 gateway (172.17.0.1) so a bridge-network
-# browser reaches it; on macOS keep the loopback default (overridable). The TURN relay's external-ip
-# follows the same address so its relay candidate is browser-reachable too.
-if [ "$(uname -s)" = "Linux" ] && [ -z "${MEDIA_ADVERTISE_IP:-}" ]; then
-  export MEDIA_ADVERTISE_IP="${HOST_ADDR}"
-  export TURN_EXTERNAL_IP="${HOST_ADDR}"
-fi
+# p36-c002: MEDIA_ADVERTISE_IP is now hardcoded to "gateway" in compose.sovereign.yml; the service name
+# resolves to the container's own Compose-bridge IP via Docker DNS. Do NOT export it here — a shell-env
+# export takes precedence over compose file `environment:` values, which is why run 29069204711 still
+# got 172.17.0.1 (the Linux HOST_ADDR) even after compose.sovereign.yml was fixed in c001.
+# TURN_EXTERNAL_IP is also no longer used — coturn's --external-ip now expands $(hostname -i) at
+# container startup (compose.sovereign.yml entrypoint override, p36-c001), so this export is dead.
+# Keep HOST_ADDR for the JWKS URL only (the Python server runs on the host; containers reach it via
+# 172.17.0.1 on Linux and host.docker.internal on macOS).
 
 # HOST_NET=1 (p33-c001, Target A): put gateway+browser+caddy+coturn on the Colima VM's host network so
 # their ICE candidates share one routable stack (phase-32 had no routable pair on the bridge). Under
@@ -137,7 +138,9 @@ echo "[run-media-decode] bringing up the gateway + its deps + coturn + caddy (GA
 # (phase-28 B1). It has no build step, so it comes up with the gateway.
 # Under HOST_NET (p33-c001) the gateway reaches the host-served JWKS across the VM NAT, not via
 # host.docker.internal (which does not resolve under network_mode:host).
+# p36-c002: set RUST_LOG=debug so str0m ICE candidate lines appear in the gateway.log artifact.
 GATEWAY_JWKS_URL="${HOST_NET_JWKS_URL:-http://${HOST_ADDR}:${JWKS_PORT}/jwks.json}" \
+  RUST_LOG="debug" \
   docker compose "${COMPOSE[@]}" up -d --no-build gateway coturn caddy playwright
 
 echo "[run-media-decode] waiting for gateway /healthz at ${GATEWAY_URL}…"
@@ -175,7 +178,8 @@ docker compose "${COMPOSE[@]}" exec -T \
 
 if [ "$harness_rc" -ne 0 ]; then
   echo "[run-media-decode] harness FAILED (rc=${harness_rc}) — capturing gateway logs before teardown…" >&2
-  docker compose "${COMPOSE[@]}" logs --no-color --tail 200 gateway > /tmp/p29-gateway.log 2>&1 || true
+  # p36-c002: capture gateway + coturn logs (coturn confirms --external-ip resolved).
+  docker compose "${COMPOSE[@]}" logs --no-color --tail 2000 gateway coturn > /tmp/p29-gateway.log 2>&1 || true
   # Copy to the CI workspace root so the workflow's artifact-upload step finds it
   # (the EXIT trap fires `down -v` AFTER this exit, so the copy must happen here).
   cp /tmp/p29-gateway.log "${GITHUB_WORKSPACE:-/tmp}/gateway.log" 2>/dev/null || true
