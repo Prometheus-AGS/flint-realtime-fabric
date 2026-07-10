@@ -65,13 +65,26 @@ jobs:
         run: docker compose -f compose.yml -f compose.sovereign.yml build gateway
 
       - name: Run the decoded-media proof
-        # Native Linux host networking + 172.17.0.1 host addressing (run-media-decode.sh auto-detects
-        # Linux). Asserts framesDecoded > 0; the job fails if the receiver never decodes a frame.
+        # Bridge-network mode: MEDIA_ADVERTISE_IP="gateway" (compose.sovereign.yml) resolves to the
+        # container's own Compose-bridge IP via Docker DNS. TURN external-ip expands via $(hostname -i)
+        # in the coturn entrypoint. run-media-decode.sh captures gateway+coturn logs to gateway-capture.log
+        # before the EXIT trap tears down the stack. Asserts framesDecoded > 0.
         run: ./scripts/run-media-decode.sh
 
       - name: Collect gateway logs (always)
         if: always()
-        run: docker compose -f compose.yml -f compose.sovereign.yml logs --no-color gateway > gateway.log 2>&1 || true
+        # p36-c002: run-media-decode.sh writes gateway-capture.log before the stack tears down.
+        # The live `docker compose logs` here runs AFTER `down -v` (EXIT trap), so it produces an
+        # empty gateway.log; we keep it for completeness but it will be empty on failure. The
+        # gateway-capture.log (from the script) is the definitive ICE diagnostic artifact.
+        run: |
+          docker compose -f compose.yml -f compose.sovereign.yml logs --no-color gateway > gateway.log 2>&1 || true
+          echo "gateway.log size: $(wc -c < gateway.log) bytes"
+          if [ -f gateway-capture.log ]; then
+            echo "gateway-capture.log size: $(wc -c < gateway-capture.log) bytes"
+          else
+            echo "gateway-capture.log: not found (script may not have reached the failure path)"
+          fi
 
       - name: Upload artifacts (logs + Playwright report)
         if: always()
@@ -80,6 +93,7 @@ jobs:
           name: decode-proof-artifacts
           path: |
             gateway.log
+            gateway-capture.log
             admin-ui/playwright-report/
             admin-ui/test-results/
           if-no-files-found: ignore

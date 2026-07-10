@@ -133,6 +133,7 @@ else
   echo "[run-media-decode] using pre-built gateway image '${GATEWAY_IMAGE}' (no in-run build)."
 fi
 
+echo "[run-media-decode] MEDIA_ADVERTISE_IP=${MEDIA_ADVERTISE_IP:-<unset>} TURN_EXTERNAL_IP=${TURN_EXTERNAL_IP:-<unset>}"
 echo "[run-media-decode] bringing up the gateway + its deps + coturn + caddy (GATEWAY_JWKS_URL → host JWKS)…"
 # coturn (p29-c002) gives the browser a routable srflx candidate the shared-socket SFU accepts
 # (phase-28 B1). It has no build step, so it comes up with the gateway.
@@ -178,12 +179,14 @@ docker compose "${COMPOSE[@]}" exec -T \
 
 if [ "$harness_rc" -ne 0 ]; then
   echo "[run-media-decode] harness FAILED (rc=${harness_rc}) — capturing gateway logs before teardown…" >&2
-  # p36-c002: capture gateway + coturn logs (coturn confirms --external-ip resolved).
+  # p36-c002: capture gateway + coturn logs (coturn confirms --external-ip resolved; gateway
+  # shows the str0m advertised= candidate). Write to gateway-capture.log — a distinct name so
+  # the workflow's "Collect gateway logs" step cannot overwrite it (that step runs after `down -v`
+  # removes the containers and produces an empty gateway.log, which was silently clobbering our
+  # copy in runs 29069204711 and 29092400906 because both wrote to gateway.log at the same path).
   docker compose "${COMPOSE[@]}" logs --no-color --tail 2000 gateway coturn > /tmp/p29-gateway.log 2>&1 || true
-  # Copy to the CI workspace root so the workflow's artifact-upload step finds it
-  # (the EXIT trap fires `down -v` AFTER this exit, so the copy must happen here).
-  cp /tmp/p29-gateway.log "${GITHUB_WORKSPACE:-/tmp}/gateway.log" 2>/dev/null || true
-  echo "[run-media-decode] gateway logs → /tmp/p29-gateway.log + ${GITHUB_WORKSPACE:-/tmp}/gateway.log" >&2
+  cp /tmp/p29-gateway.log "${GITHUB_WORKSPACE:-/tmp}/gateway-capture.log" 2>/dev/null || true
+  echo "[run-media-decode] gateway logs → /tmp/p29-gateway.log + ${GITHUB_WORKSPACE:-/tmp}/gateway-capture.log" >&2
   exit "$harness_rc"
 fi
 
