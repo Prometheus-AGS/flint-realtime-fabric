@@ -86,20 +86,25 @@ test.describe("Media: receiver decodes SFU-relayed media (requires gateway + Chr
       await senderPage.evaluate(async (args) => {
         const media = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         // Reuse the shared connect helper's transport shape inline: send an offer that includes
-        // the fake track so the SFU relays real RTP. STUN gathers a srflx candidate; TURN gathers a
-        // `typ relay` candidate that always routes (phase-32 had no routable pair; p34-c001).
+        // the fake track so the SFU relays real RTP. p36-c002d: force relay-only ICE when TURN is
+        // configured — the browser only gathers `typ relay` candidates (coturn real bridge IP) and
+        // skips mDNS/host candidates entirely. str0m rejects mDNS ("bad address") so relay-only
+        // is the only path that completes ICE. iceTransportPolicy:"relay" is set iff TURN is present.
         const iceServers: RTCIceServer[] = [];
         if (args.stunUrl) iceServers.push({ urls: args.stunUrl });
-        if (args.turnUrl && args.turnUsername && args.turnCredential) {
+        const hasTurn = !!(args.turnUrl && args.turnUsername && args.turnCredential);
+        if (hasTurn) {
           iceServers.push({
-            urls: args.turnUrl,
-            username: args.turnUsername,
-            credential: args.turnCredential,
+            urls: args.turnUrl!,
+            username: args.turnUsername!,
+            credential: args.turnCredential!,
           });
         }
-        const pc = new RTCPeerConnection(
-          iceServers.length > 0 ? { iceServers } : undefined,
-        );
+        const pcConfig: RTCConfiguration =
+          iceServers.length > 0
+            ? { iceServers, ...(hasTurn ? { iceTransportPolicy: "relay" } : {}) }
+            : {};
+        const pc = new RTCPeerConnection(Object.keys(pcConfig).length > 0 ? pcConfig : undefined);
         media.getTracks().forEach((t) => pc.addTrack(t, media));
         const url =
           `${args.wsUrl}/ws/v1/signal?room=${encodeURIComponent(args.room)}` +
@@ -184,7 +189,7 @@ test.describe("Media: receiver decodes SFU-relayed media (requires gateway + Chr
           room: ROOM,
           tenant: TENANT,
           token: TOKEN,
-          timeoutMs: 20_000,
+          timeoutMs: 30_000,
           stunUrl: STUN_URL,
           turnUrl: TURN_URL,
           turnUsername: TURN_USERNAME,

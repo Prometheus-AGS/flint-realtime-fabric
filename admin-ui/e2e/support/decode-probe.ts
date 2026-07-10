@@ -70,9 +70,16 @@ export async function probeDecodedMedia(
       credential: args.turnCredential,
     });
   }
-  const pc = new RTCPeerConnection(
-    iceServers.length > 0 ? { iceServers } : undefined,
-  );
+  // p36-c002d: force relay-only ICE when TURN is configured so the browser never gathers mDNS
+  // host candidates (str0m rejects them — "bad address: invalid IP address syntax"). With relay-only
+  // the browser skips the mDNS/srflx gather phase entirely and only produces `typ relay` candidates
+  // carrying coturn's real bridge IP — str0m accepts those and ICE completes immediately.
+  const hasTurn = !!(args.turnUrl && args.turnUsername && args.turnCredential);
+  const pcConfig: RTCConfiguration =
+    iceServers.length > 0
+      ? { iceServers, ...(hasTurn ? { iceTransportPolicy: "relay" } : {}) }
+      : {};
+  const pc = new RTCPeerConnection(Object.keys(pcConfig).length > 0 ? pcConfig : undefined);
   pc.addTransceiver("video", { direction: "recvonly" });
   pc.addTransceiver("audio", { direction: "recvonly" });
 

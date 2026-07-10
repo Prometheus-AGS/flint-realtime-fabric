@@ -113,12 +113,15 @@ services:
   # p36-c002c: drop --external-ip entirely. On the Compose bridge all services share one routable
   # network — the Playwright container, coturn, and the gateway are all on 172.18.0.0/16. coturn
   # without --external-ip uses the incoming-interface IP as the relay address, which is the bridge
-  # IP. That is exactly what the browser needs to reach. The previous --external-ip=$(hostname -i)
-  # shell-expansion approach (p36-c001) was unreliable: coturn logs were silent (Docker log capture
-  # issue) so we couldn't confirm it worked, and the mDNS-only candidate rejections in the gateway
-  # log suggest coturn never produced a relay candidate at all. Also drop the /bin/sh -c entrypoint
-  # override — coturn can be invoked directly with --user via the TURN_SECRET env var, but since
-  # --lt-cred-mech requires the --user flag to include the credential, we use a simple inline form.
+  # IP. That is exactly what the browser needs to reach.
+  # p36-c002d diagnosis: gateway-capture.log (CI run 29096332364) confirmed coturn allocates relay
+  # ports (172.18.0.2:49163 etc.) but ZERO relay candidates reach str0m — only mDNS `.local`
+  # host candidates arrive and str0m rejects them all ("bad address: invalid IP address syntax").
+  # Root cause: relay candidates arrive ~400-800ms after mDNS (LTCM 2 RTT + ICE gather), and
+  # the ICE window / test timeout elapsed before the relay trickle reached str0m. Fix in
+  # media-decode.spec.ts + decode-probe.ts: iceTransportPolicy:"relay" forces the browser to
+  # skip mDNS/host gather entirely — only `typ relay` candidates from coturn are gathered,
+  # they arrive with real bridge IPs, str0m accepts them, and ICE pairs immediately.
   coturn:
     image: coturn/coturn:4.6.2
     command:
