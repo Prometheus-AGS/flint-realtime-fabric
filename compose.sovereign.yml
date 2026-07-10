@@ -110,23 +110,29 @@ services:
   # Previously TURN_EXTERNAL_IP=172.17.0.1 (docker0 host bridge) — unreachable from the Compose
   # bridge (same root cause as MEDIA_ADVERTISE_IP). Fix: override entrypoint to /bin/sh -c so
   # $(hostname -i) shell-expands to coturn's own Compose-bridge IP at container startup.
+  # p36-c002c: drop --external-ip entirely. On the Compose bridge all services share one routable
+  # network — the Playwright container, coturn, and the gateway are all on 172.18.0.0/16. coturn
+  # without --external-ip uses the incoming-interface IP as the relay address, which is the bridge
+  # IP. That is exactly what the browser needs to reach. The previous --external-ip=$(hostname -i)
+  # shell-expansion approach (p36-c001) was unreliable: coturn logs were silent (Docker log capture
+  # issue) so we couldn't confirm it worked, and the mDNS-only candidate rejections in the gateway
+  # log suggest coturn never produced a relay candidate at all. Also drop the /bin/sh -c entrypoint
+  # override — coturn can be invoked directly with --user via the TURN_SECRET env var, but since
+  # --lt-cred-mech requires the --user flag to include the credential, we use a simple inline form.
   coturn:
     image: coturn/coturn:4.6.2
-    entrypoint: ["/bin/sh", "-c"]
     command:
-      - >-
-        exec /usr/bin/turnserver
-        -n
-        --no-tls
-        --no-dtls
-        --listening-port=3478
-        --listening-ip=0.0.0.0
-        --realm=frf
-        --lt-cred-mech
-        "--user=frf:${TURN_SECRET:?TURN_SECRET must be set by the decode runner}"
-        "--external-ip=$$(hostname -i | cut -d' ' -f1)"
-        --min-port=49160
-        --max-port=49200
+      - "-n"
+      - "--no-tls"
+      - "--no-dtls"
+      - "--listening-port=3478"
+      - "--listening-ip=0.0.0.0"
+      - "--realm=frf"
+      - "--lt-cred-mech"
+      - "--user=frf:${TURN_SECRET}"
+      - "--min-port=49160"
+      - "--max-port=49200"
+      - "--verbose"
     ports:
       - "3478:3478/udp"
       - "3478:3478/tcp"

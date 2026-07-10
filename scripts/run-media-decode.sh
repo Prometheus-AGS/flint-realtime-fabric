@@ -185,8 +185,14 @@ if [ "$harness_rc" -ne 0 ]; then
   # removes the containers and produces an empty gateway.log, which was silently clobbering our
   # copy in runs 29069204711 and 29092400906 because both wrote to gateway.log at the same path).
   docker compose "${COMPOSE[@]}" logs --no-color --tail 2000 gateway coturn > /tmp/p29-gateway.log 2>&1 || true
+  # p36-c002b: also dump coturn separately so its startup + external-ip line is clearly visible.
+  docker compose "${COMPOSE[@]}" logs --no-color --tail 500 coturn > /tmp/p29-coturn.log 2>&1 || true
+  echo "[run-media-decode] coturn log (first 20 lines):" >&2
+  head -20 /tmp/p29-coturn.log >&2 || true
   cp /tmp/p29-gateway.log "${GITHUB_WORKSPACE:-/tmp}/gateway-capture.log" 2>/dev/null || true
-  echo "[run-media-decode] gateway logs → /tmp/p29-gateway.log + ${GITHUB_WORKSPACE:-/tmp}/gateway-capture.log" >&2
+  cp /tmp/p29-coturn.log "${GITHUB_WORKSPACE:-/tmp}/coturn-capture.log" 2>/dev/null || true
+  echo "[run-media-decode] gateway logs → ${GITHUB_WORKSPACE:-/tmp}/gateway-capture.log" >&2
+  echo "[run-media-decode] coturn logs → ${GITHUB_WORKSPACE:-/tmp}/coturn-capture.log" >&2
   exit "$harness_rc"
 fi
 

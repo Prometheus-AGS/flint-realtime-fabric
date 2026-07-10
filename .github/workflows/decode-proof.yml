@@ -94,6 +94,7 @@ jobs:
           path: |
             gateway.log
             gateway-capture.log
+            coturn-capture.log
             admin-ui/playwright-report/
             admin-ui/test-results/
           if-no-files-found: ignore
