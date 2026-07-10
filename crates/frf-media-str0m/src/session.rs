@@ -16,6 +16,7 @@ use async_trait::async_trait;
 use dashmap::DashMap;
 use frf_domain::{SessionId, SignalEnvelope, TenantId};
 use frf_ports::{ConnectionState, MediaTransport, PortError, SignalStream};
+use str0m::media::{KeyframeRequest, KeyframeRequestKind, Mid};
 use str0m::{Candidate, Rtc};
 use tokio::net::UdpSocket;
 use tokio::sync::{broadcast, mpsc, watch};
@@ -127,10 +128,27 @@ impl StrOmTransport {
     /// Move a session into `room` so its media fans out to that room's other members. The
     /// default room (set at `create_session`) is the session's own id; `join_room` regroups
     /// it. Used by the gateway (and the 1-to-1 forwarding test) to co-locate peers.
+    ///
+    /// After registering the session in the room, sends a proactive PLI (`Mid("0")`, the first
+    /// video track) to every existing co-room member (p36-c002g). Without this, a late-joining
+    /// receiver only receives P-frames until the browser's own PLI cycle fires — which can take
+    /// many seconds and is not guaranteed within the 30 s decode-proof window. The PLI travels
+    /// the existing `ForwardedFrame::KeyframeRequest` path: `forward_rx` → `apply_forwarded` →
+    /// `Writer::request_keyframe` → RTCP PLI to the sending browser → browser emits an IDR →
+    /// receiver decodes its first keyframe → `framesDecoded > 0`.
     pub fn join_room(&self, session_id: SessionId, tenant_id: TenantId, room: &str) {
         if let Some(entry) = self.sessions.get(&session_id) {
             self.router
                 .register(session_id, tenant_id, room, entry.forward_tx.clone());
+            // Proactive PLI: ask every existing co-room sender to emit a keyframe so a
+            // late-joining receiver can sync immediately rather than waiting for its browser to
+            // send its own PLI (which may not arrive within the decode-proof window).
+            let pli = KeyframeRequest {
+                mid: Mid::from("0"),
+                rid: None,
+                kind: KeyframeRequestKind::Pli,
+            };
+            self.router.forward_keyframe_request(session_id, pli);
         }
     }
 

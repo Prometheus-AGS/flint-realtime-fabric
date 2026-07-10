@@ -132,6 +132,14 @@ services:
   # so destination 0.0.0.0:40000 never matched — all STUN requests were silently discarded by
   # stun_server_handle_request(). Fix: DemuxSession now carries advertised_addr, and
   # route_datagram uses it (not local_addr) as the Receive destination.
+  # p36-c002g: ICE completed (peer rp>0) but framesDecoded=0. Root cause: receiver joins the
+  # room AFTER the sender has already started sending; it only receives P-frames (delta frames)
+  # with no preceding IDR keyframe, so the browser codec can never bootstrap. The reactive PLI
+  # cycle (receiver browser → SFU → sender browser) can take many seconds and may not complete
+  # within the 30 s proof window. Fix: join_room() now sends a proactive PLI (ForwardedFrame::
+  # KeyframeRequest with Mid("0"), the first video track) to every existing co-room member
+  # immediately after registering the new joiner. This triggers the sender browser to emit a
+  # fresh IDR, which the receiver decodes → framesDecoded > 0.
   coturn:
     image: coturn/coturn:4.6.2
     command:
