@@ -17,13 +17,3 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: frf-iggy
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: frf-keto-postgres
-spec:
-  maxUnavailable: 0
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: frf-keto-postgres

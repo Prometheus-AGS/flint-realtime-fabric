@@ -47,12 +47,8 @@ spec:
               value: "9090"
             - name: IGGY_CONNECTION_STRING
               value: iggy://iggy:iggy@frf-iggy:8090
-            - name: KETO_BASE_URL
-              value: http://frf-keto-read:4466
-            - name: KETO_NAMESPACE
-              value: default
-            - name: KETO_TENANT_FALLBACK
-              value: "true"
+            - name: AUTHZ_BACKEND
+              value: verified-identity
             - name: GATEWAY_JWKS_URL
               value: http://flint-gate-proxy:4456/.well-known/jwks.json
             - name: JWT_AUDIENCE

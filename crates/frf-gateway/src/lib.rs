@@ -2,6 +2,7 @@
 #![warn(clippy::pedantic)]
 
 pub mod agent_grpc_service;
+pub mod authz_backend;
 pub mod authz_grpc_service;
 pub mod config;
 pub mod entity_grpc_service;
@@ -29,7 +30,7 @@ use tower_governor::{
 use tower_http::cors::CorsLayer;
 use tower_http::limit::RequestBodyLimitLayer;
 
-pub use config::{GatewayConfig, PolicyEngineMode, SfuMode};
+pub use config::{AuthzBackend, GatewayConfig, PolicyEngineMode, SfuMode};
 pub use error::GatewayError;
 
 pub struct AppState<L, A, I, M, B, P> {
@@ -39,7 +40,7 @@ pub struct AppState<L, A, I, M, B, P> {
     pub agent_bus: Arc<B>,
     /// Identity verifier — used at every gateway boundary to verify JWTs.
     pub identity: Arc<I>,
-    /// `AuthZ` provider — used for subscribe-time Keto checks (ADR-002).
+    /// Authorization provider used for subscribe-time visibility checks.
     pub authz: Arc<A>,
     /// Log broker — used by federation ingest tasks to publish to the spine.
     pub log_broker: Arc<L>,

@@ -44,50 +44,6 @@ async fn check_returns_false_on_denied_response() {
 }
 
 #[tokio::test]
-async fn tenant_fallback_is_scoped_to_verified_tenant() {
-    let server = MockServer::start();
-    let exact = server.mock(|when, then| {
-        when.method(POST)
-            .path("/relation-tuples/check")
-            .json_body_partial(r#"{"subject_id":"user-1"}"#);
-        then.status(200)
-            .json_body(serde_json::json!({"allowed": false}));
-    });
-    let tenant = server.mock(|when, then| {
-        when.method(POST)
-            .path("/relation-tuples/check")
-            .json_body_partial(
-                r#"{"object":"*","subject_id":"tenant:00000000-0000-0000-0000-000000000000"}"#,
-            );
-        then.status(200)
-            .json_body(serde_json::json!({"allowed": true}));
-    });
-
-    let provider = KetoAuthzProvider::new(server.base_url(), "test-ns").with_tenant_fallback(true);
-    assert!(provider.check(&test_tuple()).await.expect("check failed"));
-    exact.assert_hits(1);
-    tenant.assert_hits(1);
-}
-
-#[tokio::test]
-async fn cache_does_not_reuse_a_decision_across_tenants() {
-    let server = MockServer::start();
-    let check = server.mock(|when, then| {
-        when.method(POST).path("/relation-tuples/check");
-        then.status(200)
-            .json_body(serde_json::json!({"allowed": true}));
-    });
-    let provider = KetoAuthzProvider::new(server.base_url(), "test-ns");
-    let tenant_a = test_tuple();
-    let mut tenant_b = test_tuple();
-    tenant_b.tenant_id = TenantId::from_uuid(Uuid::from_u128(1));
-
-    assert!(provider.check(&tenant_a).await.expect("tenant A check"));
-    assert!(provider.check(&tenant_b).await.expect("tenant B check"));
-    check.assert_hits(2);
-}
-
-#[tokio::test]
 async fn cache_hit_skips_http_call() {
     let server = MockServer::start();
     let mock = server.mock(|when, then| {

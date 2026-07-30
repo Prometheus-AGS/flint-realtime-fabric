@@ -242,3 +242,46 @@ async fn filters_events_where_view_check_fails() {
 
     let _ = denied_id; // suppress unused warning
 }
+
+#[tokio::test]
+async fn filters_events_from_a_different_tenant_before_authz() {
+    use futures_util::StreamExt;
+
+    let channel_id = ChannelId::new();
+    let mut foreign_envelope = test_envelope(channel_id);
+    foreign_envelope.channel.tenant_id = TenantId::from_uuid(Uuid::from_u128(1));
+
+    let mut broker = MockBroker::new();
+    broker
+        .expect_subscribe()
+        .once()
+        .returning(move |_, _, _| Ok(Box::pin(stream::iter(vec![Ok(foreign_envelope.clone())]))));
+
+    let mut authz = MockAuthz::new();
+    authz
+        .expect_check()
+        .withf(|tuple| tuple.relation == "subscribe")
+        .once()
+        .returning(|_| Ok(true));
+
+    let mut identity = MockIdentity::new();
+    identity
+        .expect_verify()
+        .once()
+        .returning(|_| Ok(test_claims()));
+
+    let pipeline = SubscribePipeline::new(Arc::new(broker), Arc::new(authz), Arc::new(identity));
+    let mut stream = pipeline
+        .execute(SubscribeRequest {
+            channel_id,
+            bearer_token: "tok".to_owned(),
+            from: Offset::BEGINNING,
+        })
+        .await
+        .expect("pipeline should succeed");
+
+    assert!(
+        stream.next().await.is_none(),
+        "cross-tenant event must be filtered before a view check"
+    );
+}

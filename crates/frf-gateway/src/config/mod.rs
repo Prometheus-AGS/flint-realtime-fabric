@@ -31,16 +31,25 @@ pub enum PolicyEngineMode {
     Cedar,
 }
 
+/// Selects the authorization adapter composed behind verified JWT identity and
+/// tenant-equality guards.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AuthzBackend {
+    /// Sansaba mode: authentication is the non-admin authorization boundary and
+    /// durable data authorization remains in `PostgreSQL` RLS.
+    VerifiedIdentity,
+    /// Generic platform relationship authorization through Ory Keto.
+    Keto,
+}
+
 pub struct GatewayConfig {
     pub bind_addr: SocketAddr,
     /// gRPC server port (default 9090). Set `GRPC_PORT=0` to disable.
     pub grpc_port: Option<u16>,
     pub iggy_connection_string: String,
+    pub authz_backend: AuthzBackend,
     pub keto_base_url: String,
     pub keto_namespace: String,
-    /// Allow a seeded tenant-wide Keto tuple after exact subject/object denial.
-    /// Disabled by default to preserve the platform's per-subject policy model.
-    pub keto_tenant_fallback: bool,
     pub gateway_jwks_url: String,
     pub jwt_audience: String,
     /// Expected JWT issuer (`iss`). Env: `JWT_ISSUER`. When set, tokens with a
@@ -130,9 +139,9 @@ impl GatewayConfig {
             bind_addr: SocketAddr::from(([127, 0, 0, 1], 0)),
             grpc_port: None,
             iggy_connection_string: "test://iggy".to_owned(),
+            authz_backend: AuthzBackend::VerifiedIdentity,
             keto_base_url: "http://localhost:4466".to_owned(),
             keto_namespace: "default".to_owned(),
-            keto_tenant_fallback: false,
             gateway_jwks_url: "http://localhost:4456/.well-known/jwks.json".to_owned(),
             jwt_audience: "test".to_owned(),
             // Set so `test_default` models a valid *production* config: validate()
@@ -291,12 +300,26 @@ impl GatewayConfig {
         let iggy_connection_string = std::env::var("IGGY_CONNECTION_STRING")
             .context("IGGY_CONNECTION_STRING must be set")?;
 
-        let keto_base_url = std::env::var("KETO_BASE_URL").context("KETO_BASE_URL must be set")?;
+        let authz_backend = match std::env::var("AUTHZ_BACKEND")
+            .unwrap_or_else(|_| "keto".to_owned())
+            .to_ascii_lowercase()
+            .as_str()
+        {
+            "verified-identity" => AuthzBackend::VerifiedIdentity,
+            "keto" => AuthzBackend::Keto,
+            value => {
+                anyhow::bail!("AUTHZ_BACKEND must be `verified-identity` or `keto` (got {value:?})")
+            }
+        };
+
+        let keto_base_url = match std::env::var("KETO_BASE_URL") {
+            Ok(value) => value,
+            Err(_) if authz_backend == AuthzBackend::VerifiedIdentity => String::new(),
+            Err(error) => return Err(error).context("KETO_BASE_URL must be set for Keto authz"),
+        };
 
         let keto_namespace =
             std::env::var("KETO_NAMESPACE").unwrap_or_else(|_| "default".to_owned());
-        let keto_tenant_fallback = std::env::var("KETO_TENANT_FALLBACK")
-            .is_ok_and(|v| v.eq_ignore_ascii_case("true") || v == "1");
 
         let gateway_jwks_url =
             std::env::var("GATEWAY_JWKS_URL").context("GATEWAY_JWKS_URL must be set")?;
@@ -357,9 +380,9 @@ impl GatewayConfig {
             bind_addr,
             grpc_port,
             iggy_connection_string,
+            authz_backend,
             keto_base_url,
             keto_namespace,
-            keto_tenant_fallback,
             gateway_jwks_url,
             jwt_audience,
             jwt_issuer,

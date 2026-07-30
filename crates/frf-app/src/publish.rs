@@ -47,7 +47,8 @@ where
             .await
             .map_err(AppError::Identity)?;
 
-        // Tenant-equality assertion (defense in depth beneath Keto): a caller
+        // Tenant-equality assertion (defense in depth beneath the configured
+        // authorization adapter): a caller
         // authenticated for tenant A must not publish into a channel owned by
         // tenant B, even if a stray relation tuple would allow it. The verified
         // JWT tenant is authoritative; the envelope's channel tenant is

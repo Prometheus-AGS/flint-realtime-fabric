@@ -14,13 +14,14 @@
 - Iggy: `iggyrs/iggy@sha256:68a314c1380be5a792a134f3bd346ded42bd49d9f7114c86f70b48fc85bc5272`
   (the immutable resolution of the repository's prior `latest` input on
   2026-07-30).
-- Ory Keto: `oryd/keto:v0.14.0@sha256:c209da1c2f0f764f5790ef688ecb723141a84692dd6d9ab8c5bbefc3ead7838a`
-  (upgraded from the compose file's obsolete v0.12 line).
-- PostgreSQL: `postgres:16.14-alpine3.24@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777`.
 - AKS storage class: `managed-csi` (`disk.csi.azure.com`, expansion enabled),
   verified against the `ssr` context on 2026-07-30.
 
-The minimum overlay contains only the FRF gateway, Iggy, Keto, Keto PostgreSQL,
-migration, and tenant-wide seed. It does not render LiveKit, a media service,
-CDC, federation bridges, SurrealDB, or an admin-UI workload.
+The minimum overlay contains only the FRF gateway and Iggy. It selects
+`AUTHZ_BACKEND=verified-identity`: Gate JWT verification and in-process tenant
+equality protect transport operations, while durable Sansaba data authorization
+stays in the existing PostgreSQL RLS boundary. Keto remains an optional generic
+platform adapter but is not deployed for Sansaba.
+The overlay does not render Keto, LiveKit, a media service, CDC, federation
+bridges, SurrealDB, or an admin-UI workload.
 Private GHCR pulls reference the pre-created `ghcr-pull` image pull Secret.

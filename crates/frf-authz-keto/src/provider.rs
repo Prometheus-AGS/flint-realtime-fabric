@@ -15,7 +15,6 @@ pub struct KetoAuthzProvider {
     namespace: String,
     cache: Arc<CheckCache>,
     check_ttl_secs: u64,
-    tenant_fallback: bool,
 }
 
 impl KetoAuthzProvider {
@@ -27,18 +26,7 @@ impl KetoAuthzProvider {
             namespace: namespace.into(),
             cache: CheckCache::new(),
             check_ttl_secs: DEFAULT_CHECK_TTL,
-            tenant_fallback: false,
         }
-    }
-
-    /// Permit an explicitly seeded tenant-wide relation after an exact
-    /// subject/object denial. The fallback tuple is
-    /// `tenant:<tenant UUID>#<relation>@*`; it is opt-in so generic platform
-    /// consumers retain the richer per-subject model.
-    #[must_use]
-    pub fn with_tenant_fallback(mut self, enabled: bool) -> Self {
-        self.tenant_fallback = enabled;
-        self
     }
 
     fn tuple_body(&self, tuple: &RelationTuple) -> RelationTupleBody {
@@ -48,22 +36,6 @@ impl KetoAuthzProvider {
             relation: tuple.relation.clone(),
             subject_id: tuple.subject.clone(),
         }
-    }
-
-    async fn check_body(&self, body: &RelationTupleBody) -> Result<bool, PortError> {
-        let url = format!("{}/relation-tuples/check", self.base_url);
-        let resp = self
-            .http
-            .post(&url)
-            .json(body)
-            .send()
-            .await
-            .map_err(|e| PortError::Transport(e.to_string()))?;
-        let check: CheckResponse = resp
-            .json()
-            .await
-            .map_err(|e| PortError::Serialization(e.to_string()))?;
-        Ok(check.allowed)
     }
 }
 
@@ -78,7 +50,6 @@ impl AuthzProvider for KetoAuthzProvider {
     #[instrument(name = "port::AuthzProvider::check", skip(self, tuple), fields(relation = %tuple.relation))]
     async fn check(&self, tuple: &RelationTuple) -> Result<bool, PortError> {
         let key = CacheKey(
-            tuple.tenant_id.to_string(),
             tuple.subject.clone(),
             tuple.relation.clone(),
             tuple.object.clone(),
@@ -88,20 +59,25 @@ impl AuthzProvider for KetoAuthzProvider {
             return Ok(cached);
         }
 
-        let exact = self.check_body(&self.tuple_body(tuple)).await?;
-        let allowed = if exact || !self.tenant_fallback {
-            exact
-        } else {
-            self.check_body(&RelationTupleBody {
-                namespace: self.namespace.clone(),
-                object: "*".to_owned(),
-                relation: tuple.relation.clone(),
-                subject_id: format!("tenant:{}", tuple.tenant_id),
-            })
-            .await?
-        };
-        self.cache.insert(key, allowed, self.check_ttl_secs);
-        Ok(allowed)
+        let body = self.tuple_body(tuple);
+        let url = format!("{}/relation-tuples/check", self.base_url);
+
+        let resp = self
+            .http
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| PortError::Transport(e.to_string()))?;
+
+        let check: CheckResponse = resp
+            .json()
+            .await
+            .map_err(|e| PortError::Serialization(e.to_string()))?;
+
+        self.cache.insert(key, check.allowed, self.check_ttl_secs);
+
+        Ok(check.allowed)
     }
 
     /// Write (grant) a relation tuple.

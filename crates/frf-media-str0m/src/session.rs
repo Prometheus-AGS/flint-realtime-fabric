@@ -112,11 +112,7 @@ impl StrOmTransport {
                     .local_addr()
                     .map_err(|e| StrOmError::Transport(format!("local_addr: {e}")))?;
                 let (control_tx, control_rx) = mpsc::channel(32);
-                tokio::spawn(run_demux(
-                    socket,
-                    control_rx,
-                    Arc::clone(&self.router),
-                ));
+                tokio::spawn(run_demux(socket, control_rx, Arc::clone(&self.router)));
                 Ok(SharedDemux {
                     local_addr,
                     control_tx,
