@@ -1,18 +1,24 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use bytes::Bytes;
 use frf_domain::{Channel, ChannelId, Cursor, EventEnvelope, Offset};
 use frf_ports::{EventStream, LogBroker, PortError};
 use futures_util::StreamExt;
-use iggy::prelude::{
-    Client, CompressionAlgorithm, Consumer, ConsumerOffsetClient, IggyClient, IggyError,
-    IggyExpiry, IggyMessage, MaxTopicSize, PollingStrategy, StreamClient, TopicClient,
-};
+use iggy::client::{Client, ConsumerOffsetClient, StreamClient, TopicClient};
+use iggy::clients::client::IggyClient;
+use iggy::compression::compression_algorithm::CompressionAlgorithm;
+use iggy::consumer::Consumer;
+use iggy::error::IggyError;
+use iggy::messages::poll_messages::PollingStrategy;
+use iggy::messages::send_messages::Message as IggyMessage;
+use iggy::utils::expiry::IggyExpiry;
+use iggy::utils::topic_size::MaxTopicSize;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 use tracing::instrument;
 
-use crate::channel::{partition_id, stream_name, topic_name};
+use crate::channel::partition_id;
 use crate::error::IggyBrokerError;
 
 const CHANNEL_BUF: usize = 256;
@@ -90,15 +96,15 @@ impl LogBroker for IggyBroker {
     /// Returns [`PortError::Transport`] if the Iggy producer fails.
     #[instrument(name = "port::LogBroker::publish", skip(self, envelope))]
     async fn publish(&self, envelope: EventEnvelope) -> Result<Offset, PortError> {
-        let stream = stream_name(envelope.channel.tenant_id);
-        let topic = topic_name(&envelope.channel.path);
+        let stream = format!("channel-{}", envelope.channel.id);
+        let topic = "events";
 
         let payload =
             serde_json::to_vec(&envelope).map_err(|e| PortError::Serialization(e.to_string()))?;
 
-        let msg = IggyMessage::from(payload);
+        let msg = IggyMessage::new(None, Bytes::from(payload), None);
 
-        let producer = self
+        let mut producer = self
             .client
             .producer(&stream, &topic)
             .map_err(IggyBrokerError::Transport)?
@@ -262,10 +268,10 @@ impl LogBroker for IggyBroker {
     /// an error other than "already exists".
     #[instrument(name = "port::LogBroker::ensure_channel", skip(self))]
     async fn ensure_channel(&self, channel: Channel) -> Result<(), PortError> {
-        let stream = stream_name(channel.tenant_id);
-        let topic = topic_name(&channel.path);
+        let stream = format!("channel-{}", channel.id);
+        let topic = "events";
 
-        match self.client.create_stream(&stream).await {
+        match self.client.create_stream(&stream, None).await {
             Ok(_) | Err(IggyError::StreamNameAlreadyExists(_)) => {}
             Err(e) => return Err(IggyBrokerError::Transport(e).into()),
         }
@@ -282,6 +288,7 @@ impl LogBroker for IggyBroker {
                 &topic,
                 1,
                 CompressionAlgorithm::None,
+                None,
                 None,
                 IggyExpiry::NeverExpire,
                 MaxTopicSize::ServerDefault,

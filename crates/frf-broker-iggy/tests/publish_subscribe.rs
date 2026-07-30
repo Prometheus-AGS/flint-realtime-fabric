@@ -28,7 +28,9 @@ fn test_envelope(channel: Channel) -> EventEnvelope {
 #[tokio::test]
 #[ignore = "requires a live Iggy server — run with: cargo test -p frf-broker-iggy -- --ignored"]
 async fn publish_then_subscribe_receives_message() {
-    let broker = IggyBroker::new("iggy://guest:guest@localhost:8090")
+    let connection = std::env::var("IGGY_TEST_CONNECTION_STRING")
+        .unwrap_or_else(|_| "iggy://guest:guest@localhost:8090".to_owned());
+    let broker = IggyBroker::new(&connection)
         .await
         .expect("failed to connect to Iggy — ensure local Iggy is running");
 

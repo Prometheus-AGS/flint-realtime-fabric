@@ -118,8 +118,10 @@ mockall = "0.13"
 httpmock = "0.7"
 criterion = { version = "0.5", features = ["html_reports"] }
 
-# Event spine (GQAdonis fork)
-iggy = { git = "https://github.com/GQAdonis/iggy", branch = "master" }
+# Event spine (GQAdonis fork). Keep the SDK on the exact source revision used
+# by the pinned server-0.4.214 image; newer SDKs issue commands that this
+# kernel-compatible server does not implement.
+iggy = { git = "https://github.com/GQAdonis/iggy", rev = "d34b9c96ad5a15334e06040d68fd7512beeba4c8" }
 
 # Phase 3: CRDT + offline persistence + FFI
 loro = { version = "1.13.1" }
