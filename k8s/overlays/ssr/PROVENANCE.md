@@ -9,8 +9,12 @@
   and
   `debian:trixie-slim@sha256:020c0d20b9880058cbe785a9db107156c3c75c2ac944a6aa7ab59f2add76a7bd`
 - Candidate image: `ghcr.io/prometheus-ags/flint-realtime-fabric`
-- Candidate digest: populated after the candidate build; an all-zero digest is
-  deliberately rejected by `validate-overlay.sh`.
+- Candidate source SHA:
+  `953ced6b41846066eb78b2dcd230865cae325339`
+- Candidate OCI index digest:
+  `sha256:4da5f05de5877e84c8dcaec5c78f7af02e00454138c5390f5d545c3aeae0f915`
+- Candidate build:
+  <https://github.com/Prometheus-AGS/flint-realtime-fabric/actions/runs/30541695972>
 - Iggy: `iggyrs/iggy@sha256:68a314c1380be5a792a134f3bd346ded42bd49d9f7114c86f70b48fc85bc5272`
   (the immutable resolution of the repository's prior `latest` input on
   2026-07-30).

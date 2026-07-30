@@ -38,7 +38,7 @@ spec:
               app.kubernetes.io/name: frf-gateway
       containers:
         - name: gateway
-          image: ghcr.io/prometheus-ags/flint-realtime-fabric@sha256:0000000000000000000000000000000000000000000000000000000000000000
+          image: ghcr.io/prometheus-ags/flint-realtime-fabric@sha256:4da5f05de5877e84c8dcaec5c78f7af02e00454138c5390f5d545c3aeae0f915
           imagePullPolicy: IfNotPresent
           env:
             - name: BIND_ADDR
