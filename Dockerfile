@@ -27,7 +27,7 @@ RUN pnpm --dir sdks/ts build \
     && pnpm --dir admin-ui build
 
 # ── Stage 2: build the gateway binary (embeds admin-ui/dist) ──────────────────
-FROM rust:1.85-bookworm@sha256:e51d0265072d2d9d5d320f6a44dde6b9ef13653b035098febd68cce8fa7c0bc4 AS builder
+FROM rust:1.94-bookworm@sha256:6ae102bdbf528294bc79ad6e1fae682f6f7c2a6e6621506ba959f9685b308a55 AS builder
 
 RUN apt-get update && apt-get install -y \
     clang libclang-dev protobuf-compiler pkg-config \

@@ -32,7 +32,7 @@ version = "0.1.0"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/prometheusags/flint-realtime-fabric"
-rust-version = "1.85"
+rust-version = "1.94"
 
 # Centralized lint policy — every crate opts in via `[lints] workspace = true`.
 # `unwrap_used` is the CLAUDE.md hard gate: no unwrap()/expect() in library code.

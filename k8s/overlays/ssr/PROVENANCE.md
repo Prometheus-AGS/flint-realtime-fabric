@@ -5,7 +5,7 @@
 - License: MIT
 - Build input: repository `Dockerfile`, no `CARGO_FEATURES`, `linux/amd64`;
   `node:24-slim@sha256:6f7b03f7c2c8e2e784dcf9295400527b9b1270fd37b7e9a7285cf83b6951452d`,
-  `rust:1.85-bookworm@sha256:e51d0265072d2d9d5d320f6a44dde6b9ef13653b035098febd68cce8fa7c0bc4`,
+  `rust:1.94-bookworm@sha256:6ae102bdbf528294bc79ad6e1fae682f6f7c2a6e6621506ba959f9685b308a55`,
   and
   `debian:trixie-slim@sha256:020c0d20b9880058cbe785a9db107156c3c75c2ac944a6aa7ab59f2add76a7bd`
 - Candidate image: `ghcr.io/prometheus-ags/flint-realtime-fabric`
