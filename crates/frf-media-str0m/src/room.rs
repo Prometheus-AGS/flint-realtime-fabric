@@ -87,10 +87,10 @@ impl RoomRouter {
     /// Remove a session from its room and drop its forwarding channel.
     pub fn deregister(&self, session_id: SessionId) {
         self.forwarders.remove(&session_id);
-        if let Some((_, key)) = self.membership.remove(&session_id) {
-            if let Some(mut members) = self.rooms.get_mut(&key) {
-                members.remove(&session_id);
-            }
+        if let Some((_, key)) = self.membership.remove(&session_id)
+            && let Some(mut members) = self.rooms.get_mut(&key)
+        {
+            members.remove(&session_id);
         }
     }
 

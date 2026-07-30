@@ -82,10 +82,10 @@ impl StrOmSignaler {
                 return; // already joined
             }
             // Move the session out of any previous room before joining the new one.
-            if !session.room_id.is_empty() {
-                if let Some(mut prev) = self.rooms.get_mut(&(tenant_id, session.room_id.clone())) {
-                    prev.remove(&session_id);
-                }
+            if !session.room_id.is_empty()
+                && let Some(mut prev) = self.rooms.get_mut(&(tenant_id, session.room_id.clone()))
+            {
+                prev.remove(&session_id);
             }
             room_id.clone_into(&mut session.room_id);
         } else {
@@ -169,12 +169,11 @@ impl MediaSignaler for StrOmSignaler {
         tenant_id: TenantId,
     ) -> Result<(), PortError> {
         // Drop the channel and remove the session from its room's membership set.
-        if let Some((_, session)) = self.sessions.remove(&(tenant_id, session_id)) {
-            if !session.room_id.is_empty() {
-                if let Some(mut room) = self.rooms.get_mut(&(tenant_id, session.room_id.clone())) {
-                    room.remove(&session_id);
-                }
-            }
+        if let Some((_, session)) = self.sessions.remove(&(tenant_id, session_id))
+            && !session.room_id.is_empty()
+            && let Some(mut room) = self.rooms.get_mut(&(tenant_id, session.room_id.clone()))
+        {
+            room.remove(&session_id);
         }
         tracing::debug!(%session_id, %tenant_id, "str0m: session removed");
         Ok(())

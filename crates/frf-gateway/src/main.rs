@@ -6,11 +6,11 @@ use std::sync::Arc;
 use anyhow::{Context as _, Result};
 use frf_app::SyncUseCase;
 use frf_app::{AuthzUseCase, EntityUseCase, PublishUseCase, SubscribePipeline};
-use frf_authz_keto::KetoAuthzProvider;
 use frf_broker_iggy::IggyBroker;
 use frf_crdt::{InMemoryCrdtStore, LoroDeltaApplier};
 use frf_domain::{Channel, TenantId, ids::ChannelId};
-use frf_gateway::config::PolicyEngineMode;
+use frf_gateway::authz_backend::ConfiguredAuthzProvider;
+use frf_gateway::config::{AuthzBackend, PolicyEngineMode};
 use frf_gateway::{
     AppState, GatewayConfig, agent_grpc_service::AgentGrpcService,
     authz_grpc_service::AuthzGrpcService, entity_grpc_service::EntityGrpcService,
@@ -114,10 +114,12 @@ async fn main() -> Result<()> {
         }
     }
 
-    let authz = Arc::new(KetoAuthzProvider::new(
-        &config.keto_base_url,
-        &config.keto_namespace,
-    ));
+    let authz = Arc::new(match config.authz_backend {
+        AuthzBackend::VerifiedIdentity => ConfiguredAuthzProvider::verified_identity(),
+        AuthzBackend::Keto => {
+            ConfiguredAuthzProvider::keto(&config.keto_base_url, &config.keto_namespace)
+        }
+    });
     let identity = Arc::new(if let Some(issuer) = &config.jwt_issuer {
         OryIdentityVerifier::with_issuer(&config.gateway_jwks_url, &config.jwt_audience, issuer)
     } else {
@@ -212,10 +214,10 @@ async fn main() -> Result<()> {
         task.abort();
     }
 
-    if let Some(provider) = tracer_provider {
-        if let Err(e) = provider.shutdown() {
-            tracing::warn!(error = %e, "OTEL tracer provider shutdown error");
-        }
+    if let Some(provider) = tracer_provider
+        && let Err(e) = provider.shutdown()
+    {
+        tracing::warn!(error = %e, "OTEL tracer provider shutdown error");
     }
 
     Ok(())
@@ -319,7 +321,7 @@ fn spawn_grpc_server(
     state: Arc<
         AppState<
             IggyBroker,
-            KetoAuthzProvider,
+            ConfiguredAuthzProvider,
             OryIdentityVerifier,
             DynMediaSignaler,
             LibreFangBus,
@@ -338,7 +340,7 @@ fn spawn_grpc_server(
     // what the browser admin UI calls over Connect/gRPC-web (Subscribe/Publish).
     // SyncService (CRDT sync) is wired here with an in-memory CRDT store + redb
     // op-log + Loro applier. EntityService (read plane) is wired with an in-memory
-    // entity store. AuthzService is wired against the Keto-backed AuthzProvider.
+    // entity store. AuthzService uses the configured authorization adapter.
     // All six proto services now have server implementations.
     let spine_svc = SpineGrpcService::new(Arc::clone(&state)).into_server();
     // For SFU_MODE=sovereign, compose the str0m media engine (StrOmTransport) alongside the

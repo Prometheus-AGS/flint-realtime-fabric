@@ -10,6 +10,7 @@ use frf_ports::{
 use serde_json::{Value, json};
 
 use crate::AppStateArc;
+use crate::config::AuthzBackend;
 
 /// Liveness probe: the process is up and serving HTTP. Never checks
 /// dependencies — used by orchestrators to decide whether to RESTART the pod.
@@ -19,7 +20,7 @@ pub async fn healthz() -> Json<Value> {
 
 const PROBE_TIMEOUT: Duration = Duration::from_secs(3);
 
-/// Readiness probe: the gateway's dependencies (Keto, JWKS, Iggy) are reachable,
+/// Readiness probe: the gateway's configured dependencies are reachable,
 /// so it is safe to route traffic here. Returns 503 with per-dependency detail
 /// when any check fails — used by orchestrators to decide whether to add/remove
 /// the pod from the load-balancer ROTATION (distinct from liveness).
@@ -40,15 +41,24 @@ where
         .build()
         .unwrap_or_default();
 
-    let keto = probe_http(&http, &format!("{}/health/ready", cfg.keto_base_url)).await;
+    let authorization = match cfg.authz_backend {
+        AuthzBackend::VerifiedIdentity => Check {
+            ok: true,
+            detail: "verified identity + tenant guards; durable data uses PostgreSQL RLS"
+                .to_owned(),
+        },
+        AuthzBackend::Keto => {
+            probe_http(&http, &format!("{}/health/ready", cfg.keto_base_url)).await
+        }
+    };
     let jwks = probe_http(&http, &cfg.gateway_jwks_url).await;
     let iggy = probe_tcp(&cfg.iggy_connection_string).await;
 
-    let all_ok = keto.ok && jwks.ok && iggy.ok;
+    let all_ok = authorization.ok && jwks.ok && iggy.ok;
     let body = json!({
         "status": if all_ok { "ready" } else { "not_ready" },
         "checks": {
-            "keto": check_json(&keto),
+            "authorization": check_json(&authorization),
             "jwks": check_json(&jwks),
             "iggy": check_json(&iggy),
         }

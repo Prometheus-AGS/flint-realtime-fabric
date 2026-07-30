@@ -205,10 +205,10 @@ async fn handle_signal_socket<M: MediaSignaler>(
         while let Some(item) = stream.next().await {
             match item {
                 Ok(env) => {
-                    if let Ok(json) = serde_json::to_string(&to_frame(&env, sfu_mode)) {
-                        if sub_tx.send(Message::Text(json.into())).await.is_err() {
-                            break;
-                        }
+                    if let Ok(json) = serde_json::to_string(&to_frame(&env, sfu_mode))
+                        && sub_tx.send(Message::Text(json.into())).await.is_err()
+                    {
+                        break;
                     }
                 }
                 Err(e) => {
@@ -240,15 +240,15 @@ async fn handle_signal_socket<M: MediaSignaler>(
         {
             // The offer created the session; relay the SFU's trickle candidates + connection-state
             // out to the browser so ICE can complete (p27-c002). Spawn once, after the answer.
-            if answer.kind == "answer" {
-                if let Some(b) = &bridge {
-                    spawn_local_signals_relay(b, session_id, sfu_mode, out_tx.clone());
-                }
+            if answer.kind == "answer"
+                && let Some(b) = &bridge
+            {
+                spawn_local_signals_relay(b, session_id, sfu_mode, out_tx.clone());
             }
-            if let Ok(json) = serde_json::to_string(&answer) {
-                if out_tx.send(Message::Text(json.into())).await.is_err() {
-                    break;
-                }
+            if let Ok(json) = serde_json::to_string(&answer)
+                && out_tx.send(Message::Text(json.into())).await.is_err()
+            {
+                break;
             }
         }
     }
@@ -279,10 +279,10 @@ fn spawn_local_signals_relay(
         tokio::pin!(stream);
         while let Some(item) = stream.next().await {
             let Ok(env) = item else { break };
-            if let Ok(json) = serde_json::to_string(&to_frame(&env, sfu_mode)) {
-                if out_tx.send(Message::Text(json.into())).await.is_err() {
-                    break;
-                }
+            if let Ok(json) = serde_json::to_string(&to_frame(&env, sfu_mode))
+                && out_tx.send(Message::Text(json.into())).await.is_err()
+            {
+                break;
             }
         }
     });

@@ -85,6 +85,9 @@ where
                 match item {
                     Err(e) => Some(Err(e)),
                     Ok(envelope) => {
+                        if envelope.channel.tenant_id != tenant_id {
+                            return None;
+                        }
                         let view_tuple = RelationTuple {
                             tenant_id,
                             subject,

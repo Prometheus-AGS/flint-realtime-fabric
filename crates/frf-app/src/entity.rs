@@ -17,7 +17,7 @@ pub struct EntityRequest {
 ///
 /// Wires three port traits, mirroring the publish/subscribe security model:
 /// - `I: IdentityVerifier` — verifies the bearer JWT and yields the authoritative tenant.
-/// - `A: AuthzProvider`    — Keto `view` check on the entity (per-object RLS).
+/// - `A: AuthzProvider`    — configured visibility check on the entity.
 /// - `S: EntityStore`      — reads the latest `EntityChange` and streams changes.
 ///
 /// No adapter crate is imported here; the dependency inversion is enforced at the Cargo

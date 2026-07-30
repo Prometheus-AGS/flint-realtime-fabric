@@ -16,11 +16,12 @@ pub struct AuthzRequest {
 ///
 /// Wires two ports:
 /// - `I: IdentityVerifier` — verifies the bearer JWT and yields the authoritative tenant.
-/// - `A: AuthzProvider`    — the Keto-backed relation store (`check`/`write`/`delete`).
+/// - `A: AuthzProvider`    — the configured authorization adapter.
 ///
 /// Every operation is tenant-scoped: a caller authenticated for tenant A may not read or
-/// mutate a tuple owned by tenant B, even if a stray tuple would otherwise allow it. No
-/// adapter crate is imported here; dependency inversion is enforced at the Cargo level.
+/// mutate a tuple owned by tenant B, even if an authorization backend would otherwise
+/// allow it. No adapter crate is imported here; dependency inversion is enforced at the
+/// Cargo level.
 pub struct AuthzUseCase<A, I> {
     authz: Arc<A>,
     identity: Arc<I>,
@@ -58,7 +59,7 @@ where
     /// # Errors
     ///
     /// [`AppError::Identity`] on an invalid token; [`AppError::Forbidden`] on a tenant
-    /// mismatch; [`AppError::Broker`] on a Keto failure.
+    /// mismatch; [`AppError::Broker`] on an authorization-adapter failure.
     #[instrument(name = "app::authz::check", skip(self, req))]
     pub async fn check(&self, req: AuthzRequest) -> Result<bool, AppError> {
         self.authorize(&req).await?;
@@ -70,7 +71,7 @@ where
     ///
     /// # Errors
     ///
-    /// As [`check`](Self::check); [`AppError::Broker`] if the Keto write fails.
+    /// As [`check`](Self::check); [`AppError::Broker`] if the adapter write fails.
     #[instrument(name = "app::authz::write", skip(self, req))]
     pub async fn write(&self, req: AuthzRequest) -> Result<(), AppError> {
         self.authorize(&req).await?;
@@ -82,7 +83,7 @@ where
     ///
     /// # Errors
     ///
-    /// As [`check`](Self::check); [`AppError::Broker`] if the Keto delete fails.
+    /// As [`check`](Self::check); [`AppError::Broker`] if the adapter delete fails.
     #[instrument(name = "app::authz::delete", skip(self, req))]
     pub async fn delete(&self, req: AuthzRequest) -> Result<(), AppError> {
         self.authorize(&req).await?;

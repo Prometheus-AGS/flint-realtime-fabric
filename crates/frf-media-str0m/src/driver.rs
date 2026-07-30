@@ -101,7 +101,7 @@ pub(crate) fn handle_event(
             meta.session_id,
             &ForwardedMedia {
                 kind,
-                params: m.params.clone(),
+                params: m.params,
                 mid: m.mid,
                 pt: m.pt,
                 time: m.time,
@@ -164,8 +164,7 @@ fn write_forwarded(
     let receiver_mid = mid_kinds
         .iter()
         .find(|&(_, &k)| k == media.kind)
-        .map(|(&mid, _)| mid)
-        .unwrap_or(media.mid);
+        .map_or(media.mid, |(&mid, _)| mid);
 
     let Some(writer) = rtc.writer(receiver_mid) else {
         tracing::debug!(mid = ?receiver_mid, kind = ?media.kind, "no writer for forwarded media — dropping");
@@ -174,7 +173,7 @@ fn write_forwarded(
     // Translate the sender's PT to the receiver's local PT. The receiver may have negotiated
     // the same codec at a different PT number; `match_params` finds the match by codec name +
     // clock rate + format params. If no match is found the PT is used as-is.
-    let pt = writer.match_params(media.params.clone()).unwrap_or(media.pt);
+    let pt = writer.match_params(media.params).unwrap_or(media.pt);
     if let Err(e) = writer.write(pt, media.network_time, media.time, media.data.clone()) {
         tracing::warn!(error = %e, kind = ?media.kind, pt = ?pt, "forwarded media write failed — dropping");
     }

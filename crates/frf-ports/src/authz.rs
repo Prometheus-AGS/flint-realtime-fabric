@@ -14,9 +14,8 @@ pub struct RelationTuple {
 
 /// `ReBAC` / Zanzibar permission check.
 ///
-/// Implemented by `frf-authz-keto`. Every fan-out delivery calls `check`
-/// before emitting to the subscriber — cache at subscribe-time to amortize
-/// per-event Keto latency.
+/// Implemented by the deployment-selected authorization adapter. Every fan-out
+/// delivery calls `check` before emitting to the subscriber.
 /// Adapter crates MUST instrument methods with `#[tracing::instrument]`.
 #[async_trait]
 pub trait AuthzProvider: Send + Sync + 'static {
