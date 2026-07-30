@@ -106,7 +106,7 @@ impl LogBroker for IggyBroker {
 
         let mut producer = self
             .client
-            .producer(&stream, &topic)
+            .producer(&stream, topic)
             .map_err(IggyBrokerError::Transport)?
             .build();
 
@@ -285,7 +285,7 @@ impl LogBroker for IggyBroker {
             .client
             .create_topic(
                 &stream_id,
-                &topic,
+                topic,
                 1,
                 CompressionAlgorithm::None,
                 None,
