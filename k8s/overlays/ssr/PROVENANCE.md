@@ -1,6 +1,7 @@
 # SSR candidate provenance
 
-- Source repository: local `flint-realtime-fabric`
+- Source repository:
+  `git@github.com:Prometheus-AGS/flint-realtime-fabric.git`
 - Baseline source SHA: `edbb21556b0b37e2d7431e3969bcdb0c62fd6b9c`
 - License: MIT
 - Build input: repository `Dockerfile`, no `CARGO_FEATURES`, `linux/amd64`;
