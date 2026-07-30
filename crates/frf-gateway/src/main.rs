@@ -114,10 +114,10 @@ async fn main() -> Result<()> {
         }
     }
 
-    let authz = Arc::new(KetoAuthzProvider::new(
-        &config.keto_base_url,
-        &config.keto_namespace,
-    ));
+    let authz = Arc::new(
+        KetoAuthzProvider::new(&config.keto_base_url, &config.keto_namespace)
+            .with_tenant_fallback(config.keto_tenant_fallback),
+    );
     let identity = Arc::new(if let Some(issuer) = &config.jwt_issuer {
         OryIdentityVerifier::with_issuer(&config.gateway_jwks_url, &config.jwt_audience, issuer)
     } else {

@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ssr
+resources:
+  - keto-config.yaml
+  - keto-postgres.yaml
+  - keto-migration-job.yaml
+  - keto.yaml
+  - keto-seed-job.yaml
+  - iggy.yaml
+  - gateway.yaml
+  - disruption-budget.yaml
+  - network-policy.yaml
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: sansaba-workspace
+      app.kubernetes.io/managed-by: kustomize
+    includeSelectors: true

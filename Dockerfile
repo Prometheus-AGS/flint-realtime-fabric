@@ -4,7 +4,7 @@
 # `frf-wasm` is not built here — admin-ui/vite.config.ts substitutes a stub when the wasm artifact
 # is absent, so `vite build` succeeds and produces `dist` (the CRDT-wasm feature degrades; the
 # embedded static assets the gateway serves are produced).
-FROM node:24-slim AS ui-builder
+FROM node:24-slim@sha256:6f7b03f7c2c8e2e784dcf9295400527b9b1270fd37b7e9a7285cf83b6951452d AS ui-builder
 RUN corepack enable
 WORKDIR /build
 
@@ -27,7 +27,7 @@ RUN pnpm --dir sdks/ts build \
     && pnpm --dir admin-ui build
 
 # ── Stage 2: build the gateway binary (embeds admin-ui/dist) ──────────────────
-FROM rust:latest AS builder
+FROM rust:1.85-bookworm@sha256:e51d0265072d2d9d5d320f6a44dde6b9ef13653b035098febd68cce8fa7c0bc4 AS builder
 
 RUN apt-get update && apt-get install -y \
     clang libclang-dev protobuf-compiler pkg-config \
@@ -54,7 +54,7 @@ RUN if [ -n "$CARGO_FEATURES" ]; then \
         cargo build --release -p frf-gateway; \
     fi
 
-FROM debian:trixie-slim
+FROM debian:trixie-slim@sha256:020c0d20b9880058cbe785a9db107156c3c75c2ac944a6aa7ab59f2add76a7bd
 
 RUN apt-get update && apt-get install -y ca-certificates curl libpq5 && rm -rf /var/lib/apt/lists/*
 
