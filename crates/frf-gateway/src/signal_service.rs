@@ -261,10 +261,10 @@ where
 
         // Drive the first envelope into the sovereign media engine (if composed), relaying any
         // answer, then into the signaling relay.
-        if let Some(bridge) = &self.media_bridge {
-            if let Some(answer) = bridge.handle(&first_domain).await {
-                let _ = tx.send(Ok(domain_to_proto(&answer))).await;
-            }
+        if let Some(bridge) = &self.media_bridge
+            && let Some(answer) = bridge.handle(&first_domain).await
+        {
+            let _ = tx.send(Ok(domain_to_proto(&answer))).await;
         }
         self.signaler
             .send_signal(first_domain)
@@ -281,10 +281,10 @@ where
                     Ok(proto_env) => match proto_to_domain(proto_env, sfu_mode) {
                         Ok(domain_env) => {
                             // Sovereign media plane: drive the engine, relay any answer.
-                            if let Some(bridge) = &bridge_in {
-                                if let Some(answer) = bridge.handle(&domain_env).await {
-                                    let _ = tx_in.send(Ok(domain_to_proto(&answer))).await;
-                                }
+                            if let Some(bridge) = &bridge_in
+                                && let Some(answer) = bridge.handle(&domain_env).await
+                            {
+                                let _ = tx_in.send(Ok(domain_to_proto(&answer))).await;
                             }
                             if let Err(e) = signaler_in.send_signal(domain_env).await {
                                 tracing::warn!(error = %e, "failed to relay signal");

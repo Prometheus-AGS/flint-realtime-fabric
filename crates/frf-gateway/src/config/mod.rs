@@ -281,6 +281,7 @@ impl GatewayConfig {
     ///
     /// Returns an error if any required environment variable is missing or if
     /// `BIND_ADDR` cannot be parsed as a [`SocketAddr`].
+    #[allow(clippy::too_many_lines)]
     pub fn from_env() -> anyhow::Result<Self> {
         let bind_addr = std::env::var("BIND_ADDR")
             .unwrap_or_else(|_| "0.0.0.0:8080".to_owned())

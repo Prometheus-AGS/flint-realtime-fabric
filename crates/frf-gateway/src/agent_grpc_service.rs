@@ -124,11 +124,11 @@ where
         let (cancel_tx, cancel_rx) = tokio::sync::watch::channel(false);
         tokio::spawn(async move {
             while let Ok(Some(frame)) = inbound.message().await {
-                if let Some(Payload::Control(ctrl)) = frame.payload {
-                    if ctrl.cancel {
-                        let _ = cancel_tx.send(true);
-                        break;
-                    }
+                if let Some(Payload::Control(ctrl)) = frame.payload
+                    && ctrl.cancel
+                {
+                    let _ = cancel_tx.send(true);
+                    break;
                 }
             }
         });

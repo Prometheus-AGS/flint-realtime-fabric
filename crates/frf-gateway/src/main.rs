@@ -212,10 +212,10 @@ async fn main() -> Result<()> {
         task.abort();
     }
 
-    if let Some(provider) = tracer_provider {
-        if let Err(e) = provider.shutdown() {
-            tracing::warn!(error = %e, "OTEL tracer provider shutdown error");
-        }
+    if let Some(provider) = tracer_provider
+        && let Err(e) = provider.shutdown()
+    {
+        tracing::warn!(error = %e, "OTEL tracer provider shutdown error");
     }
 
     Ok(())
