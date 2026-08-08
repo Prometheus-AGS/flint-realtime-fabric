@@ -145,9 +145,10 @@ mod tests {
 
     fn media() -> ForwardedMedia {
         use str0m::format::{Codec, CodecSpec, FormatParams, PayloadParams};
+        use str0m::media::Frequency;
         let spec = CodecSpec {
             codec: Codec::Vp8,
-            clock_rate: 90_000.into(),
+            clock_rate: Frequency::NINETY_KHZ,
             channels: None,
             format: FormatParams::default(),
         };
