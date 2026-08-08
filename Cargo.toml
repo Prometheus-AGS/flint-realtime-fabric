@@ -15,6 +15,9 @@ members = [
     "crates/frf-identity-ory",
     "crates/frf-postgres-cdc",
     "crates/frf-crdt",
+    "crates/frf-p2p",
+    "crates/frf-did",
+    "crates/frf-wallet",
     "crates/frf-store-redb",
     "crates/frf-store-surreal",
     "crates/frf-ffi",
@@ -100,6 +103,21 @@ async-stream = "0.3"
 futures-util = "0.3"
 async-trait = "0.1"
 
+# Peer-to-peer transport (frf-p2p).
+# iroh 1.0 guarantees wire-protocol stability: any v1 endpoint interoperates
+# with any other v1 endpoint regardless of minor version or language binding.
+# An endpoint's id IS its Ed25519 public key, which is what lets frf-did derive
+# a did:key from it with no extra key material.
+iroh = "1.0"
+# base58btc for did:key multibase encoding (frf-did). Already in the tree via
+# iroh, so this adds no new dependency footprint.
+bs58 = "0.5"
+# mDNS discovery moved OUT of the iroh crate in 1.0 — the 0.9x
+# `discovery-local-network` feature no longer exists. This is the official
+# n0-computer replacement (MIT OR Apache-2.0).
+iroh-mdns-address-lookup = "0.4"
+n0-error = "1.0"
+
 # HTTP / WebSocket clients
 reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
 metrics = "0.24"
@@ -118,8 +136,10 @@ mockall = "0.13"
 httpmock = "0.7"
 criterion = { version = "0.5", features = ["html_reports"] }
 
-# Event spine (GQAdonis fork)
-iggy = { git = "https://github.com/GQAdonis/iggy", branch = "master" }
+# Event spine (GQAdonis fork). Keep the SDK on the exact source revision used
+# by the pinned server-0.4.214 image; newer SDKs issue commands that this
+# kernel-compatible server does not implement.
+iggy = { git = "https://github.com/GQAdonis/iggy", rev = "d34b9c96ad5a15334e06040d68fd7512beeba4c8" }
 
 # Phase 3: CRDT + offline persistence + FFI
 loro = { version = "1.13.1" }

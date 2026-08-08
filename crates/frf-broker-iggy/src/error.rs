@@ -1,5 +1,5 @@
 use frf_ports::PortError;
-use iggy::prelude::IggyError;
+use iggy::error::IggyError;
 
 #[non_exhaustive]
 #[derive(Debug, thiserror::Error)]

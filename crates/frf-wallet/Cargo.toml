@@ -1,0 +1,24 @@
+[package]
+name = "frf-wallet"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Verifiable credential wallet for Flint Realtime Fabric — owner-to-node delegation, held and verified offline"
+
+[dependencies]
+frf-did = { path = "../frf-did" }
+iroh = { workspace = true }
+bs58 = { workspace = true }
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[lints]
+workspace = true

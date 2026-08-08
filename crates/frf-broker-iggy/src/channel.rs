@@ -1,7 +1,4 @@
 use frf_domain::TenantId;
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
-
 /// Maps a `TenantId` to an Iggy stream name (one stream per tenant).
 #[must_use]
 pub fn stream_name(tenant_id: TenantId) -> String {
@@ -16,17 +13,15 @@ pub fn topic_name(path: &str) -> String {
     path.replace('/', "_")
 }
 
-/// Derives a consistent partition ID from a consumer ID string.
+/// Returns the single partition used by the channel adapter.
 ///
-/// Returns a value in `[1, 8]`.
+/// Topics are created with one partition. Until the `LogBroker` port carries
+/// partition metadata, routing a consumer to a hash-derived partition can
+/// select a partition that does not exist and cannot preserve global channel
+/// order.
 #[must_use]
-pub fn partition_id(consumer_id: &str) -> u32 {
-    let mut hasher = DefaultHasher::new();
-    consumer_id.hash(&mut hasher);
-    // value in [0,7], so +1 gives [1,8]; fits in u32 because max is 8
-    #[allow(clippy::cast_possible_truncation)]
-    let id = (hasher.finish() % 8 + 1) as u32;
-    id
+pub const fn partition_id(_consumer_id: &str) -> u32 {
+    1
 }
 
 #[cfg(test)]
@@ -66,6 +61,6 @@ mod tests {
         let a = partition_id("consumer-abc");
         let b = partition_id("consumer-abc");
         assert_eq!(a, b, "partition_id must be deterministic");
-        assert!((1..=8).contains(&a), "partition {a} must be in [1,8]");
+        assert_eq!(a, 1, "single-partition topics must use partition 1");
     }
 }
