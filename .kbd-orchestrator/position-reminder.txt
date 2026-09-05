@@ -1,10 +1,10 @@
 POSITION REMINDER — read this as your FIRST tool call every turn
-Phase: phase-15-stage10-live-run-and-retries
-Step: 1 of 1
-Stage: operator_action_required
-Next command: ENABLE_INTEGRATION_STAGE=true dagger run ts-node dagger/codegen.ts
+Phase: phase-36-sovereign-sfu-ice-linux-fix
+Step: 1 of 3
+Stage: execute_ready
+Next command: /kbd-apply p36-c002-decode-run-and-flip
 
 Required signal format (emit BEFORE any tool call):
-  Starting <kbd-skill> — phase-15-stage10-live-run-and-retries (step 1 of 1)
+  Starting <kbd-skill> — phase-36-sovereign-sfu-ice-linux-fix (step 1 of 3)
   [do work]
-  Completed <kbd-skill> — phase-15-stage10-live-run-and-retries (step 1 of 1)
+  Completed <kbd-skill> — phase-36-sovereign-sfu-ice-linux-fix (step 1 of 3)

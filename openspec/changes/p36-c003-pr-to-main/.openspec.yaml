@@ -1,0 +1,4 @@
+schema: spec-driven
+# Tooling + docs only: retires a dead CI trigger and records the phase-36 gate
+# decision. No capability specs change.
+skip_specs: true

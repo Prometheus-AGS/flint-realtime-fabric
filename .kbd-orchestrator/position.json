@@ -1,18 +1,31 @@
 {
   "schemaVersion": "1",
-  "updatedAt": "2026-07-09T23:45:06Z",
+  "updatedAt": "2026-09-05T00:00:00Z",
   "cursor": [
-    "phase-35-sovereign-sfu-decode-ci-linux-proof"
+    "phase-36-sovereign-sfu-ice-linux-fix",
+    "p36-c002-decode-run-and-flip"
   ],
   "root": {
     "type": "phase",
-    "id": "phase-35-sovereign-sfu-decode-ci-linux-proof",
-    "status": "apply_pending",
+    "id": "phase-36-sovereign-sfu-ice-linux-fix",
+    "status": "execute_ready",
     "progress": {
       "done": 1,
-      "total": 2
+      "total": 3
     },
-    "children": [],
+    "children": [
+      {
+        "type": "change",
+        "id": "p36-c002-decode-run-and-flip",
+        "status": "apply_pending",
+        "progress": {
+          "done": 0,
+          "total": 1
+        },
+        "children": [],
+        "annotations": []
+      }
+    ],
     "annotations": []
   }
 }

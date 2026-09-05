@@ -2,8 +2,16 @@
 
 ## Summary
 
-Trigger the CI `decode-proof` job (push to `sovereign-sfu-decode-proof` is handled by c001's T5),
-wait for the result, read the gateway str0m log artifact, and make an honest gate decision:
+Trigger the CI `decode-proof` job, wait for the result, read the gateway str0m log artifact, and
+make an honest gate decision:
+
+> **Trigger changed (see p36-c003).** c001's T5 assumed a push to `sovereign-sfu-decode-proof`. That
+> branch is gone and its `push` trigger is dead. Dispatch manually instead:
+> `gh workflow run decode-proof.yml --ref main`.
+>
+> **Latest evidence (run 29112243615):** `ice=connected`, `localCandidates=1 remoteCandidates=1`,
+> `framesDecoded=0`. ICE is solved; the remaining stall is in the media path after ICE connects —
+> the second branch below.
 
 - If `framesDecoded > 0`: flip `SFU_MODE=sovereign` in the gateway config/main; record the
   evidence; advance to c003 (PR).
