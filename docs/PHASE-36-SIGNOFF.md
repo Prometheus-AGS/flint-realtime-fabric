@@ -29,9 +29,10 @@ CI run **29112243615** (2026-07-10), step 10 "Run the decoded-media proof":
   running ICE-lite; fixed at `crates/frf-media-str0m/src/session.rs:229`
   (`Rtc::builder().set_ice_lite(true)`).
 - ✅ `localCandidates=1 remoteCandidates=1` — the pair forms and completes.
-- ✅ Gateway log capture works — the phase-35 harness bug (EXIT trap tearing down the container before
-  the workflow's collect step) is fixed; the candidate exchange was readable, which is what made the
-  ICE-lite diagnosis possible.
+- ◐ Gateway log capture **partially** works — enough to read the candidate exchange and make the
+  ICE-lite diagnosis, but the intended `gateway.log` artifact still uploads as **0 bytes**. The usable
+  output came from a separate `gateway-capture.log` (642 KB). Treat the c001 fix as incomplete; making
+  `gateway.log` itself populate is a carried item.
 - ❌ **`framesDecoded=0`** — the receiver still observes no decoded frame. The proof step fails, and
   the gate holds.
 
@@ -72,16 +73,25 @@ would trigger it.
 
 ## Carried forward
 
-1. **Diagnose `framesDecoded=0` with ICE connected.** The remaining problem is the media path *after*
-   connectivity: RTP flowing but not decoding, a payload/codec negotiation mismatch, or the receiver
-   never being sent keyframes. The proof-branch history holds relevant partial work — proactive PLI on
-   room-join (`p36-c002g`) and MID kind-based track mapping (`p36-c002h`) — both already on `main`.
-2. **Live-dispatch the decode proof.** Not exercised in this phase: the operator directed that CI/CD
+1. **Fix the room registration so the proactive PLI fires.** *(Diagnosed 2026-09-06 — see
+   `docs/PHASE-36-DECODE-RESULT.md`.)* The gateway log shows 1,997 `inbound MediaData → fan-out`
+   events with **zero** PLI/FIR/keyframe requests, **`room=` empty on every event**, and **no
+   room-join events**. The receiver never registers as a room member, so `p36-c002g`'s
+   proactive-PLI-on-room-join never fires; it joins mid-GOP with no I-frame and cannot decode, while
+   the ~1.8 MB still arrives because fan-out does not depend on room membership. Same defect class as
+   the phase-27 `RoomJoin` finding. Trace the join path from the browser through the gateway signal
+   service into `frf_media_str0m` and find where the room ID is dropped.
+2. **Make `gateway.log` actually populate.** The c001 capture fix is partial — that artifact is 0
+   bytes; only `gateway-capture.log` carries content.
+3. **Live-dispatch the decode proof.** Not exercised in this phase: the operator directed that CI/CD
    workflows are not to be used for testing, and that no testing occurs until all code is written.
    p36-c003 T3 was verified statically only. A live dispatch is the first step whenever the proof is
    next run.
-3. **c002 remains blocked.** It is a pure run-and-observe change — trigger CI, read `framesDecoded`,
-   decide. Under the no-CI-testing directive it cannot proceed; it resumes when testing is authorized.
+4. **c002 is partially applied.** Its documentation tasks (T2, T3, T5, T7, T8) are complete against
+   run 29112243615, and T6 was covered by c003. Only **T1** (verify a fresh run) and **T4** (the gate
+   flip) remain, both requiring a live CI run. Note c002's original premise is void: c001's T5 push
+   cannot trigger anything, since that branch and its push trigger are gone — use
+   `gh workflow run decode-proof.yml --ref main`.
 
 ## Verification
 
