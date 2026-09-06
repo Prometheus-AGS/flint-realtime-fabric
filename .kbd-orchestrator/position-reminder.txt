@@ -1,10 +1,10 @@
 POSITION REMINDER — read this as your FIRST tool call every turn
 Phase: phase-36-sovereign-sfu-ice-linux-fix
-Step: 1 of 3
+Step: 2 of 3
 Stage: execute_ready
 Next command: /kbd-apply p36-c002-decode-run-and-flip
 
 Required signal format (emit BEFORE any tool call):
-  Starting <kbd-skill> — phase-36-sovereign-sfu-ice-linux-fix (step 1 of 3)
+  Starting <kbd-skill> — phase-36-sovereign-sfu-ice-linux-fix (step 2 of 3)
   [do work]
-  Completed <kbd-skill> — phase-36-sovereign-sfu-ice-linux-fix (step 1 of 3)
+  Completed <kbd-skill> — phase-36-sovereign-sfu-ice-linux-fix (step 2 of 3)

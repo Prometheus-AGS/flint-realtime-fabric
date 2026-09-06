@@ -1,13 +1,13 @@
 {
   "phase": "phase-36-sovereign-sfu-ice-linux-fix",
   "changes_total": 3,
-  "changes_completed": 1,
+  "changes_completed": 2,
   "completed_changes": [
-    "p36-c001-ice-fix-and-log-capture"
+    "p36-c001-ice-fix-and-log-capture",
+    "p36-c003-pr-to-main"
   ],
   "pending_changes": [
-    "p36-c002-decode-run-and-flip",
-    "p36-c003-pr-to-main"
+    "p36-c002-decode-run-and-flip"
   ],
   "active_change": "p36-c002-decode-run-and-flip",
   "assessment_complete": true,
@@ -17,5 +17,5 @@
   "phase_complete": false,
   "seededFrom": "phase-35-sovereign-sfu-decode-ci-linux-proof",
   "createdAt": "2026-07-09T23:59:30Z",
-  "updatedAt": "2026-07-10T00:03:00Z"
+  "updatedAt": "2026-09-06T00:00:00Z"
 }

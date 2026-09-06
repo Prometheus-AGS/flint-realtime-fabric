@@ -18,4 +18,4 @@
       with the reason.
 - [x] T5: Amend G5 in the phase `goals.md` to state the PR is moot: the work is already on `main`,
       so the goal is satisfied by merge rather than by opening a PR.
-- [ ] T6: Commit the workflow and docs changes to `main`.
+- [x] T6: Commit the workflow and docs changes to `main`.
