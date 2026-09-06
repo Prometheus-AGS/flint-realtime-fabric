@@ -1,0 +1,19 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-09-06T22:21:02Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Replica side largely unbuilt. G1 (module-global pendingActions, local-first-runtime.ts:119) is destructive not merely shared \u2014 :164 clear() erases a sibling runtime's pending writes. G2 has two defects: PEM discards the persist promise (:216 void), and ASO never captures the runtime handle (graph-provider.tsx:82) so dispose() is unreachable. G3 has no transaction or checkpoint surface at all; electricsql.ts:90 sends offset:\"\". G4's atomic surface already exists (graph.ts:360 ingestFetchedList) \u2014 coherence unverified, no materializer consumes it. TWO NEW findings beyond seeded goals: G4a (met/gap/void has no not-loaded state, so mid-hydration renders as a loaded empty case) and the storage key scoped by practiceId alone, violating source-doc \u00a77. Recommend order G1\u2192G2\u2192G3\u2192G4 with the storage key folded into G1. WARNING carried: adversarial review BLOCKs both rounds on a tooling limit \u2014 the packet builder cannot resolve cross-repo cited_paths, so external claims are author-verified but judge-unverified; plan should re-confirm line numbers before acting.",
+  "skipped": false,
+  "skipReason": null,
+  "artifact": "assessment.md",
+  "summary": "Replica side largely unbuilt. G1 is destructive, not merely shared state: pendingActions is module-global (local-first-runtime.ts:119) and :164 clear() erases a sibling runtime's un-settled writes. G2 has two independent defects \u2014 PEM discards the persist promise (:216 'void persistGraphToStorage'), and ASO never captures the runtime handle (graph-provider.tsx:82), so dispose() is unreachable. G3 has no transaction or checkpoint surface at all, and electricsql.ts:90 sends offset:\"\". G4's atomic publication surface already exists (graph.ts:360 ingestFetchedList, one set(...)) \u2014 coherence unverified and no materializer consumes it. TWO findings beyond the seeded goals: G4a (met/gap/void has no not-loaded state, so a mid-hydration timeline renders as a loaded empty case and feeds clinical summary text) and the storage key scoped by practiceId alone, violating source-doc \u00a77. Recommended order G1 -> G2 -> G3 -> G4, storage key folded into G1.",
+  "warnings": [
+    "Adversarial review returned BLOCK on both rounds for the same CRITICAL: build-review-packet.sh resolves cited_paths against the running repo only, so all nine PEM/ASO citations read MISSING. This is a tooling limit, not an artifact defect \u2014 round 2 added verbatim source quotes and the finding repeated unchanged. External claims are author-verified but judge-unverified; plan must re-confirm the load-bearing line numbers before acting, as they will drift.",
+    "Anti-theater gate skipped: sycophancy.sh lib not installed (degraded to exit 0 as documented).",
+    "ASO's privacy-approved replica schema (sequence step 1) still does not exist, so any G4 table shape is provisional.",
+    "Operator directive: no testing until all code is written. G2/G3/G4 coherence and crash consistency need execution to prove, so this phase can implement but cannot certify."
+  ]
+}

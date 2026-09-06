@@ -1,0 +1,31 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "kbd-judge",
+  "producer_model": "claude-opus-5",
+  "isolation_mode": "rest-gateway:http://localhost:8181/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "assessment.md",
+      "claim": "The assessment's core G1-G4 conclusions rely on concrete file/line claims for files that are not present in the review packet.",
+      "evidence": "The artifact states, \"Every claim below was verified by reading the named file and line,\" but the packet's cited_paths marks all cited implementation files as missing: \"MISSING  packages/entity-graph-core/src/local-first-runtime.ts\", \"MISSING  packages/entity-graph-core/src/adapters/pglite-persistence.ts\", \"MISSING  web/src/app/providers/graph-provider.tsx\", \"MISSING  packages/entity-graph-core/src/graph.ts\", and others. The provided file_tree contains only this FRF repository and does not include the PEM or ASO source paths used for the assessment.",
+      "suggested_fix": "Attach or include the relevant PEM and ASO file tree/source excerpts in the packet, or rewrite the assessment to mark those repo-specific claims as unverifiable from the available evidence."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "claim": "The assessment does not separately assess G4's required distinction between `met`, `gap`, `void`, and \"not loaded\" states.",
+      "evidence": "Goals G4 requires: \"Keep `met`, `gap` and `void` distinct from \\\"not loaded.\\\"\" The assessment's G4 section addresses the existing PEM atomic publication surface, lack of subscriber trace tests, and missing materializer, but contains no finding about whether these semantic states exist, are conflated, or need implementation.",
+      "suggested_fix": "Add a concrete G4 sub-finding that identifies where these states are represented today, whether they are distinguishable, and what gap remains if they are not."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "claim": "The cross-cutting storage-key privacy finding is introduced as an additional phase requirement but depends on unavailable source evidence and a missing ASO file.",
+      "evidence": "The assessment says, \"This was not in the child's four goals and should be added,\" citing `graph-provider.tsx:82` and \"\u00a77 of the source doc\"; however cited_paths reports \"MISSING  graph-provider.tsx\" and \"MISSING  web/src/app/providers/graph-provider.tsx\", and the source document `docs/architecture/application-runtime-architecture.md` is not present in the provided file_tree.",
+      "suggested_fix": "Either provide the source doc and ASO file excerpts that support this new requirement, or downgrade it to an unverified open question rather than a confirmed assessment finding."
+    }
+  ]
+}

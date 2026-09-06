@@ -1,0 +1,34 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "kbd-judge",
+  "producer_model": "claude-opus-5",
+  "isolation_mode": "rest-gateway:http://localhost:8181/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "The assessment bases its core NOT MET/PARTIAL conclusions on code claims from repositories that are absent from the review packet and therefore cannot be independently checked.",
+      "evidence": "The assessment states: \"Every code claim in this assessment cites a file in another repository\" and the packet's `cited_paths` marks the relevant files as missing, including `MISSING  packages/entity-graph-core/src/local-first-runtime.ts`, `MISSING  web/src/app/providers/graph-provider.tsx`, `MISSING  packages/entity-graph-core/src/graph.ts`, and `MISSING  adapters/electricsql.ts`. The supplied `file_tree` contains only this FRF repo and does not contain those files.",
+      "suggested_fix": "Include the actual external file contents or a source snapshot in the packet, or limit assessment claims to evidence present in the packet. Verbatim snippets inside the assessment should be treated as assertions unless backed by independently supplied source."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "The assessment overstates PEM's publication surface as \"correct\" while also admitting the required subscriber-trace proof does not exist.",
+      "evidence": "It claims: \"The atomic publication surface exists and is correct.\" Later in the same G4 section it says: \"Not yet proven: ADR-009 requires coherence verified by subscriber traces, not only rendered screens... No such trace test exists.\" The goals explicitly require: \"Subscribers observe either the previous complete projection or the next one \u2014 never a partially updated relationship. Verified by subscriber traces.\"",
+      "suggested_fix": "Change the conclusion from \"exists and is correct\" to \"candidate atomic surface exists, but subscriber coherence is unverified\" and keep open whether additional PEM contract changes are needed until trace tests prove it."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "The G3 `must_refetch` gap is asserted too vaguely to drive planning.",
+      "evidence": "The goal requires: \"Electric's `must_refetch` rebuilds the affected replica generation and removes stale rows rather than merging a new snapshot into old data.\" The assessment only says: \"`must_refetch` handling (rebuild the generation, remove stale rows rather than merging) is absent on the consumer side; FRF already surfaces the signal in `ShapeChunk.must_refetch`, so this is a consumer-side gap only.\" It does not identify the consumer component, function, table owner, or missing control flow where `must_refetch` should be handled.",
+      "suggested_fix": "Name the exact ASO/PEM consumer module that processes shape chunks, or explicitly state that no such consumer exists yet and that `must_refetch` handling must be part of the new materializer design."
+    }
+  ]
+}
