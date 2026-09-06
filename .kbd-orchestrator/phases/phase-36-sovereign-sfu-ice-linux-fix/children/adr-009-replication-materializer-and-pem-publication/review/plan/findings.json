@@ -1,0 +1,38 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "kbd-judge",
+  "producer_model": "claude-opus-5",
+  "isolation_mode": "rest-gateway:http://localhost:8181/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "plan.md",
+      "claim": "The plan omits the required OpenSpec spec-delta work even though the phase is explicitly using the OpenSpec backend.",
+      "evidence": "Artifact says: \"Backend: OpenSpec.\" Constraints require: \"P1 \u2014 Valid spec delta. Each change carries a `specs/<capability>/spec.md` delta ... so `openspec validate <id>` passes before archive.\" The Changes table only lists c001\u2013c005 implementation changes in PEM/ASO/FRF and no OpenSpec `specs/<capability>/spec.md` delta or validation acceptance criterion.",
+      "suggested_fix": "Add an explicit OpenSpec delta change, or add a required spec-delta task/acceptance criterion to each applicable change with `openspec validate <id>` as a gate."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "plan.md",
+      "claim": "c004 can be marked done without satisfying G4's subscriber-coherence requirement.",
+      "evidence": "Goals G4 requires: \"Subscribers observe either the previous complete projection or the next one \u2014 never a partially updated relationship. Verified by subscriber traces, not only by rendered screens.\" c004's Done when only says: \"chunks materialize into real tables and one revision publishes atomically.\" The subscriber trace is moved to \"Cannot be proved here\" rather than included as a required acceptance artifact.",
+      "suggested_fix": "Make c004 acceptance require a subscriber-trace test/spec demonstrating no partial projection is observable, even if execution/certification is deferred until the allowed test phase."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "plan.md",
+      "claim": "c004 plans schema-specific materialization while the required ASO replica schema is explicitly absent.",
+      "evidence": "Goals state: \"ASO's privacy-approved replica schema (sequence step 1) does not exist yet\" and \"Any schema this phase materializes is provisional and must be revisited.\" c004 nevertheless says: \"Build the consumer that reads `GET /v1/shape` and lands rows in real local tables\" and \"Materialize chunks into tables,\" while its own blocked input admits: \"ASO's privacy-approved replica schema ... does not exist. Table shapes here are provisional and must be revisited.\"",
+      "suggested_fix": "Split c004 so the materializer infrastructure is schema-agnostic, and block any concrete table migrations/materialization on an approved ASO replica schema."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "claim": "c002 directs an async React effect cleanup pattern that cannot provide the dispose barrier it claims.",
+      "evidence": "c002 says: \"ASO: capture `startLocalFirstGraph`'s return value at `graph-provider.tsx:82` and await `dispose()` in the effect teardown (`:96-99`).\" React effect cleanup cannot itself be awaited by React, so this does not guarantee the stated hazard is prevented: \"StrictMode: a double mount/unmount must not create two owners or let a late open resurrect a disposed session.\"",
+      "suggested_fix": "Plan an explicit session/lifecycle manager that records the disposal promise and makes subsequent opens await or supersede it, rather than relying on React awaiting an effect cleanup."
+    }
+  ]
+}

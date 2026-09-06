@@ -1,0 +1,24 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "kbd-judge",
+  "producer_model": "claude-opus-5",
+  "isolation_mode": "rest-gateway:http://localhost:8181/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "plan.md",
+      "claim": "Several change-level acceptance criteria require tests to prove behavior even though the plan later states every change will land uncertified with no testing run.",
+      "evidence": "c001 says \"Done when: ... a test proves runtime B hydrating leaves runtime A's pending actions intact\"; c002 says \"Done when: a test proves no persistence write lands after the disposal promise resolves\"; c003 says \"Done when: ... a test simulating an interruption...\"; but the Verification posture says \"no testing runs until all code is written\" and \"Every change above therefore lands implemented and type-checked but uncertified.\"",
+      "suggested_fix": "Make the per-change acceptance criteria consistent with the directive: either require tests to be authored but not executed for DONE, with a separate certification change after all code is written, or change the verification posture so tests run before each change can be marked done."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "claim": "The plan maps G3 to c003 but moves part of G3's required exit behavior, must_refetch stale-row removal, into c004 without reflecting that split in the gap/dependency table or c003 acceptance criteria.",
+      "evidence": "Goals G3 Exit requires: \"Electric's `must_refetch` rebuilds the affected replica generation and removes stale rows rather than merging a new snapshot into old data.\" The plan table maps c003 to \"G3\", but c003's Done when only covers rows/checkpoint atomicity. The must_refetch behavior appears later under c004: \"Handle `must_refetch`: rebuild the affected replica generation and remove stale rows...\"",
+      "suggested_fix": "Either add must_refetch handling and acceptance criteria to c003, or explicitly split G3 across c003 and c004 in the table so c003 is not treated as fully satisfying G3."
+    }
+  ]
+}

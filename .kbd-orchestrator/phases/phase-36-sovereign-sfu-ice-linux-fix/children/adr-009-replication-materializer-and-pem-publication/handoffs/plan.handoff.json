@@ -1,0 +1,20 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-09-06T22:59:56Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "placeholder",
+  "skipped": false,
+  "skipReason": null,
+  "artifact": "plan.md",
+  "summary": "5 scheduled changes (c001-c005) plus c006 tracked-but-blocked. Apply c001 first: it is the only change with no prerequisite, and c002->c003->c004 is a hard chain where each supplies state the next needs (instance ownership -> drainable writer -> atomic checkpoint -> the consumer relying on all three). c005 runs in parallel \u2014 the met/gap/void defect is in the evidence model, not the replication path. Adversarial review took the plan from 3 CRITICAL to 0: it split the materializer into c004 (schema-agnostic, proceeds now) and c006 (concrete clinical tables, blocked on ASO's unpublished schema), added the P1 spec-delta requirement the first draft omitted, and forced a DONE-vs-PROVEN distinction. All findings addressed; none carried.",
+  "warnings": [
+    "G1/G2 are BREAKING changes to published API: pendingActions, graphSyncStatusStore and startLocalFirstGraph are re-exported from @prometheus-ags/entity-graph-core (4.0.0) and entity-graph-react, whose useGraphSyncStatus reads the singleton. Both packages move together; the bump is MAJOR.",
+    "React effect cleanup is synchronous and cannot await a promise. c002 must use an explicit session/lifecycle manager; awaiting inside the teardown would not be a barrier.",
+    "G3 is split: c003 owns commit atomicity, c004 owns must_refetch rebuild. c003 alone does not close G3.",
+    "Every change lands DONE (implemented, spec-valid, tests authored) but NOT PROVEN (tests unexecuted) per the no-testing directive. No change may be reported as verified or certified.",
+    "Cross-repo phases BLOCK adversarial review structurally: build-review-packet.sh resolves cited_paths against the running repo only. Unfixed; affects future artifacts in this child."
+  ]
+}

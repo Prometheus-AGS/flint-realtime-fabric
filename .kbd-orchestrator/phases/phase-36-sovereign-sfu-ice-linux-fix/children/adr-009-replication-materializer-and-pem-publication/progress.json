@@ -4,19 +4,19 @@
   "parentPhase": "phase-36-sovereign-sfu-ice-linux-fix",
   "childPhases": [],
   "childPointer": null,
-  "assessment_complete": false,
-  "plan_complete": false,
+  "assessment_complete": true,
+  "plan_complete": true,
   "execute_complete": false,
   "reflect_complete": false,
-  "implementation_total": 0,
+  "implementation_total": 5,
   "implementation_completed": 0,
-  "changes_total": 0,
+  "changes_total": 5,
   "changes_completed": 0,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
       "completed": 0,
-      "total": 0,
+      "total": 5,
       "status": "PENDING"
     },
     "evidence": {
@@ -36,12 +36,20 @@
     }
   },
   "completed_changes": [],
-  "active_change": null,
-  "blocked_changes": [],
-  "changes": [],
-  "last_updated": "2026-09-06T21:45:21Z",
-  "last_updated_by": "kbd-new-child",
+  "active_change": "p37-c001-pem-runtime-scoped-state",
+  "blocked_changes": [
+    "p37-c006-aso-clinical-materialization"
+  ],
+  "changes": [
+    "p37-c001-pem-runtime-scoped-state",
+    "p37-c002-pem-dispose-barrier",
+    "p37-c003-pem-checkpoint-atomicity",
+    "p37-c004-aso-replica-runtime",
+    "p37-c005-evidence-not-loaded-state"
+  ],
+  "last_updated": "2026-09-06T22:30:00Z",
+  "last_updated_by": "kbd-plan",
   "sourceTool": "unknown",
   "createdBy": "kbd-new-child",
-  "updatedAt": "2026-09-06T21:45:21Z"
+  "updatedAt": "2026-09-06T22:30:00Z"
 }
