@@ -129,18 +129,52 @@ pub(crate) fn apply_forwarded(
     match frame {
         ForwardedFrame::Media(media) => write_forwarded(rtc, media, mid_kinds),
         ForwardedFrame::KeyframeRequest(req) => {
-            let Some(mut writer) = rtc.writer(req.mid) else {
-                tracing::debug!(mid = ?req.mid, "no writer for keyframe request — dropping");
+            // Resolve THIS session's video MID rather than trusting `req.mid`. A keyframe
+            // request is only meaningful for video, and the requester's MID numbering does not
+            // match this sender's: in the p36 decode proof the browser negotiates MID 0=audio,
+            // MID 1=video, so a request naming MID 0 lands on the sender's *audio* track,
+            // `request_keyframe` rejects it as not applicable, and no keyframe is ever produced —
+            // leaving a late-joining receiver stuck on P-frames with `framesDecoded=0`.
+            //
+            // This is the same MID-crossing class that `write_forwarded` fixes for media
+            // (p36-c002h); the keyframe path needs the identical treatment. Fall back to the
+            // requester's MID only when this session has no video track registered yet.
+            let target_mid = keyframe_target_mid(mid_kinds, req.mid);
+
+            let Some(mut writer) = rtc.writer(target_mid) else {
+                tracing::debug!(mid = ?target_mid, "no writer for keyframe request — dropping");
                 return;
             };
             // `request_keyframe` self-guards (errors if the kind/direction isn't possible);
             // that is an expected drop for a session that can't serve the request, so log it
             // at debug, not warn.
             if let Err(e) = writer.request_keyframe(req.rid, req.kind) {
-                tracing::debug!(error = %e, "keyframe request not applicable — dropping");
+                tracing::debug!(error = %e, mid = ?target_mid, "keyframe request not applicable — dropping");
+            } else {
+                // INFO, not debug: whether the proactive PLI actually reached a sender is the
+                // decisive signal when diagnosing `framesDecoded=0`, and the p36 run's captured
+                // log had no way to show it.
+                tracing::info!(mid = ?target_mid, kind = ?req.kind, "sovereign: keyframe request applied → PLI to sender");
             }
         }
     }
+}
+
+/// Resolve which of *this* session's MIDs a forwarded keyframe request should target.
+///
+/// A keyframe (PLI/FIR) request is only meaningful for video, so this returns this session's
+/// own video MID. `requested` — the MID named by the requester — is used only as a fallback
+/// when this session has no video track registered yet, because sender and receiver number
+/// their MIDs independently: honouring the requester's number lands the request on whatever
+/// track happens to share that index here (in the p36 decode proof, `Mid("0")` was audio).
+fn keyframe_target_mid(
+    mid_kinds: &HashMap<str0m::media::Mid, MediaKind>,
+    requested: str0m::media::Mid,
+) -> str0m::media::Mid {
+    mid_kinds
+        .iter()
+        .find(|&(_, &k)| k == MediaKind::Video)
+        .map_or(requested, |(&mid, _)| mid)
 }
 
 /// Write a forwarded media frame to this session's `Rtc`.
@@ -176,5 +210,50 @@ fn write_forwarded(
     let pt = writer.match_params(media.params).unwrap_or(media.pt);
     if let Err(e) = writer.write(pt, media.network_time, media.time, media.data.clone()) {
         tracing::warn!(error = %e, kind = ?media.kind, pt = ?pt, "forwarded media write failed — dropping");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use str0m::media::Mid;
+
+    /// The p36 decode-proof topology: the browser negotiates MID 0 = audio, MID 1 = video.
+    fn browser_mid_kinds() -> HashMap<Mid, MediaKind> {
+        HashMap::from([
+            (Mid::from("0"), MediaKind::Audio),
+            (Mid::from("1"), MediaKind::Video),
+        ])
+    }
+
+    #[test]
+    fn keyframe_request_targets_video_not_the_requesters_mid() {
+        // Regression for the p36 `framesDecoded=0` stall: `join_room` sends its proactive PLI
+        // with a placeholder `Mid("0")`, which on this session is AUDIO. Honouring that number
+        // made `request_keyframe` reject the request as not applicable, so no keyframe was ever
+        // emitted and a late-joining receiver stayed stuck on P-frames.
+        let target = keyframe_target_mid(&browser_mid_kinds(), Mid::from("0"));
+        assert_eq!(
+            target,
+            Mid::from("1"),
+            "a keyframe request must target this session's video MID, not the requester's"
+        );
+    }
+
+    #[test]
+    fn keyframe_request_ignores_requester_mid_even_when_it_is_video_here() {
+        // The requester's numbering carries no meaning for this session; resolution is always
+        // by kind, so the answer does not depend on what the requester happened to name.
+        let target = keyframe_target_mid(&browser_mid_kinds(), Mid::from("7"));
+        assert_eq!(target, Mid::from("1"));
+    }
+
+    #[test]
+    fn keyframe_request_falls_back_to_requested_mid_when_no_video_track_yet() {
+        // Race: the session's `Rtc` is negotiated but its video `MediaAdded` has not been
+        // processed. With nothing better to go on, keep the requester's MID.
+        let audio_only = HashMap::from([(Mid::from("0"), MediaKind::Audio)]);
+        let target = keyframe_target_mid(&audio_only, Mid::from("3"));
+        assert_eq!(target, Mid::from("3"));
     }
 }

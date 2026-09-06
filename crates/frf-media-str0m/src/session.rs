@@ -133,19 +133,31 @@ impl StrOmTransport {
     /// `Writer::request_keyframe` → RTCP PLI to the sending browser → browser emits an IDR →
     /// receiver decodes its first keyframe → `framesDecoded > 0`.
     pub fn join_room(&self, session_id: SessionId, tenant_id: TenantId, room: &str) {
-        if let Some(entry) = self.sessions.get(&session_id) {
-            self.router
-                .register(session_id, tenant_id, room, entry.forward_tx.clone());
-            // Proactive PLI: ask every existing co-room sender to emit a keyframe so a
-            // late-joining receiver can sync immediately rather than waiting for its browser to
-            // send its own PLI (which may not arrive within the decode-proof window).
-            let pli = KeyframeRequest {
-                mid: Mid::from("0"),
-                rid: None,
-                kind: KeyframeRequestKind::Pli,
-            };
-            self.router.forward_keyframe_request(session_id, pli);
-        }
+        let Some(entry) = self.sessions.get(&session_id) else {
+            // A join for an unregistered session silently did nothing before, which made a
+            // missing PLI indistinguishable from a PLI that fired and was rejected downstream.
+            tracing::warn!(%session_id, room, "sovereign: join_room for unknown session — no PLI sent");
+            return;
+        };
+        self.router
+            .register(session_id, tenant_id, room, entry.forward_tx.clone());
+        tracing::info!(%session_id, room, "sovereign: room joined → proactive PLI to co-room senders");
+        // Proactive PLI: ask every existing co-room sender to emit a keyframe so a
+        // late-joining receiver can sync immediately rather than waiting for its browser to
+        // send its own PLI (which may not arrive within the decode-proof window).
+        //
+        // `mid` is a placeholder only. The receiving side (`apply_forwarded`) resolves the
+        // destination's own video MID by kind and ignores this value — sender and receiver
+        // number their MIDs independently, so no fixed MID here could be correct for an
+        // arbitrary peer. Before that resolution existed this was `Mid("0")`, which in the
+        // p36 decode proof was the browser's *audio* track: the PLI was rejected as not
+        // applicable and no keyframe was ever emitted.
+        let pli = KeyframeRequest {
+            mid: Mid::from("0"),
+            rid: None,
+            kind: KeyframeRequestKind::Pli,
+        };
+        self.router.forward_keyframe_request(session_id, pli);
     }
 
     /// Test-only access to the room router, to assert create/join/remove wiring.

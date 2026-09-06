@@ -76,6 +76,20 @@ impl RoomRouter {
         forward_tx: mpsc::Sender<ForwardedFrame>,
     ) {
         let key = (tenant_id, room.to_owned());
+        // Re-registering moves the session between rooms (`create_session` registers it under
+        // its own id; `join_room` regroups it with peers). Drop the prior membership first —
+        // otherwise the session lingers in its old room's set forever, and that room keeps
+        // trying to fan media to a session that has left it.
+        //
+        // The `membership` guard is released before `rooms` is locked (matching `deregister`),
+        // so no read guard is held across the write lock.
+        let previous = self.membership.get(&session_id).map(|k| k.clone());
+        if let Some(prev) = previous
+            && prev != key
+            && let Some(mut members) = self.rooms.get_mut(&prev)
+        {
+            members.remove(&session_id);
+        }
         self.rooms
             .entry(key.clone())
             .or_default()
@@ -256,6 +270,37 @@ mod tests {
         assert!(
             b_rx.try_recv().is_err(),
             "the requester B does not receive its own request"
+        );
+    }
+
+    #[tokio::test]
+    async fn re_registering_moves_the_session_out_of_its_previous_room() {
+        // `create_session` registers a session under its own id as a room; `join_room` then
+        // re-registers it into the shared room. The stale membership must not linger, or the
+        // old room keeps fanning media to a session that has left it.
+        let router = RoomRouter::new();
+        let tenant = TenantId::new();
+        let joiner = SessionId::new();
+        let stayer = SessionId::new();
+        // The joiner's channel in its original room, and the one it re-registers with on
+        // the move; the stayer keeps a single channel throughout.
+        let (joiner_tx_solo, _joiner_rx_solo) = mpsc::channel(4);
+        let (joiner_tx_shared, mut joiner_rx) = mpsc::channel(4);
+        let (stayer_tx, _stayer_rx) = mpsc::channel(4);
+
+        // Both start in the solo room; then the joiner moves to the shared room.
+        router.register(joiner, tenant, "solo", joiner_tx_solo);
+        router.register(stayer, tenant, "solo", stayer_tx);
+        router.register(joiner, tenant, "shared", joiner_tx_shared);
+
+        // Assert from the STAYER's side: it is still in "solo", and the joiner has left.
+        // Checking the joiner's own fan-out instead would pass even with the leak, because
+        // `fan_out` resolves the *sender's* membership — which the move overwrites either way.
+        // The leak is only observable to a peer left behind in the old room.
+        router.forward(stayer, &media());
+        assert!(
+            joiner_rx.try_recv().is_err(),
+            "a session that moved rooms must not still receive the old room's media"
         );
     }
 }

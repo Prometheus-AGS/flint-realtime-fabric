@@ -73,14 +73,16 @@ would trigger it.
 
 ## Carried forward
 
-1. **Fix the room registration so the proactive PLI fires.** *(Diagnosed 2026-09-06 — see
-   `docs/PHASE-36-DECODE-RESULT.md`.)* The gateway log shows 1,997 `inbound MediaData → fan-out`
-   events with **zero** PLI/FIR/keyframe requests, **`room=` empty on every event**, and **no
-   room-join events**. The receiver never registers as a room member, so `p36-c002g`'s
-   proactive-PLI-on-room-join never fires; it joins mid-GOP with no I-frame and cannot decode, while
-   the ~1.8 MB still arrives because fan-out does not depend on room membership. Same defect class as
-   the phase-27 `RoomJoin` finding. Trace the join path from the browser through the gateway signal
-   service into `frf_media_str0m` and find where the room ID is dropped.
+1. ~~Fix the room registration so the proactive PLI fires.~~ **FIXED 2026-09-06 — root cause was the
+   PLI's target MID, not room registration.** An earlier reading of the captured log inferred that
+   the receiver never joins a room; that was a **truncation artifact** (the capture covers only 29 s
+   of `frf_media_str0m` output, starting after join). Room registration works — fan-out delivered
+   ~1.8 MB, which requires a shared room. The actual defect: `join_room` sends its proactive PLI
+   with a hardcoded `Mid("0")`, and `apply_forwarded` honoured that number against the *sender's*
+   `Rtc`. The run's own log shows MID 0 = **audio**, MID 1 = video — so the PLI hit the audio track,
+   `request_keyframe` rejected it, and the rejection was logged at `debug` (invisible at INFO). No
+   keyframe was ever emitted. Fixed by resolving the keyframe target **by kind**, mirroring the
+   `p36-c002h` media fix. Full analysis in `docs/PHASE-36-DECODE-RESULT.md`.
 2. **Make `gateway.log` actually populate.** The c001 capture fix is partial — that artifact is 0
    bytes; only `gateway-capture.log` carries content.
 3. **Live-dispatch the decode proof.** Not exercised in this phase: the operator directed that CI/CD

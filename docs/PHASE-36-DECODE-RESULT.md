@@ -47,26 +47,47 @@ sovereign: inbound MediaData → fan-out session=8d09ef8c-… room= mid=Mid(1) k
 sovereign: inbound MediaData → fan-out session=8d09ef8c-… room= mid=Mid(0) kind=Some(Audio) bytes=40
 ```
 
-### Root cause candidates — two concrete defects
+### Root cause — the proactive PLI targets the wrong MID
 
-**1. No keyframe is ever requested.** Across 1,997 fan-out events there are **zero** PLI, FIR, or
-keyframe log lines. (`grep -icE 'pli|keyframe|fir'` returns 1, and that single match is an unrelated
-`cdc::run` Postgres standby-status line.) The receiver joins mid-GOP, has no I-frame to start from,
-and therefore cannot decode a single frame no matter how many bytes arrive — which is exactly the
-`framesDecoded=0` / `bytes≈1.8 MB` signature observed.
+> **Correction (2026-09-06).** An earlier revision of this document inferred from the captured log
+> that the receiver never registers a room, because the log showed no room-join events and `room=`
+> empty on every fan-out line. **That inference was wrong.** The capture covers only 29 seconds
+> (17:58:20–17:58:49) and contains *only* `frf_media_str0m` lines — it begins after WS setup, the
+> offer/answer exchange, and room-join have already happened, so their absence is a truncation
+> artifact. The empty `room=` is likewise benign: `SessionMeta.room_id` is deliberately left blank
+> (`session.rs:278` — "the room is unknown to the transport port"), so it is a cosmetic logging gap,
+> not routing state. Room registration demonstrably *does* work: fan-out delivered ~1.8 MB to the
+> peer, which is only possible once both sessions share a room.
 
-This means the **`p36-c002g` "proactive PLI on room-join" fix is not firing.** The commit is on
-`main` (`eb15c58`), but its trigger path is never reached.
+**The real defect: the proactive PLI asks for a keyframe on the sender's audio track.**
 
-**2. `room` is empty on every fan-out event, and there are no room-join events.** All 1,997 lines
-carry `room=` with no value, while `mid` and `kind` populate correctly — so this is a genuinely empty
-field, not a log-formatting artifact. Searching for room-join activity
-(`grep -icE 'room.?join|join.?room'`) returns **0**.
+`join_room` (`session.rs`) sends its proactive PLI with a hardcoded `Mid::from("0")`. On the
+receiving side, `apply_forwarded` (`driver.rs`) resolved the writer with `rtc.writer(req.mid)` —
+honouring the *requester's* MID number against the *sender's* `Rtc`.
 
-These two findings are almost certainly the same defect: if the receiver never registers as a room
-member, the room-join hook that would send the proactive PLI never runs. Media still reaches the
-browser because the fan-out path does not itself depend on room membership — which is why bytes flow
-while the keyframe request does not.
+The run's own log establishes the MID topology for this browser:
+
+```
+1426  mid=Mid(0) kind=Some(Audio)
+ 571  mid=Mid(1) kind=Some(Video)
+```
+
+MID 0 is **audio**. So the proactive PLI landed on the sender's audio track, `request_keyframe`
+rejected it as not applicable, and the failure was logged at `debug` — invisible at the run's INFO
+level. No video keyframe was ever produced, the receiver stayed on P-frames, and `framesDecoded`
+remained 0 while bytes accumulated. That is exactly the observed signature.
+
+This is the **same MID-crossing class as `p36-c002h`**, which fixed it for *media* forwarding
+(`write_forwarded` resolves the destination MID by kind) but left the *keyframe* path trusting the
+requester's number.
+
+### Secondary defect — room membership leaked on re-registration
+
+`RoomRouter::register` inserted into the new room without removing the session from its previous
+one. `create_session` registers each session under its own id as a room and `join_room` then
+re-registers it into the shared room, so the stale entry persisted in the old room's member set.
+Not the cause of `framesDecoded=0` (`membership` is overwritten, so `fan_out` resolves the correct
+room), but it would misroute media for any session that changes rooms.
 
 ### Unrelated noise (not causal)
 
@@ -75,19 +96,48 @@ while the keyframe request does not.
 - 6 × `error 401: Unauthorized` — flint-gate, which the decode path does not exercise (the runner
   self-serves an RS256 JWKS).
 
-## Recommended next step (G4)
+## Fix applied (2026-09-06)
 
-Investigate why the receiver never registers a room, in this order:
+1. **`driver.rs` — resolve the keyframe target by kind.** New `keyframe_target_mid` helper picks
+   *this* session's video MID instead of trusting `req.mid`, mirroring what `write_forwarded`
+   already does for media. The requester's MID is used only as a fallback when the session has no
+   video track registered yet. Unit-tested against the run's real MID topology (0=audio, 1=video).
+2. **`driver.rs` — promote the applied-PLI log to INFO.** Whether the PLI actually reached a sender
+   is the decisive diagnostic for this failure, and it was previously only visible at `debug`.
+3. **`session.rs` — log `join_room`.** A join now logs at INFO on success and **warns** when the
+   session is unknown (previously a silent no-op, which made "no PLI" indistinguishable from "PLI
+   fired but was rejected"). The placeholder `Mid("0")` is retained but documented as ignored
+   downstream.
+4. **`room.rs` — fix the membership leak.** `register` now removes the session from its previous
+   room before inserting it into the new one.
 
-1. Trace the room-join signaling path from the browser's join through `frf-gateway`'s signal service
-   into `frf_media_str0m`. Establish where the room ID is dropped or the join event is not emitted.
-2. Confirm whether `p36-c002g`'s PLI is gated on room-join specifically; if so, whether a
-   subscriber-attach hook is the more reliable trigger.
-3. Once a room is populated and a PLI is observed in the gateway log, re-run the decode proof — the
-   keyframe should let the ~1.8 MB of already-arriving RTP decode.
+## Verification
 
-Verification of any fix requires a live `gh workflow run decode-proof.yml --ref main`, which is
-deferred under the current no-testing directive.
+**Unit tests: 35 passed, 0 failed** (`cargo test -p frf-media-str0m`), including 4 new ones.
+
+The regression tests were confirmed to be genuine by reverting both fixes and re-running: **3 of the
+4 fail without them** (`test result: FAILED. 32 passed; 3 failed`), and all pass with them. The
+fourth — the no-video-track fallback — passes either way by design, since it exercises the path the
+fix leaves unchanged.
+
+**The end-to-end claim remains unverified.** Confirming `framesDecoded > 0` requires
+`gh workflow run decode-proof.yml --ref main`, deferred under the current no-testing directive.
+
+### Falsifiable prediction for the next run
+
+The next decode run should log, in order:
+
+```
+sovereign: room joined → proactive PLI to co-room senders
+sovereign: keyframe request applied → PLI to sender
+```
+
+- **Both appear and `framesDecoded > 0`** → diagnosis confirmed; flip the gate.
+- **Both appear but `framesDecoded=0`** → the PLI now reaches the sender and the diagnosis is
+  *incomplete*. Next suspect: PT/codec translation in `write_forwarded` (`match_params` falling back
+  to the sender's PT when the receiver negotiated a different one).
+- **Neither appears** → the join itself is not reaching the bridge; check for the new
+  `join_room for unknown session` warning, which now makes that case visible.
 
 ## Gate decision
 
