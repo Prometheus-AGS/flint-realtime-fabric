@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "2",
+  "phase": "adr-009-replication-materializer-and-pem-publication",
+  "parentPhase": "phase-36-sovereign-sfu-ice-linux-fix",
+  "childPhases": [],
+  "childPointer": null,
+  "assessment_complete": false,
+  "plan_complete": false,
+  "execute_complete": false,
+  "reflect_complete": false,
+  "implementation_total": 0,
+  "implementation_completed": 0,
+  "changes_total": 0,
+  "changes_completed": 0,
+  "completion": {
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 0,
+      "total": 0,
+      "status": "PENDING"
+    },
+    "evidence": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "completed_changes": [],
+  "active_change": null,
+  "blocked_changes": [],
+  "changes": [],
+  "last_updated": "2026-09-06T21:45:21Z",
+  "last_updated_by": "kbd-new-child",
+  "sourceTool": "unknown",
+  "createdBy": "kbd-new-child",
+  "updatedAt": "2026-09-06T21:45:21Z"
+}

@@ -17,5 +17,9 @@
   "phase_complete": false,
   "seededFrom": "phase-35-sovereign-sfu-decode-ci-linux-proof",
   "createdAt": "2026-07-09T23:59:30Z",
-  "updatedAt": "2026-09-06T00:00:00Z"
+  "updatedAt": "2026-09-06T21:45:21Z",
+  "childPhases": [
+    "adr-009-replication-materializer-and-pem-publication"
+  ],
+  "childPointer": "adr-009-replication-materializer-and-pem-publication"
 }

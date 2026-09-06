@@ -1,0 +1,20 @@
+{
+  "allowedWritePaths": [
+    ".kbd-orchestrator/phases/phase-36-sovereign-sfu-ice-linux-fix/children/adr-009-replication-materializer-and-pem-publication/**",
+    "docs/decisions/adr-009-aso-runtime-integration.md",
+    "docs/SHAPE-FACADE.md",
+    "crates/frf-shape-electric/**",
+    "crates/frf-ports/src/shape_facade.rs",
+    "crates/frf-gateway/src/routes/shape.rs",
+    "../prometheus-entity-management/packages/entity-graph-core/**",
+    "../../TribeHealth/kevin/prior-auth/web/src/**"
+  ],
+  "deniedPaths": [
+    "crates/frf-media-str0m/**",
+    "crates/frf-gateway/src/media_bridge.rs",
+    "crates/frf-gateway/src/main.rs",
+    ".github/workflows/decode-proof.yml"
+  ],
+  "inheritsConstraints": true,
+  "__note": "Cross-repo child (operator-approved 2026-09-06: PEM + ASO + FRF). PEM and ASO paths are relative to this repo root (verified to resolve: ../prometheus-entity-management and ../../TribeHealth/kevin/prior-auth): prometheus/prometheus-entity-management and TribeHealth/kevin/prior-auth. FRF is included only for the shape-facade surface, since a real replica consumer may require chunk/checkpoint adjustments. The sovereign-SFU media path and the decode-proof workflow are explicitly denied: they belong to the parent phase's open p36-c002 gate and must not be disturbed by replication work."
+}
