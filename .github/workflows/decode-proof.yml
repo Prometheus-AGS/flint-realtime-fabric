@@ -13,13 +13,15 @@
 name: Decode proof
 
 on:
+  # Manual dispatch only (p36-c003). A `push` trigger scoped to `sovereign-sfu-decode-proof` used to
+  # run this from the proof branch's own copy of the workflow, back when `main` was untouched
+  # (p35-c002). That branch has since merged into `main` and been deleted, so the trigger was dead —
+  # no push could fire it. `workflow_dispatch` is registered from the default branch, and this
+  # workflow now lives on `main`, so dispatch is the working path:
+  #     gh workflow run decode-proof.yml --ref main
+  # Do NOT add a `push` trigger on `main`: this job builds the gateway image, boots the full
+  # sovereign stack, and drives two browsers (~12 min per run).
   workflow_dispatch:
-  # A `push` trigger scoped to the proof branch runs the job from the branch's OWN copy of this
-  # workflow — unlike `workflow_dispatch`, which GitHub only registers from the default branch. This
-  # lets the decode proof run on a feature branch with `main` untouched (p35-c002). Remove/limit
-  # before merge so it does not run the heavy stack on every push to main.
-  push:
-    branches: ["sovereign-sfu-decode-proof"]
 
 env:
   CARGO_TERM_COLOR: always

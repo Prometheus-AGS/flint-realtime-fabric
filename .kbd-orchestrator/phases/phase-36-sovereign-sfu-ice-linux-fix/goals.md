@@ -42,8 +42,22 @@ probe output and/or gateway log. Fix candidates:
 config) **only after** a CI run on `ubuntu-latest` reports `framesDecoded > 0` from a real
 browser receiver. Gate discipline from phases 16–35 applies: no flip on assumptions.
 
-## G5 — Open PR from `sovereign-sfu-decode-proof` to `main`
+## G5 — ~~Open PR from `sovereign-sfu-decode-proof` to `main`~~ — RETIRED (p36-c003, 2026-09-06)
 
-**Exit:** a GitHub pull request from `sovereign-sfu-decode-proof` → `main` is open, summarising
-all SFU work from phases 0–36. `main` has been untouched since phase-0; the proof branch holds
-all sovereign SFU infrastructure. Merge is gated on G4 (the flip).
+> **Original exit:** a GitHub pull request from `sovereign-sfu-decode-proof` → `main` is open,
+> summarising all SFU work from phases 0–36. `main` has been untouched since phase-0; the proof
+> branch holds all sovereign SFU infrastructure. Merge is gated on G4 (the flip).
+
+**Status: MOOT — satisfied by merge, not by PR.** The premise no longer holds. `main` is *not*
+untouched: all sovereign SFU work from phases 0–36 is already merged into it via PRs #3 and #4.
+The last decode-proof commit `9ba04ae` is an ancestor of `main` (`git merge-base --is-ancestor`),
+and the `sovereign-sfu-decode-proof` branch has since been deleted — after the merge, so nothing
+was lost. A PR from that branch would be empty.
+
+**Consequence handled by p36-c003:** `.github/workflows/decode-proof.yml` scoped its `push` trigger
+to the deleted branch, leaving no way to fire the decode proof by push. That trigger is retired;
+`workflow_dispatch` from `main` is now the only path:
+`gh workflow run decode-proof.yml --ref main`. This supersedes c002's assumption that c001's T5
+push would trigger the run.
+
+See `docs/PHASE-36-SIGNOFF.md` for the full record.
