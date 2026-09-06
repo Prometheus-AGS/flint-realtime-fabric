@@ -201,6 +201,15 @@ Each `frf-*` adapter crate implements **exactly one** port trait. An adapter mus
 
 Composition of adapters happens exclusively in `frf-gateway` via Cargo features. A deployment compiles only the planes it runs.
 
+**Known deviation — `frf-media-str0m`.** This crate houses two adapter types:
+`StrOmSignaler` (implements `MediaSignaler`, `src/sfu.rs`) and `StrOmTransport`
+(implements `MediaTransport`, `src/session.rs`). Neither *type* implements two ports —
+the two concerns stay separate — but housing both in one crate departs from the
+crate-level rule above. This is recorded, not endorsed: see
+[ADR-005](docs/decisions/adr-005-media-transport-port.md) and
+[ADR-007](docs/decisions/adr-007-media-path-authz.md). Do not cite it as precedent for
+a new adapter; new adapters follow the rule.
+
 ---
 
 ## Admin UI Architecture (React 19 / Vite 7)

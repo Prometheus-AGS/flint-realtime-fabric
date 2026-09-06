@@ -4,6 +4,13 @@
 
 Accepted — 2026-07-06
 
+## Scope and reconciliation — 2026-09-06
+
+This decision concerns the fabric FFI/code-generation toolchain. It does not
+select ASO browser/Tauri storage or prescribe a Flutter release. ASO integration
+follows [ADR-009](adr-009-aso-runtime-integration.md); no dependency pins change
+as part of that integration decision.
+
 ## Context
 
 CLAUDE.md flagged the UniFFI / flutter_rust_bridge / Connect / tonic versions as an

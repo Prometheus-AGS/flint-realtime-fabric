@@ -4,6 +4,12 @@
 
 Accepted — 2026-06-19
 
+## Scope and reconciliation — 2026-09-06
+
+This decision selects the fabric's CRDT document engine. It does not select
+ASO's relational replica engine or authorize a second writer for clinical rows.
+ASO integration follows [ADR-009](adr-009-aso-runtime-integration.md).
+
 ## Context
 
 Phase 3 requires a CRDT engine for the offline-first entity sync layer

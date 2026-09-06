@@ -4,8 +4,15 @@
 
 Accepted — 2026-07-09 (p29-c001)
 
-Refines ADR-005 (the `MediaTransport` port) and ADR-006 (RTP fan-out) on the single point of
-**socket ownership**. Does not re-open either: the port contract and the fan-out model are unchanged.
+Refines ADR-005 (the `MediaTransport` port) and ADR-006 (RTP fan-out) on **socket and driver-task ownership**. The port and room-routing
+contracts are unchanged; per-session driver-task ownership is superseded.
+
+## Scope and reconciliation — 2026-09-06
+
+ASO integration follows [ADR-009](adr-009-aso-runtime-integration.md). Shared
+socket ownership does not establish session revocation or select ASO local SQL
+storage. This record refines both socket and driver-task ownership in ADR-005
+and ADR-006, while preserving port and room-routing contracts.
 
 ## Context
 
@@ -35,8 +42,10 @@ demultiplex the incoming packet to know which client it belongs to" via
 
 Concretely:
 
-- `StrOmTransport` binds **one** UDP socket from `MediaConfig` (bind addr + fixed port) at
-  construction. `negotiate` no longer binds; it uses the shared socket's `local_addr` for the
+- `StrOmTransport` lazily initializes **one** UDP socket from `MediaConfig`
+  (bind addr + fixed port) and one owning demux task on first session creation
+  through `ensure_demux()`. The synchronous constructor does not bind a socket.
+  Negotiation uses the shared socket's `local_addr` for the
   advertised host candidate (the p28-c002 `resolve_advertised_ip` path is unchanged).
 - A **single owning task** (the "demux loop", `demux.rs`) owns the shared socket **and** the set of
   live `Rtc`s. On each inbound datagram it finds the owning session via `rtc.accepts(&input)`, feeds
@@ -45,7 +54,8 @@ Concretely:
   `RoomRouter`, and each `Rtc`'s timers.
 - Per-session state is unchanged in shape: each session still has its own `Rtc`, `watch`
   connection-state channel, `broadcast` local-signals channel, and `RoomRouter` forwarding channel.
-  Only the **socket and the recv loop** consolidate from N to 1.
+  The **socket and driver task** consolidate from N to 1; the demux task owns
+  every live session Rtc rather than dispatching to independent session tasks.
 
 ### Why a single owning task (not a socket-actor routing to per-session tasks)
 

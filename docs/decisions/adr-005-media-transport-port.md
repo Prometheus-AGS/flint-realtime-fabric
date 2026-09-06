@@ -7,6 +7,15 @@ Proposed — 2026-07-08 (p20-c001)
 Gates all sovereign SFU media-engine work in phase-20 (per-session `Rtc` loop, ICE, DTLS,
 and — in phase-21 — RTP forwarding). No engine code lands before this is decided.
 
+## Scope and reconciliation — 2026-09-06
+
+The proposal status and original phase milestones below are retained as
+history; existing implementation does not retroactively record acceptance.
+[ADR-008](adr-008-shared-media-socket.md) supersedes the per-session socket and
+driver-task assumptions with one shared socket and owning demux task. The port
+and room-routing contracts remain separate. ASO protected lanes additionally
+require [ADR-009](adr-009-aso-runtime-integration.md).
+
 ## Context
 
 Phase-19 proved the two str0m unknowns: negotiation (p18-c006) and the sans-I/O UDP
@@ -37,8 +46,7 @@ concerns, and the gateway composes them side by side (a `DynMediaTransport` wrap
 the existing `DynMediaSignaler` for runtime selection under `SFU_MODE`).
 
 - **Pros:** signaling and media transport stay separate concerns (each a focused port);
-  honors one-port-per-adapter (str0m implements two *distinct* ports, not one overloaded
-  one); `frf-ports` stays implementation-free; the hosted (LiveKit) path is unaffected —
+  keeps each concrete type focused on one port; `frf-ports` stays implementation-free; the hosted (LiveKit) path is unaffected —
   it simply has no `MediaTransport` impl.
 - **Cons:** a second port + a `Dyn` wrapper to maintain; the gateway composes two media
   objects for sovereign mode.
@@ -59,7 +67,8 @@ The gateway drives a str0m media engine directly, bypassing the ports layer for 
 ### Recommendation
 
 **Option A — a new `MediaTransport` port.** It is the only option that keeps the clean
-seam, honors one-port-per-adapter, and leaves the hosted path untouched.
+seam and leaves the hosted path untouched. The crate-packaging deviation below
+remains unresolved by this documentation correction.
 
 ### Proposed `MediaTransport` surface (refined in c002)
 
@@ -84,8 +93,8 @@ newtype session IDs; `PortError` for errors; no implementation in `frf-ports`.
   implement it in `frf-media-str0m` up to DTLS-connected. **Phase-21** adds RTP forwarding
   (its own port method or a follow-on) + per-room fan-out + PLI.
 - `frf-media-str0m` will implement **two** ports (`MediaSignaler` + `MediaTransport`) — this
-  is two *distinct* concerns, consistent with one-port-per-adapter (not one port doing two
-  jobs).
+  uses two distinct concrete types. Housing both in one crate remains a deviation
+  from CLAUDE.md's crate-level one-port rule, not proof that the rule is satisfied.
 - `SFU_MODE=sovereign` stays **gated off** until media actually forwards (phase-21) — this
   ADR does not enable it.
 - The gateway's `build_media_signaler` gains a sibling that composes the `MediaTransport`
@@ -98,3 +107,11 @@ newtype session IDs; `PortError` for errors; no implementation in `frf-ports`.
 - [ADR-007](adr-007-media-path-authz.md) — media-path authorization (Keto `view` at room-join),
   composed over this port in the gateway bridge; a **G3 precondition for the gate flip**.
 - CLAUDE.md — one-port-per-adapter; the absolute dependency rule; `frf-ports` holds no impls.
+
+## Implementation clarification — 2026-09-06
+
+`frf-media-str0m` exports two distinct adapter types: `StrOmSignaler` implements
+`MediaSignaler` (`src/sfu.rs`), and `StrOmTransport` implements `MediaTransport`
+(`src/session.rs`). Neither type combines the contracts. Housing both in one
+crate is an existing deviation from CLAUDE.md's crate-level one-port rule.
+This clarification records that discrepancy without changing the rule or code.

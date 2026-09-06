@@ -7,6 +7,15 @@ Proposed — 2026-07-08 (p21-c003)
 Gates the RTP forwarding implementation (p21-c004). No forwarding code lands before this is
 decided.
 
+## Scope and reconciliation — 2026-09-06
+
+The proposal status and original phase milestones below are retained as
+history. [ADR-008](adr-008-shared-media-socket.md) supersedes the per-session
+socket and driver-task assumptions, including the rejection of shared task
+ownership on that basis. One demux task now owns all live session Rtc instances;
+room routing and per-session channels remain. ASO protected lanes additionally
+require [ADR-009](adr-009-aso-runtime-integration.md).
+
 ## Context
 
 The sovereign SFU engine (`StrOmTransport`, ADR-005) runs **one isolated async driver task

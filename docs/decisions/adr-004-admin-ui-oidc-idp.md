@@ -8,6 +8,15 @@ Blocks the implementation of a real interactive admin-UI login (phase-18 G1 / ph
 G4.2). The hardened token gate (ADR-adjacent, p18-c005) is the interim until this is
 Accepted and built.
 
+## Scope and reconciliation — 2026-09-06
+
+This remains a proposal for the standalone fabric operator admin UI. Its
+compose inventory and interim token gate describe the dated standalone context,
+not the integrated ASO deployment. ASO uses Kratos browser/native sessions and
+Gate's downstream JWT bridge under [ADR-009](adr-009-aso-runtime-integration.md).
+Hydra/OIDC is not an ASO prerequisite, and a pasted token gate is not its patient
+workflow login design. This note does not accept the standalone OIDC proposal.
+
 ## Context
 
 The admin UI authenticates by having the operator **paste a JWT** into a token gate

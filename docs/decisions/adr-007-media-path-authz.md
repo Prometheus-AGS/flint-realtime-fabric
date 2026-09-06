@@ -7,6 +7,13 @@ Accepted — 2026-07-08 (p23-c001)
 Gates the `SFU_MODE=sovereign` flip (phase-23 G4). No flip lands until this authorization
 boundary is enforced (p23-c002) and documented in `docs/SECURITY.md` §1–§5 (p23-c005).
 
+## Scope and reconciliation — 2026-09-06
+
+This is the generic room-join authorization decision. For ASO protected media,
+[ADR-009](adr-009-aso-runtime-integration.md) additionally requires bounded
+expiry/revocation and fan-out removal. The room-lifetime cache and hot-path
+non-goal below do not waive that requirement; they do not prove ASO readiness.
+
 ## Context
 
 The sovereign SFU (`StrOmTransport`, [ADR-005](adr-005-media-transport-port.md)) is composed and
@@ -60,8 +67,9 @@ The check lands in **`MediaTransportBridge` in `frf-gateway`**, which already co
 
 Rationale (the Absolute Dependency Rule + one-port-per-adapter):
 
-- `frf-media-str0m` implements exactly **one** port — `MediaTransport` (a pure media engine). It
-  must not import an authz crate or reach across to `frf-authz-keto`.
+- `StrOmTransport` implements `MediaTransport` as a pure media engine. The crate
+  separately contains `StrOmSignaler` for signaling. Neither may import an authz
+  crate or reach across to `frf-authz-keto`.
 - Composition of ports (media × authz) happens **only** in `frf-gateway`. The bridge is that
   composition point.
 - The str0m adapter stays testable in isolation with no authz dependency; the authz policy stays
@@ -94,3 +102,11 @@ for events. Defense-in-depth and parity with the spine win.
 - [ADR-005](adr-005-media-transport-port.md) — the `MediaTransport` port this authorizes.
 - [ADR-006](adr-006-rtp-fanout.md) — the `RoomRouter` fan-out this gates entry to.
 - `docs/SECURITY.md` §2 — the event-spine per-event `view` filter this achieves parity with.
+
+## Implementation clarification — 2026-09-06
+
+`frf-media-str0m` exports two distinct adapter types: `StrOmSignaler` implements
+`MediaSignaler` (`src/sfu.rs`), and `StrOmTransport` implements `MediaTransport`
+(`src/session.rs`). Neither type combines the contracts. Housing both in one
+crate is an existing deviation from CLAUDE.md's crate-level one-port rule.
+This clarification records that discrepancy without changing the rule or code.

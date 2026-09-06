@@ -4,6 +4,15 @@
 
 Accepted — 2026-06-20
 
+## Scope and reconciliation — 2026-09-06
+
+For protected ASO agent output, this record is partially superseded by
+[ADR-009](adr-009-aso-runtime-integration.md): tenant-only isolation and grants
+lasting until disconnect are insufficient. Subject/run visibility and bounded
+revocation must be proved before that lane is enabled. The phase-specific
+rationale and deferrals below remain the generic historical baseline, not an
+exception to ASO's authorization requirements.
+
 ## Context
 
 `CLAUDE.md` mandates per-event Keto `check(subject, "view", object_id)` before
