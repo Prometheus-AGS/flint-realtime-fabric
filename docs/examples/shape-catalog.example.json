@@ -1,0 +1,16 @@
+{
+  "prior_auth": {
+    "table": "prior_auth_request",
+    "columns": ["id", "practice_id", "status", "submitted_at", "updated_at"],
+    "allowed_params": ["status"],
+    "relation": "view",
+    "object_namespace": "practice"
+  },
+  "prior_auth_document": {
+    "table": "prior_auth_document",
+    "columns": ["id", "practice_id", "request_id", "kind", "created_at"],
+    "allowed_params": ["request_id", "kind"],
+    "relation": "view",
+    "object_namespace": "practice"
+  }
+}

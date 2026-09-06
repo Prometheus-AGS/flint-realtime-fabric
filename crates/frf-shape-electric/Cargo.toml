@@ -1,0 +1,24 @@
+[package]
+name = "frf-shape-electric"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Authorized ElectricSQL shape-facade adapter (ADR-009) for Flint Realtime Fabric"
+
+[lints]
+workspace = true
+
+[dependencies]
+frf-domain = { path = "../frf-domain" }
+frf-ports = { path = "../frf-ports" }
+async-trait = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

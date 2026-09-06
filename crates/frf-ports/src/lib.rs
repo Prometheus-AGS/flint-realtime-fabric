@@ -14,6 +14,7 @@ pub mod media;
 pub mod media_transport;
 pub mod op_store;
 pub mod policy;
+pub mod shape_facade;
 
 pub use agent_bus::{AgentEventBus, AgentEventStream};
 pub use authz::{AuthzProvider, RelationTuple};
@@ -29,3 +30,4 @@ pub use op_store::{ApplyDelta, OpStore, PendingOp};
 pub use policy::{
     ActionPolicyProvider, BoxedPolicyProvider, DynPolicyProvider, NoOpPolicyProvider, PolicyError,
 };
+pub use shape_facade::{AuthorizedShapeRequest, Cursor, ShapeChunk, ShapeFacade, ShapeRequest};

@@ -54,6 +54,15 @@ pub struct AppState<L, A, I, M, B, P> {
     /// Sovereign SFU bridge — present only for `SFU_MODE=sovereign`. Drives the str0m media
     /// engine from the `/ws/v1/signal` inbound path (p23-c003). `None` for hosted deployments.
     pub media_bridge: Option<Arc<media_bridge::MediaTransportBridge>>,
+    /// ADR-009 relational replication facade — the authorized Electric read path. `None`
+    /// unless the `shape-facade` feature is enabled *and* the lane is configured; ADR-009
+    /// keeps it disabled until its verification criteria are proved.
+    #[cfg(feature = "shape-facade")]
+    pub shape_facade: Option<Arc<dyn frf_ports::ShapeFacade>>,
+    /// Resolver holding the shape catalog + authz — the only producer of an authorized
+    /// request. Paired with `shape_facade`; both present or both absent.
+    #[cfg(feature = "shape-facade")]
+    pub shape_resolver: Option<Arc<frf_shape_electric::ShapeResolver>>,
     pub config: Arc<GatewayConfig>,
 }
 
@@ -94,6 +103,14 @@ where
             "/ws/v1/signal",
             get(routes::signal::ws_signal::<L, A, I, M, B, P>),
         );
+
+    #[cfg(feature = "shape-facade")]
+    {
+        router = router.route(
+            "/v1/shape",
+            get(routes::shape::get_shape::<L, A, I, M, B, P>),
+        );
+    }
 
     #[cfg(feature = "dev-endpoints")]
     {

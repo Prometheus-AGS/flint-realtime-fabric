@@ -175,6 +175,8 @@ async fn main() -> Result<()> {
         None
     };
 
+    #[cfg(feature = "shape-facade")]
+    let (shape_facade, shape_resolver) = build_shape_facade(&authz)?;
     let state = Arc::new(AppState {
         subscribe_pipeline,
         publish_usecase,
@@ -186,6 +188,10 @@ async fn main() -> Result<()> {
         action_policy,
         federation_bridges,
         media_bridge,
+        #[cfg(feature = "shape-facade")]
+        shape_facade,
+        #[cfg(feature = "shape-facade")]
+        shape_resolver,
         config: Arc::new(config),
     });
 
@@ -205,6 +211,19 @@ async fn main() -> Result<()> {
         .await?;
     tracing::info!("HTTP server drained; shutting down background tasks");
 
+    drain_background_tasks(&shutdown_tx, cdc_task, grpc_task, tracer_provider).await;
+
+    Ok(())
+}
+
+/// Signal background tasks to stop, await the CDC task, abort the gRPC server and flush
+/// telemetry. Extracted from `main` to keep it within the line budget.
+async fn drain_background_tasks(
+    shutdown_tx: &tokio::sync::watch::Sender<bool>,
+    cdc_task: Option<tokio::task::JoinHandle<()>>,
+    grpc_task: Option<tokio::task::JoinHandle<()>>,
+    tracer_provider: Option<TracerProvider>,
+) {
     let _ = shutdown_tx.send(true);
 
     if let Some(task) = cdc_task {
@@ -219,8 +238,6 @@ async fn main() -> Result<()> {
     {
         tracing::warn!(error = %e, "OTEL tracer provider shutdown error");
     }
-
-    Ok(())
 }
 
 fn spawn_cdc_consumer(
@@ -406,4 +423,70 @@ fn spawn_grpc_server(
             tracing::error!(error = %e, "gRPC server exited with error");
         }
     })))
+}
+
+/// Compose the ADR-009 relational replication lane from environment configuration.
+///
+/// Returns `(None, None)` unless **both** `SHAPE_ELECTRIC_URL` and `SHAPE_CATALOG_PATH` are
+/// set. A half-configured deployment therefore gets no `/v1/shape` route at all, rather than
+/// one backed by an empty catalog — an empty catalog would reject every shape, which looks
+/// like a client bug instead of a deployment mistake.
+///
+/// `SHAPE_SCOPE_COLUMN` defaults to `practice_id`; it names the column carrying the
+/// practice scope and is server configuration, never client input.
+/// The composed ADR-009 lane: the transport and its resolver, or `None` when unconfigured.
+/// Both are always present or both absent — a facade without a resolver would be an
+/// unauthorized read path.
+#[cfg(feature = "shape-facade")]
+type ShapeLane = (
+    Option<Arc<dyn frf_ports::ShapeFacade>>,
+    Option<Arc<frf_shape_electric::ShapeResolver>>,
+);
+
+#[cfg(feature = "shape-facade")]
+fn build_shape_facade(authz: &Arc<ConfiguredAuthzProvider>) -> anyhow::Result<ShapeLane> {
+    use anyhow::Context as _;
+
+    let (Ok(url), Ok(catalog_path)) = (
+        std::env::var("SHAPE_ELECTRIC_URL"),
+        std::env::var("SHAPE_CATALOG_PATH"),
+    ) else {
+        tracing::info!(
+            "ADR-009 shape facade not configured (SHAPE_ELECTRIC_URL / SHAPE_CATALOG_PATH unset) — lane disabled"
+        );
+        return Ok((None, None));
+    };
+
+    let raw = std::fs::read_to_string(&catalog_path)
+        .with_context(|| format!("reading shape catalog from {catalog_path}"))?;
+    let catalog =
+        frf_shape_electric::ShapeCatalog::from_json(&raw).context("parsing shape catalog")?;
+    let shape_count = catalog.len();
+
+    let timeout = std::time::Duration::from_secs(
+        std::env::var("SHAPE_TIMEOUT_SECS")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(30),
+    );
+    let upstream =
+        frf_shape_electric::HttpElectric::new(&url, timeout).context("building Electric client")?;
+    let facade = frf_shape_electric::ElectricShapeFacade::new(upstream);
+
+    let scope_column =
+        std::env::var("SHAPE_SCOPE_COLUMN").unwrap_or_else(|_| "practice_id".to_owned());
+    let resolver = frf_shape_electric::ShapeResolver::new(
+        catalog,
+        Arc::clone(authz) as Arc<dyn frf_ports::AuthzProvider>,
+        scope_column,
+    );
+
+    // Count and endpoint only — never the catalog contents.
+    tracing::warn!(
+        shapes = shape_count,
+        "ADR-009 shape facade ENABLED — this lane is not certified; the live Electric \
+         exchange is unverified and ASO's replica schema is not finalized"
+    );
+
+    Ok((Some(Arc::new(facade)), Some(Arc::new(resolver))))
 }

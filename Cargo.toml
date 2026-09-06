@@ -23,6 +23,7 @@ members = [
     "crates/frf-ffi",
     "crates/frf-media-livekit",
     "crates/frf-media-str0m",
+    "crates/frf-shape-electric",
     "crates/frf-wasm",
     "crates/frf-bridge-matrix",
     "crates/frf-bridge-atproto",

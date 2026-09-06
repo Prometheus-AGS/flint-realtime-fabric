@@ -195,6 +195,11 @@ fn make_state(
         action_policy: Arc::new(NoOpPolicyProvider),
         federation_bridges: vec![],
         media_bridge: None,
+        // ADR-009 lane not exercised by the signal-mux tests.
+        #[cfg(feature = "shape-facade")]
+        shape_facade: None,
+        #[cfg(feature = "shape-facade")]
+        shape_resolver: None,
         config: Arc::new(GatewayConfig::test_default()),
     })
 }

@@ -29,6 +29,16 @@ other clone.
 
 ### Relational replication
 
+> **Implementation status — 2026-09-06.** The FRF side of the shape facade now exists:
+> the `ShapeFacade` port (`frf-ports`), the `frf-shape-electric` adapter (server-side
+> shape catalog, parameter allow-listing, per-request/per-continuation Keto
+> authorization, and a live Electric HTTP client), and a `GET /v1/shape` gateway route
+> behind the off-by-default `shape-facade` feature. **The lane remains disabled.** The
+> live Electric exchange has not been run against a server, ASO has not yet defined the
+> privacy-approved replica schema (sequence step 1), and the materializer, checkpoint
+> atomicity and PEM publication contract below are still unimplemented. The Verification
+> section's criteria are unmet; nothing here certifies the lane.
+
 Provide an authorized HTTP shape facade between Electric and the ASO local
 SQL replica. This facade and its materializer integration are planned work.
 Preserve Electric snapshot, continuation, handle, offset and refetch semantics.

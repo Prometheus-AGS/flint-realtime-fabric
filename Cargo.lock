@@ -3086,6 +3086,7 @@ dependencies = [
  "frf-ports",
  "frf-postgres-cdc",
  "frf-proto",
+ "frf-shape-electric",
  "frf-store-redb",
  "frf-store-surreal",
  "futures-util",
@@ -3279,6 +3280,21 @@ dependencies = [
  "tonic-prost",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "frf-shape-electric"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "frf-domain",
+ "frf-ports",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

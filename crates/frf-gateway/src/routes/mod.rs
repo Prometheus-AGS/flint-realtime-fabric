@@ -4,5 +4,7 @@ pub mod dev;
 pub mod health;
 pub mod metrics;
 pub mod publish;
+#[cfg(feature = "shape-facade")]
+pub mod shape;
 pub mod signal;
 pub mod subscribe;
