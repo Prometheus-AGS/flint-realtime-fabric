@@ -313,10 +313,28 @@ covered by §1–§5) or gated off / labeled unimplemented — no half-secured l
     detail wasn't visible this run; and the Linux candidate addressing (`MEDIA_ADVERTISE_IP`/coturn
     `--external-ip`) needs verifying once the log is captured. This is a normal debugging loop on a
     **working** proof harness, not an environmental dead-end.
+  - **Phase-36 cleared the ICE stall — ICE now CONNECTS on Linux, and ~1.8 MB of RTP reaches the
+    receiver; the residual is a keyframe/room-registration defect, not transport.** c001 fixed the
+    gateway-log capture (partially — see below) and the ICE root cause: str0m was not running
+    **ICE-lite** (`crates/frf-media-str0m/src/session.rs:229`,
+    `Rtc::builder().set_ice_lite(true)`). CI run 29112243615 reports **`ice=connected`**
+    (`localCandidates=1 remoteCandidates=1`) on all three attempts — the phase-32→35
+    candidate-topology class is **resolved**. But `framesDecoded=0` with **`bytes≈1,800,000`**: media
+    genuinely flows and the decoder produces nothing. The gateway log shows **1,997
+    `inbound MediaData → fan-out` events** (audio + video, MIDs mapping correctly — the `p36-c002h`
+    MID fix works) and **zero PLI/FIR/keyframe requests**, with **`room=` empty on every event** and
+    **no room-join events at all**. Diagnosis: the receiver never registers as a room member, so the
+    `p36-c002g` "proactive PLI on room-join" path never fires; the receiver joins mid-GOP with no
+    I-frame and cannot decode, while bytes still arrive because fan-out does not itself depend on
+    room membership. This is the same defect class as the phase-27 "no `RoomJoin` so the `RoomRouter`
+    never fanned out" finding, resurfaced. Full evidence: `docs/PHASE-36-DECODE-RESULT.md`.
+    **Caveat on artifacts:** the c001 log fix is only **partially effective** — `gateway.log` uploads
+    as **0 bytes**; the usable output came from a separate `gateway-capture.log`.
   - Therefore **`SFU_MODE=sovereign` stays gated off** (defaults to `hosted`, boots with a
     warning). Do not enable it in production expecting media to flow until the decode proof passes
     against real infra; hosted (LiveKit) remains the media path. See ADR-005/006/007,
-    `docs/PHASE-24-DECODE-RESULT.md`, and `crates/frf-media-str0m/SPIKE-FINDINGS.md`.
+    `docs/PHASE-24-DECODE-RESULT.md`, `docs/PHASE-36-DECODE-RESULT.md`, and
+    `crates/frf-media-str0m/SPIKE-FINDINGS.md`.
 
 ### admin-ui login
 

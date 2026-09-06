@@ -7,6 +7,41 @@ the stable interface).
 
 ## [Unreleased]
 
+### Phase 36 — sovereign SFU: ICE solved on Linux; media path outstanding
+
+Fixed the phase-35 ICE stall: str0m was not running **ICE-lite**. With that corrected, **ICE
+completes on `ubuntu-latest`** (`ice=connected`) and ~1.8 MB of RTP reaches the receiver. The decode
+still reports `framesDecoded=0`, so **`SFU_MODE=sovereign` stays off** — but the failure has moved
+one layer downstream, from connectivity to media flow, and the remaining defect is now identified.
+
+#### Deliverables
+
+- **ICE fix + gateway-log capture** (p36-c001): enabled ICE-lite on the str0m session
+  (`crates/frf-media-str0m/src/session.rs:229`, `Rtc::builder().set_ice_lite(true)`) — the root cause
+  of the phase-32→35 `ice=checking` stall. Also addressed the phase-35 log-capture harness bug,
+  **partially**: a `gateway-capture.log` now captures container output, but the intended
+  `gateway.log` artifact still uploads as 0 bytes.
+- **Decode evidence + gate decision** (p36-c002, partial): recorded CI run 29112243615 in
+  `docs/PHASE-36-DECODE-RESULT.md` — `ice=connected`, `localCandidates=1 remoteCandidates=1`,
+  `bytes≈1,800,000`, `framesDecoded=0`, `reason=timeout`, consistent across all three attempts.
+  Gate **held OFF**. Gateway log shows 1,997 `inbound MediaData → fan-out` events (audio + video,
+  MIDs correct — the `p36-c002h` MID fix works) but **zero PLI/FIR/keyframe requests**, `room=` empty
+  on every event, and no room-join events: the receiver never registers as a room member, so the
+  `p36-c002g` proactive-PLI path never fires and the receiver joins mid-GOP with no I-frame. Same
+  defect class as the phase-27 `RoomJoin` finding. Tasks T1–T4 (live CI run + flip) remain open
+  pending authorization to run CI.
+- **Retired the proof-branch workflow** (p36-c003): all sovereign SFU work is already merged into
+  `main` (PRs #3, #4; `9ba04ae` is an ancestor), and `sovereign-sfu-decode-proof` has been deleted —
+  so `decode-proof.yml`'s `push` trigger scoped to that branch was dead and **no push could fire the
+  decode proof**. Removed it, leaving `workflow_dispatch`
+  (`gh workflow run decode-proof.yml --ref main`). Retired goal G5 (the PR it called for would be
+  empty) and recorded the phase in `docs/PHASE-36-SIGNOFF.md`.
+
+#### Gate
+
+`SFU_MODE=sovereign` remains **OFF** (defaults to `hosted`). `crates/frf-gateway/src/main.rs` is
+unchanged and still warns that end-to-end media is not proven.
+
 ### Phase 35 — sovereign SFU decode: CI/Linux proof; environment unblocked
 
 Escalated the decode proof to GitHub Actions `ubuntu-latest` — and it **worked**: the whole stack now
