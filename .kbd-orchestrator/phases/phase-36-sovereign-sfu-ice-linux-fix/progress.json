@@ -1,15 +1,15 @@
 {
   "phase": "phase-36-sovereign-sfu-ice-linux-fix",
-  "changes_total": 3,
+  "changes_total": 4,
   "changes_completed": 2,
   "completed_changes": [
     "p36-c001-ice-fix-and-log-capture",
     "p36-c003-pr-to-main"
   ],
   "pending_changes": [
-    "p36-c002-decode-run-and-flip"
+    "p36-c004-local-decode-run-and-flip"
   ],
-  "active_change": "p36-c002-decode-run-and-flip",
+  "active_change": "p36-c004-local-decode-run-and-flip",
   "assessment_complete": true,
   "plan_complete": true,
   "execute_complete": false,
@@ -17,9 +17,15 @@
   "phase_complete": false,
   "seededFrom": "phase-35-sovereign-sfu-decode-ci-linux-proof",
   "createdAt": "2026-07-09T23:59:30Z",
-  "updatedAt": "2026-09-06T21:45:21Z",
+  "updatedAt": "2026-09-07T04:15:00Z",
   "childPhases": [
     "adr-009-replication-materializer-and-pem-publication"
   ],
-  "childPointer": "adr-009-replication-materializer-and-pem-publication"
+  "childPointer": "adr-009-replication-materializer-and-pem-publication",
+  "deferred_changes": [
+    "p36-c002-decode-run-and-flip"
+  ],
+  "last_updated": "2026-09-07T04:15:00Z",
+  "last_updated_by": "kbd-apply",
+  "notes": "p36-c002 DEFERRED, not done: its two remaining tasks both require a CI run, which the permanent local-testing-only policy forbids. 6/8 tasks genuinely complete. Superseded by p36-c004, which takes the same gate decision from a local integration run."
 }

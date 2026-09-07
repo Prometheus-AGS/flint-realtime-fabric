@@ -116,6 +116,10 @@ Interface (frf-gateway)
 
 ## Rust Code Quality Gates (All Must Pass in CI)
 
+> **Not a contradiction with the testing policy below.** CI runs *build, lint,
+> typecheck, format and packaging* gates. It never runs tests. See
+> **Testing Policy — Local Integration Only** at the end of this file.
+
 These are hard quality gates — a violation is a failure, not a style nit:
 
 ```toml
@@ -300,3 +304,36 @@ Each phase has an explicit exit criterion in `docs/IMPLEMENTATION-PLAN.md`. The 
 4. Do not begin the next phase until explicit approval is given.
 
 This is not optional. Do not auto-advance.
+
+---
+
+## Testing Policy — Local Integration Only (NON-NEGOTIABLE)
+
+**CI/CD is never used to run tests. Ever.** Not to verify a change, not to prove
+a gate, not "just this once" for a hard-to-reproduce case.
+
+**All testing is local full-integration testing.** Stand the stack up on the
+development machine and run against it.
+
+### What this forbids
+
+- Dispatching a workflow to test something (`gh workflow run …`, pushing to
+  trigger CI, re-running a failed job to observe behaviour).
+- Treating a CI run as evidence that a gate may flip.
+- Writing a task, plan or acceptance criterion whose only path to completion is
+  a CI run. Such a task is unsatisfiable and must be rewritten around a local
+  integration run instead.
+
+### What this permits
+
+- CI for build, lint, typecheck, formatting and packaging.
+- Local `cargo test`, `vitest`, and full local integration runs against a
+  locally-composed stack.
+
+### Why it is written here
+
+Phase-36's `p36-c002` was authored as "trigger the CI decode job, read
+`framesDecoded`, decide the gate". Under this policy that change can never be
+completed as written — every remaining task depends on a prohibited action. It
+was deferred rather than closed, and rewritten around a local run. Read this
+section before planning any change whose verification step is a workflow.
