@@ -1,22 +1,22 @@
 {
   "phase": "phase-36-sovereign-sfu-ice-linux-fix",
   "previousPhase": "phase-35-sovereign-sfu-decode-ci-linux-proof",
-  "status": "child_complete",
-  "exactNextCommand": "/kbd-next-child",
-  "activeChange": null,
-  "changesCompleted": 5,
-  "changesTotal": 5,
-  "updatedAt": "2026-09-07T03:15:00Z",
+  "status": "execute_ready",
+  "exactNextCommand": "/kbd-apply p36-c002-decode-run-and-flip",
+  "activeChange": "p36-c002-decode-run-and-flip",
+  "changesCompleted": 2,
+  "changesTotal": 3,
+  "updatedAt": "2026-09-07T03:40:00Z",
   "planComplete": true,
   "assessmentComplete": true,
-  "executeComplete": true,
-  "reflectComplete": true,
+  "executeComplete": false,
+  "reflectComplete": false,
   "backend": "openspec",
-  "next": "/kbd-next-child",
-  "changes_completed": 5,
-  "changes_total": 5,
-  "stage": "child_complete",
-  "active_change": null,
+  "next": "/kbd-apply p36-c002-decode-run-and-flip",
+  "changes_completed": 2,
+  "changes_total": 3,
+  "stage": "execute_ready",
+  "active_change": "p36-c002-decode-run-and-flip",
   "path": [
     "phase-36-sovereign-sfu-ice-linux-fix",
     "adr-009-replication-materializer-and-pem-publication"
@@ -24,6 +24,6 @@
   "childPhases": [
     "adr-009-replication-materializer-and-pem-publication"
   ],
-  "childPointer": "adr-009-replication-materializer-and-pem-publication",
-  "currentTask": "child adr-009 complete (5/5, unproven) \u2014 return to parent phase-36, p36-c002 still open"
+  "childPointer": null,
+  "currentTask": "apply p36-c002-decode-run-and-flip (BLOCKED: needs a live CI run)"
 }
