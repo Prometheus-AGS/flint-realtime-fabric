@@ -2,11 +2,11 @@
   "schemaVersion": "1",
   "generatedBy": "legacy-position-projection",
   "sourceRevision": 0,
-  "updatedAt": "2026-09-07T01:05:26Z",
+  "updatedAt": "2026-09-07T05:03:53Z",
   "cursor": [
     "phase-36-sovereign-sfu-ice-linux-fix",
     "adr-009-replication-materializer-and-pem-publication",
-    "p37-c003-pem-checkpoint-atomicity"
+    "p37-c004-aso-replica-runtime"
   ],
   "root": {
     "type": "phase",
@@ -22,13 +22,13 @@
         "id": "adr-009-replication-materializer-and-pem-publication",
         "status": "execute_ready",
         "progress": {
-          "done": 2,
+          "done": 3,
           "total": 5
         },
         "children": [
           {
             "type": "change",
-            "id": "p37-c003-pem-checkpoint-atomicity",
+            "id": "p37-c004-aso-replica-runtime",
             "status": "PENDING",
             "progress": {
               "done": 0,
