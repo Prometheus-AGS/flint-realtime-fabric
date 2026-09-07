@@ -2,11 +2,11 @@
   "schemaVersion": "1",
   "generatedBy": "legacy-position-projection",
   "sourceRevision": 0,
-  "updatedAt": "2026-09-06T23:21:52Z",
+  "updatedAt": "2026-09-07T00:42:23Z",
   "cursor": [
     "phase-36-sovereign-sfu-ice-linux-fix",
     "adr-009-replication-materializer-and-pem-publication",
-    "p37-c001-pem-runtime-scoped-state"
+    "p37-c002-pem-dispose-barrier"
   ],
   "root": {
     "type": "phase",
@@ -22,13 +22,13 @@
         "id": "adr-009-replication-materializer-and-pem-publication",
         "status": "execute_ready",
         "progress": {
-          "done": 0,
+          "done": 1,
           "total": 5
         },
         "children": [
           {
             "type": "change",
-            "id": "p37-c001-pem-runtime-scoped-state",
+            "id": "p37-c002-pem-dispose-barrier",
             "status": "PENDING",
             "progress": {
               "done": 0,

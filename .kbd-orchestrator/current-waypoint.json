@@ -2,21 +2,21 @@
   "phase": "phase-36-sovereign-sfu-ice-linux-fix",
   "previousPhase": "phase-35-sovereign-sfu-decode-ci-linux-proof",
   "status": "execute_ready",
-  "exactNextCommand": "/kbd-apply p37-c002-pem-dispose-barrier",
-  "activeChange": "p37-c002-pem-dispose-barrier",
-  "changesCompleted": 1,
+  "exactNextCommand": "/kbd-apply p37-c003-pem-checkpoint-atomicity",
+  "activeChange": "p37-c003-pem-checkpoint-atomicity",
+  "changesCompleted": 2,
   "changesTotal": 5,
-  "updatedAt": "2026-09-06T23:59:00Z",
+  "updatedAt": "2026-09-07T00:30:00Z",
   "planComplete": true,
   "assessmentComplete": true,
   "executeComplete": false,
   "reflectComplete": false,
   "backend": "openspec",
-  "next": "/kbd-apply p37-c002-pem-dispose-barrier",
-  "changes_completed": 1,
+  "next": "/kbd-apply p37-c003-pem-checkpoint-atomicity",
+  "changes_completed": 2,
   "changes_total": 5,
   "stage": "execute_ready",
-  "active_change": "p37-c002-pem-dispose-barrier",
+  "active_change": "p37-c003-pem-checkpoint-atomicity",
   "path": [
     "phase-36-sovereign-sfu-ice-linux-fix",
     "adr-009-replication-materializer-and-pem-publication"
@@ -25,5 +25,5 @@
     "adr-009-replication-materializer-and-pem-publication"
   ],
   "childPointer": "adr-009-replication-materializer-and-pem-publication",
-  "currentTask": "apply p37-c002-pem-dispose-barrier"
+  "currentTask": "apply p37-c003-pem-checkpoint-atomicity"
 }
