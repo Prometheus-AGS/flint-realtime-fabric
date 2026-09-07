@@ -2,11 +2,11 @@
   "schemaVersion": "1",
   "generatedBy": "legacy-position-projection",
   "sourceRevision": 0,
-  "updatedAt": "2026-09-07T05:03:53Z",
+  "updatedAt": "2026-09-07T10:26:32Z",
   "cursor": [
     "phase-36-sovereign-sfu-ice-linux-fix",
     "adr-009-replication-materializer-and-pem-publication",
-    "p37-c004-aso-replica-runtime"
+    "p37-c005-evidence-not-loaded-state"
   ],
   "root": {
     "type": "phase",
@@ -22,13 +22,13 @@
         "id": "adr-009-replication-materializer-and-pem-publication",
         "status": "execute_ready",
         "progress": {
-          "done": 3,
+          "done": 4,
           "total": 5
         },
         "children": [
           {
             "type": "change",
-            "id": "p37-c004-aso-replica-runtime",
+            "id": "p37-c005-evidence-not-loaded-state",
             "status": "PENDING",
             "progress": {
               "done": 0,

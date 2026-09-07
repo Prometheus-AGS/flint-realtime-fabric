@@ -1,22 +1,22 @@
 {
   "phase": "phase-36-sovereign-sfu-ice-linux-fix",
   "previousPhase": "phase-35-sovereign-sfu-decode-ci-linux-proof",
-  "status": "execute_ready",
-  "exactNextCommand": "/kbd-apply p37-c005-evidence-not-loaded-state",
-  "activeChange": "p37-c005-evidence-not-loaded-state",
-  "changesCompleted": 4,
+  "status": "reflect_ready",
+  "exactNextCommand": "/kbd-reflect",
+  "activeChange": null,
+  "changesCompleted": 5,
   "changesTotal": 5,
-  "updatedAt": "2026-09-07T02:00:00Z",
+  "updatedAt": "2026-09-07T02:45:00Z",
   "planComplete": true,
   "assessmentComplete": true,
-  "executeComplete": false,
+  "executeComplete": true,
   "reflectComplete": false,
   "backend": "openspec",
-  "next": "/kbd-apply p37-c005-evidence-not-loaded-state",
-  "changes_completed": 4,
+  "next": "/kbd-reflect",
+  "changes_completed": 5,
   "changes_total": 5,
-  "stage": "execute_ready",
-  "active_change": "p37-c005-evidence-not-loaded-state",
+  "stage": "reflect_ready",
+  "active_change": null,
   "path": [
     "phase-36-sovereign-sfu-ice-linux-fix",
     "adr-009-replication-materializer-and-pem-publication"
@@ -25,5 +25,5 @@
     "adr-009-replication-materializer-and-pem-publication"
   ],
   "childPointer": "adr-009-replication-materializer-and-pem-publication",
-  "currentTask": "apply p37-c005-evidence-not-loaded-state"
+  "currentTask": "reflect on the adr-009 replication child phase"
 }
