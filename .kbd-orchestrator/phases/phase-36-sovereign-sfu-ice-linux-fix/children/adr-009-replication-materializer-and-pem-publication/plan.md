@@ -303,3 +303,33 @@ finding is carried unresolved.
    Correct bookkeeping error: the gap table implied c003 closed G3. It now shows c003 as G3's
    atomicity half and c004 as carrying G3's rebuild half, and c003 states explicitly that it is
    not "G3 complete."
+
+
+## Correction — 2026-09-06: the ASO replica schema exists
+
+This document repeatedly states that ASO's privacy-approved replica schema "does not exist
+(sequence step 1)". **That is wrong**, and the error propagated into the plan, ADR-009 and the
+c006 change before it was caught.
+
+It exists, in the `prior-auth` repo:
+
+- `web/src/shared/sync/pglite-schema.ts` — five tables, `OMITTED_COLUMNS` recording every PHI
+  exclusion as assertable data, ADR-007 behind it, and `pglite-schema.test.ts` failing on a
+  sixth table or a reappearing omitted column.
+- `web/src/shared/sync/electric-shapes.ts` — `SYNC_RELATIONS` (base tables, not views — measured
+  against a live stack 2026-09-05) and `SYNC_COLUMNS`, which *is* the PHI boundary on the wire,
+  verified against a canary row. `createTenantScopedElectricAdapter` fails closed.
+- `practice_id` denormalized onto every synced row *because an Electric shape WHERE clause is
+  flat and cannot join* — the schema was shaped for this facade's request model.
+
+**How the error happened:** the ASO runtime architecture lists the schema as sequence step 1,
+and I read "listed as step 1" as "not yet done" without checking the repo.
+
+**What changes:** c006 is unblocked and re-scoped from "define clinical tables" to "conform
+FRF's catalog to ASO's existing tables." G4's table shapes are no longer provisional. No ASO
+schema change is needed, and none should be made to suit the facade — `OMITTED_COLUMNS` states
+that removing an entry is "a decision about PHI, not a cleanup."
+
+**What remains genuinely open:** whether ASO adopts the facade at all. It syncs Electric
+directly today, and that path works and is measured. Recorded in
+`docs/architecture/frf-shape-facade-integration.md` in the `prior-auth` repo.

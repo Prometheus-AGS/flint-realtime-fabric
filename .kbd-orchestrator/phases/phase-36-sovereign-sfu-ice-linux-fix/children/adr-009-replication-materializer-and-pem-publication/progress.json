@@ -9,15 +9,15 @@
   "execute_complete": false,
   "reflect_complete": false,
   "implementation_total": 5,
-  "implementation_completed": 0,
+  "implementation_completed": 1,
   "changes_total": 5,
-  "changes_completed": 0,
+  "changes_completed": 1,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 0,
+      "completed": 1,
       "total": 5,
-      "status": "PENDING"
+      "status": "IN_PROGRESS"
     },
     "evidence": {
       "status": "NOT_TRACKED",
@@ -35,11 +35,11 @@
       "blockers": []
     }
   },
-  "completed_changes": [],
-  "active_change": "p37-c001-pem-runtime-scoped-state",
-  "blocked_changes": [
-    "p37-c006-aso-clinical-materialization"
+  "completed_changes": [
+    "p37-c001-pem-runtime-scoped-state"
   ],
+  "active_change": "p37-c002-pem-dispose-barrier",
+  "blocked_changes": [],
   "changes": [
     "p37-c001-pem-runtime-scoped-state",
     "p37-c002-pem-dispose-barrier",
@@ -47,9 +47,9 @@
     "p37-c004-aso-replica-runtime",
     "p37-c005-evidence-not-loaded-state"
   ],
-  "last_updated": "2026-09-06T22:30:00Z",
+  "last_updated": "2026-09-06T23:59:00Z",
   "last_updated_by": "kbd-plan",
   "sourceTool": "unknown",
   "createdBy": "kbd-new-child",
-  "updatedAt": "2026-09-06T22:30:00Z"
+  "updatedAt": "2026-09-06T23:59:00Z"
 }

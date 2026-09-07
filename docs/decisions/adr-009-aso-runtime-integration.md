@@ -34,9 +34,19 @@ other clone.
 > shape catalog, parameter allow-listing, per-request/per-continuation Keto
 > authorization, and a live Electric HTTP client), and a `GET /v1/shape` gateway route
 > behind the off-by-default `shape-facade` feature. **The lane remains disabled.** The
-> live Electric exchange has not been run against a server, ASO has not yet defined the
-> privacy-approved replica schema (sequence step 1), and the materializer, checkpoint
-> atomicity and PEM publication contract below are still unimplemented. The Verification
+> live Electric exchange has not been run against a server, and the materializer, checkpoint
+> atomicity and PEM publication contract below are still unimplemented.
+>
+> **Correction 2026-09-06:** an earlier revision of this note said ASO "has not yet defined the
+> privacy-approved replica schema (sequence step 1)". That was wrong. It exists in the
+> `prior-auth` repo — `web/src/shared/sync/pglite-schema.ts` (five tables, PHI exclusions as
+> assertable data, ADR-007, a test that fails on a sixth table) and
+> `web/src/shared/sync/electric-shapes.ts` (base-table relations and a column projection that is
+> the PHI boundary, both measured against a live stack on 2026-09-05). `practice_id` is already
+> denormalized onto every synced row because an Electric shape WHERE clause cannot join. The
+> error came from reading the ASO sequence table's "step 1" as "not done" without checking the
+> repo. FRF's catalog conforms to that schema; the schema does not change to suit FRF. See
+> `docs/architecture/frf-shape-facade-integration.md` in `prior-auth`. The Verification
 > section's criteria are unmet; nothing here certifies the lane.
 
 Provide an authorized HTTP shape facade between Electric and the ASO local

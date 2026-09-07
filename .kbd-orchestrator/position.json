@@ -1,29 +1,41 @@
 {
   "schemaVersion": "1",
-  "updatedAt": "2026-09-05T00:00:00Z",
+  "generatedBy": "legacy-position-projection",
+  "sourceRevision": 0,
+  "updatedAt": "2026-09-06T23:21:52Z",
   "cursor": [
     "phase-36-sovereign-sfu-ice-linux-fix",
-    "p36-c002-decode-run-and-flip"
+    "adr-009-replication-materializer-and-pem-publication",
+    "p37-c001-pem-runtime-scoped-state"
   ],
   "root": {
     "type": "phase",
     "id": "phase-36-sovereign-sfu-ice-linux-fix",
-    "status": "execute_ready",
+    "status": "active-parent",
     "progress": {
-      "done": 1,
+      "done": 2,
       "total": 3
     },
     "children": [
       {
-        "type": "change",
-        "id": "p36-c002-decode-run-and-flip",
-        "status": "apply_pending",
+        "type": "phase",
+        "id": "adr-009-replication-materializer-and-pem-publication",
+        "status": "execute_ready",
         "progress": {
           "done": 0,
-          "total": 1
+          "total": 5
         },
-        "children": [],
-        "annotations": []
+        "children": [
+          {
+            "type": "change",
+            "id": "p37-c001-pem-runtime-scoped-state",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 0
+            }
+          }
+        ]
       }
     ],
     "annotations": []

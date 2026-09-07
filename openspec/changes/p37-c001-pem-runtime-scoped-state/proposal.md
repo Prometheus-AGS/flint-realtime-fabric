@@ -59,3 +59,25 @@ ownership, which is what makes those possible.
 | `packages/entity-graph-react/src/graph-store.ts` | PEM | `useGraphSyncStatus` follows the scoping |
 | `packages/entity-graph-core/src/local-first-runtime.test.ts` | PEM | regression tests |
 | `web/src/app/providers/graph-provider.tsx` | ASO | composed storage key |
+
+## Semver — implemented 2026-09-06
+
+Backward compatible in practice, despite touching public API:
+
+- `RuntimeScope`, `createRuntimeScope`, `createGraphSyncStatusStore` are **added**.
+- `LocalFirstGraphRuntime` gains a required `scope` field — a **breaking change for anyone
+  implementing the interface**, though not for callers of `startLocalFirstGraph`.
+- `PersistGraphToStorageOptions` / `HydrateGraphFromStorageOptions` gain an **optional**
+  `scope`; existing calls compile and behave unchanged against a process-wide fallback.
+- `graphSyncStatusStore` and `getGraphSyncStatus` still exist and still work. A runtime mirrors
+  its status there, so a single-runtime app sees no behaviour change.
+- `useGraphSyncStatus()` still takes no argument. It now *optionally* accepts a runtime to read
+  that runtime's isolated status.
+
+**Recommended bump: major** for `@prometheus-ags/entity-graph-core` (4.0.0 → 5.0.0) and
+`entity-graph-react` in lockstep. The interface change to `LocalFirstGraphRuntime` justifies it,
+and the semantics of `graphSyncStatusStore` under multiple runtimes are now explicitly
+"last writer wins" rather than accidentally so.
+
+**Not done here:** the version numbers themselves. Bumping them is a release action, and this
+phase produces DONE-but-not-PROVEN code that has not been executed.
