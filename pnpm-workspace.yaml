@@ -2,7 +2,6 @@ packages:
   - sdks/ts
   - sdks/entity-management
   - admin-ui
-  - website
 allowBuilds:
   # core-js's postinstall only prints a funding banner; it builds nothing.
   # @swc/core is the Rust compiler behind @docusaurus/faster; it needs its
@@ -10,5 +9,3 @@ allowBuilds:
   '@swc/core': true
   core-js: false
   esbuild: true
-  # sharp ships prebuilt binaries; its install script fetches them.
-  sharp: true

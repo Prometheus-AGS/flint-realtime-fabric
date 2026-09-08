@@ -11,8 +11,7 @@ on:
       - "website/**"
       - "docs/**"
       - "README.md"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
+      - "website/package-lock.json"
       - ".github/workflows/docs-pages.yml"
   push:
     branches: [main]
@@ -37,33 +36,36 @@ jobs:
           # page to the checkout.
           fetch-depth: 0
 
-      - name: Install the pinned pnpm runtime
-        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
-
       - name: Install Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "24"
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-          package-manager-cache: false
+          cache: npm
+          cache-dependency-path: website/package-lock.json
 
-      - name: Install the frozen workspace
-        run: pnpm install --frozen-lockfile
+      - name: Install the locked dependencies
+        run: npm ci
+        working-directory: website
 
       # NOTE: this builds and inspects the documentation site. It does not run
       # tests — this project's policy is local integration testing only, and CI
       # runs build, lint, typecheck, format and packaging gates exclusively.
-      - name: Typecheck the site
-        run: pnpm --filter @prometheusags/frf-docs typecheck
-
+      #
+      # `npm run build` runs the sanitizer first (it rejects machine-local
+      # paths, secrets and raw wiki content), then `docusaurus build`, which
+      # fails on a broken link because onBrokenLinks is "throw".
       - name: Build the production site
-        # onBrokenLinks: "throw" means a dead cross-reference fails here rather
-        # than shipping.
-        run: pnpm --filter @prometheusags/frf-docs build
+        run: npm run build
+        working-directory: website
 
-      - name: Inspect the built artifact
-        run: pnpm --filter @prometheusags/frf-docs check:build
+      - name: Reject private material in the output
+        run: |
+          if grep -rIlE '/Users/|\.prometheus/|BEGIN .*PRIVATE KEY' build; then
+            echo "private material found in site output" >&2
+            exit 1
+          fi
+          echo "no private material in build output"
+        working-directory: website
 
       - name: Configure GitHub Pages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

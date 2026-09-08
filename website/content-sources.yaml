@@ -1,0 +1,8 @@
+schema_version: 1
+sources:
+  - path: docs
+    classification: public-normalize
+  - path: .prometheus
+    classification: private-synthesis-only
+  - path: events.jsonl
+    classification: excluded
