@@ -104,13 +104,11 @@ pub fn resilient_subscribe(
                 Err(e) => {
                     tracing::warn!(error = %e, "reconnect failed");
                     retries += 1;
-                    if let Some(max) = policy.max_retries {
-                        if retries > max {
-                            yield Err(SdkError::Connect(format!(
-                                "reconnection exhausted after {retries} attempts: {e}"
-                            )));
-                            return;
-                        }
+                    if policy.max_retries.is_some_and(|max| retries > max) {
+                        yield Err(SdkError::Connect(format!(
+                            "reconnection exhausted after {retries} attempts: {e}"
+                        )));
+                        return;
                     }
                 }
             }

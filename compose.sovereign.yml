@@ -31,7 +31,12 @@ services:
       # used (docker0 host bridge), which is a DIFFERENT bridge — unreachable from the Compose
       # project network — causing ice=checking to stall indefinitely (phases 35 run 29057452278).
       MEDIA_BIND_ADDR: "0.0.0.0"
-      MEDIA_ADVERTISE_IP: "gateway"
+      # p36-c004: overridable. The default "gateway" is correct on the CI Linux bridge, but on
+      # an IPv6-enabled bridge (OrbStack on macOS) the service name resolves to BOTH the v4 and
+      # v6 address, and str0m's to_socket_addrs() picks IPv6 — advertising e.g.
+      # `fd07:b51a:cc66:d002::5`, which the peer container never pairs with (ice stays `new`).
+      # The runner resolves the container's IPv4 after boot and passes it here.
+      MEDIA_ADVERTISE_IP: "${MEDIA_ADVERTISE_IP:-gateway}"
       MEDIA_UDP_PORT: "40000"
       # p25-c001: the base compose.yml hardcodes the flint-gate JWKS URL; override it so the
       # gateway verifies against the run's self-served RS256 JWKS (the runner sets this env to a

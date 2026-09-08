@@ -1,22 +1,22 @@
 {
   "phase": "phase-36-sovereign-sfu-ice-linux-fix",
   "previousPhase": "phase-35-sovereign-sfu-decode-ci-linux-proof",
-  "status": "execute_ready",
-  "exactNextCommand": "/kbd-apply p36-c004-local-decode-run-and-flip",
-  "activeChange": "p36-c004-local-decode-run-and-flip",
-  "changesCompleted": 2,
+  "status": "reflect_ready",
+  "exactNextCommand": "/kbd-reflect",
+  "activeChange": null,
+  "changesCompleted": 3,
   "changesTotal": 4,
-  "updatedAt": "2026-09-07T04:15:00Z",
+  "updatedAt": "2026-09-08T11:47:31Z",
   "planComplete": true,
   "assessmentComplete": true,
-  "executeComplete": false,
+  "executeComplete": true,
   "reflectComplete": false,
   "backend": "openspec",
-  "next": "/kbd-apply p36-c004-local-decode-run-and-flip",
-  "changes_completed": 2,
+  "next": "/kbd-reflect",
+  "changes_completed": 3,
   "changes_total": 4,
-  "stage": "execute_ready",
-  "active_change": "p36-c004-local-decode-run-and-flip",
+  "stage": "reflect_ready",
+  "active_change": null,
   "path": [
     "phase-36-sovereign-sfu-ice-linux-fix",
     "adr-009-replication-materializer-and-pem-publication"
@@ -25,5 +25,5 @@
     "adr-009-replication-materializer-and-pem-publication"
   ],
   "childPointer": null,
-  "currentTask": "apply p36-c004 \u2014 local decode run + gate decision (supersedes deferred c002)"
+  "currentTask": "phase-36 execute complete (3/4; c002 deferred+superseded) \u2014 decode PASSED, gate FLIPPED ON"
 }

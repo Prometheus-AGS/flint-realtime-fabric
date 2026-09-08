@@ -309,12 +309,22 @@ fn build_media_signaler(config: &GatewayConfig) -> DynMediaSignaler {
         SfuMode::Sovereign => {
             // Sovereign signaling relay. The str0m MEDIA engine (StrOmTransport) is composed
             // separately and driven from the signal path via MediaTransportBridge (p22-c003).
-            // The media plane is present but NOT proven end-to-end (browser proof deferred),
-            // so this stays a warning path — hosted (LiveKit) is the supported v1 media path.
-            tracing::warn!(
-                "SFU_MODE=sovereign: signaling + str0m media engine composed, but end-to-end \
-                 media is NOT yet proven (browser proof deferred). Use SFU_MODE=hosted \
-                 (LiveKit) for a production media path."
+            //
+            // p36-c004: the end-to-end browser decode proof PASSES. A two-browser Chromium run
+            // against this engine observed `inbound-rtp.framesDecoded > 0` on the authenticated
+            // path (see docs/PHASE-36-LOCAL-DECODE-RESULT.md). The gate that phases 16-36 held
+            // shut is therefore open: this is no longer a warning path.
+            //
+            // Scope of that proof, stated precisely: it was a LOCAL run on a single Compose
+            // bridge, both peers inside the network, with coturn available. It demonstrates the
+            // relay decodes real media. It is NOT a multi-host, NAT-traversal, or scale result,
+            // and the advertised-candidate configuration is topology-sensitive (MEDIA_ADVERTISE_IP
+            // must resolve to an address the peer can actually pair with — on a dual-stack bridge
+            // a hostname can resolve IPv6-first and silently strand ICE in `new`).
+            tracing::info!(
+                "SFU_MODE=sovereign: signaling + str0m media engine composed; end-to-end decode \
+                 proven locally (p36-c004, framesDecoded > 0). Verify MEDIA_ADVERTISE_IP is \
+                 peer-reachable for your topology."
             );
             DynMediaSignaler::new(Arc::new(StrOmSignaler::new()))
         }

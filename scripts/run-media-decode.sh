@@ -21,7 +21,7 @@
 #   E2E_SUBJECT       JWT subject to mint + grant view (default dev-integration-user)
 #   E2E_ROOM          media room id (default e2e-decode-room)
 #   E2E_TENANT_ID     tenant uuid (default …0001, matches the compose CDC tenant)
-#   GATEWAY_URL       default http://localhost:28080
+#   GATEWAY_URL       default http://127.0.0.1:28080 (see the IPv6 note at the assignment)
 #   JWKS_PORT         host port to serve the JWKS on (default 8791)
 #   PREBUILD_GATEWAY  set to 1 to build the gateway image in-run (fresh checkout); default off
 set -euo pipefail
@@ -41,6 +41,14 @@ COMPOSE=(-f compose.yml -f compose.sovereign.yml)
 # in-network browser at the relay so it gathers a `typ relay` candidate (the routable pair host/srflx
 # couldn't form on the bridge — phase-32). str0m accepts `typ relay`.
 export TURN_SECRET="${TURN_SECRET:-$(head -c 24 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9')}"
+# p36-c004: the base compose.yml's flint-gate service requires FLINT_GATE_JWT_SECRET at
+# INTERPOLATION time — both `build` and `up` fail without it, before any container starts.
+# CI supplied it job-wide (p35), so the local path never needed it and silently lacked it:
+# a local `docker compose build gateway` failed with "required variable
+# FLINT_GATE_JWT_SECRET is missing a value". Generated here like TURN_SECRET — ephemeral,
+# never committed. flint-gate is not exercised by the decode path (the runner self-serves
+# an RS256 JWKS), so the value only has to exist.
+export FLINT_GATE_JWT_SECRET="${FLINT_GATE_JWT_SECRET:-$(head -c 24 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9')}"
 TURN_USERNAME="${TURN_USERNAME:-frf}"
 TURN_URL="${TURN_URL:-turn:coturn:3478}"
 export TURN_EXTERNAL_IP="${TURN_EXTERNAL_IP:-127.0.0.1}"
@@ -51,10 +59,14 @@ export TURN_EXTERNAL_IP="${TURN_EXTERNAL_IP:-127.0.0.1}"
 if [ -z "${HOST_ADDR:-}" ]; then
   if [ "$(uname -s)" = "Linux" ]; then HOST_ADDR="172.17.0.1"; else HOST_ADDR="host.docker.internal"; fi
 fi
-# p36-c002: MEDIA_ADVERTISE_IP is now hardcoded to "gateway" in compose.sovereign.yml; the service name
-# resolves to the container's own Compose-bridge IP via Docker DNS. Do NOT export it here — a shell-env
+# p36-c002: MEDIA_ADVERTISE_IP defaults to the service name "gateway" in compose.sovereign.yml, which
+# Docker DNS resolves to the container's own Compose-bridge IP. Do NOT export it *here* — a shell-env
 # export takes precedence over compose file `environment:` values, which is why run 29069204711 still
 # got 172.17.0.1 (the Linux HOST_ADDR) even after compose.sovereign.yml was fixed in c001.
+# p36-c004 amends this: the service name is ambiguous on a dual-stack bridge (str0m picks the IPv6
+# address, which the peer cannot pair with), so the runner pins the resolved IPv4 in a second pass
+# AFTER the gateway is up — see the `MEDIA_ADVERTISE_IP` block further down. That override is
+# deliberate and scoped to that one `docker compose up`, not a blanket export.
 # TURN_EXTERNAL_IP is also no longer used — coturn's --external-ip now expands $(hostname -i) at
 # container startup (compose.sovereign.yml entrypoint override, p36-c001), so this export is dead.
 # Keep HOST_ADDR for the JWKS URL only (the Python server runs on the host; containers reach it via
@@ -78,7 +90,12 @@ if [ "${HOST_NET:-0}" = "1" ]; then
   HOST_NET_JWKS_URL="http://${HOST_NAT_IP}:${JWKS_PORT}/jwks.json"
   echo "[run-media-decode] HOST_NET: VM_IP=${VM_IP} HOST_NAT_IP=${HOST_NAT_IP}"
 fi
-GATEWAY_URL="${GATEWAY_URL:-http://localhost:28080}"
+# p36-c004: 127.0.0.1, NOT localhost. On macOS `localhost` resolves to ::1 first, and the
+# container runtime's IPv6 port-forward resets the connection while the IPv4 forward serves
+# normally (verified: [::1]:28080 -> connection reset, 127.0.0.1:28080 -> HTTP 200, same
+# container). Using `localhost` made a healthy gateway look dead and aborted the run before
+# the browsers ever launched — reported as "gateway never became healthy".
+GATEWAY_URL="${GATEWAY_URL:-http://127.0.0.1:28080}"
 
 JWKS_PID=""
 cleanup() {
@@ -143,6 +160,27 @@ echo "[run-media-decode] bringing up the gateway + its deps + coturn + caddy (GA
 GATEWAY_JWKS_URL="${HOST_NET_JWKS_URL:-http://${HOST_ADDR}:${JWKS_PORT}/jwks.json}" \
   RUST_LOG="debug" \
   docker compose "${COMPOSE[@]}" up -d --no-build gateway coturn caddy playwright
+
+# p36-c004: pin MEDIA_ADVERTISE_IP to the gateway's IPv4 on the compose bridge.
+# compose.sovereign.yml defaults it to the service name "gateway". On an IPv6-enabled bridge
+# (OrbStack on macOS) that name resolves to BOTH families and str0m's to_socket_addrs() picks
+# IPv6, advertising a `fd07:…` host candidate the peer container never pairs with — ICE stays
+# `new` and the decode times out with bytes=0. Resolving the v4 address requires the container
+# to exist, so this is a second pass: read the IP, then recreate the gateway with it.
+# Skipped under HOST_NET (compose.host-net.yml pins 127.0.0.1) and when already set.
+if [ -z "${MEDIA_ADVERTISE_IP:-}" ] && [ "${HOST_NET:-0}" != "1" ]; then
+  GW_V4="$(docker inspect "$(docker compose "${COMPOSE[@]}" ps -q gateway)" \
+    --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' 2>/dev/null || true)"
+  if [ -n "${GW_V4}" ]; then
+    echo "[run-media-decode] pinning MEDIA_ADVERTISE_IP=${GW_V4} (IPv4; avoids the IPv6 host candidate)"
+    GATEWAY_JWKS_URL="${HOST_NET_JWKS_URL:-http://${HOST_ADDR}:${JWKS_PORT}/jwks.json}" \
+      RUST_LOG="debug" \
+      MEDIA_ADVERTISE_IP="${GW_V4}" \
+      docker compose "${COMPOSE[@]}" up -d --no-build --force-recreate gateway
+  else
+    echo "[run-media-decode] WARNING: could not resolve the gateway's IPv4; leaving MEDIA_ADVERTISE_IP unset." >&2
+  fi
+fi
 
 echo "[run-media-decode] waiting for gateway /healthz at ${GATEWAY_URL}…"
 for _ in $(seq 1 60); do

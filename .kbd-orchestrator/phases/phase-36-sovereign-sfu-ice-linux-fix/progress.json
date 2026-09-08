@@ -1,23 +1,22 @@
 {
   "phase": "phase-36-sovereign-sfu-ice-linux-fix",
   "changes_total": 4,
-  "changes_completed": 2,
+  "changes_completed": 3,
   "completed_changes": [
     "p36-c001-ice-fix-and-log-capture",
-    "p36-c003-pr-to-main"
-  ],
-  "pending_changes": [
+    "p36-c003-pr-to-main",
     "p36-c004-local-decode-run-and-flip"
   ],
-  "active_change": "p36-c004-local-decode-run-and-flip",
+  "pending_changes": [],
+  "active_change": null,
   "assessment_complete": true,
   "plan_complete": true,
-  "execute_complete": false,
+  "execute_complete": true,
   "reflect_complete": false,
   "phase_complete": false,
   "seededFrom": "phase-35-sovereign-sfu-decode-ci-linux-proof",
   "createdAt": "2026-07-09T23:59:30Z",
-  "updatedAt": "2026-09-07T04:15:00Z",
+  "updatedAt": "2026-09-08T11:47:31Z",
   "childPhases": [
     "adr-009-replication-materializer-and-pem-publication"
   ],
@@ -25,7 +24,7 @@
   "deferred_changes": [
     "p36-c002-decode-run-and-flip"
   ],
-  "last_updated": "2026-09-07T04:15:00Z",
+  "last_updated": "2026-09-08T11:47:31Z",
   "last_updated_by": "kbd-apply",
-  "notes": "p36-c002 DEFERRED, not done: its two remaining tasks both require a CI run, which the permanent local-testing-only policy forbids. 6/8 tasks genuinely complete. Superseded by p36-c004, which takes the same gate decision from a local integration run."
+  "notes": "3 of 4 changes complete; p36-c002 remains DEFERRED (its 2 remaining tasks both require a CI run, which the permanent local-testing-only policy forbids) and is SUPERSEDED by p36-c004. p36-c004 PASSED: the local decode proof observed framesDecoded>0 on the authenticated path (decode_exit=0, reproduced twice on different container IPs), so the SFU_MODE=sovereign gate was FLIPPED ON after being held shut since phase 16. Four harness/local-path defects were found and fixed; none was in the SFU. Two were IPv6-before-IPv4 name resolution. Scope limit: the proof is single-bridge and local \u2014 NOT multi-host, NAT-traversal, or scale."
 }
