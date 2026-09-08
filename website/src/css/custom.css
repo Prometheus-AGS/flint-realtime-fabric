@@ -1,0 +1,190 @@
+/**
+ * Flint Realtime Fabric documentation theme.
+ *
+ * Uses the Prometheus Ember tokens shared with prometheus-entity-management:
+ * light Ember #E04E28, dark Ember #FF6A3D, charcoal #0B0F14. Typography is
+ * self-hosted through Fontsource (OFL-1.1) — no third-party font CDN is
+ * requested by this site.
+ */
+
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
+
+:root {
+  --ifm-color-primary: #c8431f;
+  --ifm-color-primary-dark: #b43c1c;
+  --ifm-color-primary-darker: #a9391a;
+  --ifm-color-primary-darkest: #8b2f15;
+  --ifm-color-primary-light: #e04e28;
+  --ifm-color-primary-lighter: #e35b37;
+  --ifm-color-primary-lightest: #e87858;
+
+  --ifm-font-family-base: "Inter Variable", system-ui, -apple-system, sans-serif;
+  --ifm-heading-font-family: "Space Grotesk Variable", "Inter Variable", sans-serif;
+  --ifm-font-family-monospace: "JetBrains Mono Variable", ui-monospace, monospace;
+
+  --ifm-code-font-size: 92%;
+  --ifm-heading-font-weight: 600;
+  --ifm-h1-font-size: clamp(2rem, 1.5rem + 2vw, 3rem);
+
+  --frf-surface: #ffffff;
+  --frf-surface-raised: #f7f5f3;
+  --frf-hairline: rgba(11, 15, 20, 0.12);
+  --frf-ink-muted: #55606b;
+
+  --docusaurus-highlighted-code-line-bg: rgba(224, 78, 40, 0.12);
+}
+
+[data-theme="dark"] {
+  --ifm-color-primary: #ff6a3d;
+  --ifm-color-primary-dark: #ff5322;
+  --ifm-color-primary-darker: #ff4814;
+  --ifm-color-primary-darkest: #e03400;
+  --ifm-color-primary-light: #ff8158;
+  --ifm-color-primary-lighter: #ff8c66;
+  --ifm-color-primary-lightest: #ffae91;
+
+  --ifm-background-color: #0b0f14;
+  --ifm-background-surface-color: #121820;
+
+  --frf-surface: #0b0f14;
+  --frf-surface-raised: #121820;
+  --frf-hairline: rgba(255, 255, 255, 0.12);
+  --frf-ink-muted: #9aa7b4;
+
+  --docusaurus-highlighted-code-line-bg: rgba(255, 106, 61, 0.16);
+}
+
+/* Headings carry the display face; body text stays on Inter for long reads. */
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  letter-spacing: -0.015em;
+}
+
+.markdown h2 {
+  margin-top: 2.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--frf-hairline);
+}
+
+/* Tables are load-bearing in this documentation — ports, adapters, decision
+   records. Give them room to breathe and let wide ones scroll on their own
+   rather than pushing the page sideways. */
+.markdown table {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+  font-size: 0.94rem;
+}
+
+.markdown table th {
+  font-family: var(--ifm-heading-font-family);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* An admonition is how this documentation marks the difference between what is
+   proven and what is merely built. It should read as a hard stop, not decor. */
+.theme-admonition {
+  border-left-width: 3px;
+}
+
+.footer--dark {
+  --ifm-footer-background-color: #0b0f14;
+}
+
+/* Home hero */
+.frfHero {
+  padding: clamp(3rem, 2rem + 6vw, 7rem) 0 clamp(2rem, 1.5rem + 3vw, 4rem);
+  border-bottom: 1px solid var(--frf-hairline);
+  background:
+    radial-gradient(60rem 30rem at 78% -12%, rgba(224, 78, 40, 0.14), transparent 62%),
+    var(--frf-surface);
+}
+
+[data-theme="dark"] .frfHero {
+  background:
+    radial-gradient(60rem 30rem at 78% -12%, rgba(255, 106, 61, 0.16), transparent 62%),
+    var(--frf-surface);
+}
+
+.frfHero__eyebrow {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ifm-color-primary);
+  margin-bottom: 1rem;
+}
+
+.frfHero__title {
+  font-family: var(--ifm-heading-font-family);
+  font-size: clamp(2.25rem, 1.5rem + 3.6vw, 4.25rem);
+  line-height: 1.03;
+  letter-spacing: -0.03em;
+  margin: 0 0 1.25rem;
+  max-width: 18ch;
+}
+
+.frfHero__lede {
+  font-size: clamp(1.05rem, 1rem + 0.35vw, 1.3rem);
+  line-height: 1.6;
+  color: var(--frf-ink-muted);
+  max-width: 62ch;
+  margin-bottom: 2rem;
+}
+
+.frfHero__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Feature grid — deliberately uneven so it does not read as a stock card row. */
+.frfGrid {
+  display: grid;
+  gap: 1px;
+  background: var(--frf-hairline);
+  border-block: 1px solid var(--frf-hairline);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+}
+
+.frfGrid__cell {
+  background: var(--frf-surface);
+  padding: clamp(1.5rem, 1.2rem + 1vw, 2.5rem);
+}
+
+.frfGrid__cell h3 {
+  font-family: var(--ifm-heading-font-family);
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.6rem;
+}
+
+.frfGrid__cell p {
+  color: var(--frf-ink-muted);
+  font-size: 0.96rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.frfGrid__index {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.74rem;
+  color: var(--ifm-color-primary);
+  letter-spacing: 0.1em;
+  display: block;
+  margin-bottom: 0.85rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .frfGrid__cell {
+    transition: background-color 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .frfGrid__cell:hover {
+    background: var(--frf-surface-raised);
+  }
+}
