@@ -39,6 +39,7 @@ const NIL_TENANT: Uuid = Uuid::nil();
 fn test_claims() -> VerifiedClaims {
     VerifiedClaims {
         session_id: frf_domain::SessionId::new(),
+        originating_session_id: None,
         tenant_id: TenantId::from_uuid(NIL_TENANT),
         subject: "admin-1".to_owned(),
         email: None,
@@ -48,6 +49,10 @@ fn test_claims() -> VerifiedClaims {
         workflow_id: None,
         scope: None,
         roles: vec![],
+        authorization_revision: None,
+        projection_revision: None,
+        projection_ids: vec![],
+        expires_at: 9_999_999_999,
     }
 }
 

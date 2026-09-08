@@ -45,9 +45,8 @@ fn bearer_token(headers: &HeaderMap) -> Option<String> {
 
 /// Serve one shape chunk for a verified, authorized subject.
 ///
-/// The practice scope comes from the verified claims' `scope`, never from the query string:
-/// a client that supplies its own scope is not trusted, and one whose token carries no scope
-/// is refused rather than defaulted.
+/// The practice scope comes from the verified tenant claim after the dedicated
+/// ASO scope, revision, projection allowlist, and session linkage are checked.
 // `Query` deserializes into a concrete `HashMap<String, String>`; the hasher cannot be
 // generalized at an axum extractor boundary, so the pedantic lint does not apply here.
 #[allow(clippy::implicit_hasher)]
@@ -81,10 +80,8 @@ where
         return StatusCode::UNAUTHORIZED.into_response();
     };
 
-    // The practice scope is authoritative server state. A token without one cannot be
-    // scoped, so it is refused rather than silently granted a default practice.
-    let Some(scope) = claims.scope.as_deref() else {
-        tracing::warn!("shape request with no scope claim — denying");
+    let Ok(scope) = claims.aso_replica_scope() else {
+        tracing::warn!("shape request without a valid ASO replica grant — denying");
         return StatusCode::FORBIDDEN.into_response();
     };
 
@@ -109,7 +106,7 @@ where
 
     // Resolve + authorize. This runs on every request *and every continuation* — a resumed
     // cursor carries no standing permission (ADR-009).
-    let authorized = match resolver.resolve(&request, scope).await {
+    let authorized = match resolver.resolve(&request, &scope).await {
         Ok(a) => a,
         Err(frf_shape_electric::ShapeError::Unauthorized) => {
             return StatusCode::FORBIDDEN.into_response();

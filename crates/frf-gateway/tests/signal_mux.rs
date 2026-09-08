@@ -33,6 +33,7 @@ impl IdentityVerifier for AlwaysVerify {
     async fn verify(&self, _token: &str) -> Result<VerifiedClaims, PortError> {
         Ok(VerifiedClaims {
             session_id: self.session_id,
+            originating_session_id: None,
             tenant_id: self.tenant_id,
             subject: "test-subject".to_owned(),
             email: None,
@@ -42,6 +43,10 @@ impl IdentityVerifier for AlwaysVerify {
             workflow_id: None,
             scope: None,
             roles: vec![],
+            authorization_revision: None,
+            projection_revision: None,
+            projection_ids: vec![],
+            expires_at: 9_999_999_999,
         })
     }
 }

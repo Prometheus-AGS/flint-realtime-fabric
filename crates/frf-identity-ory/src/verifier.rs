@@ -73,6 +73,8 @@ impl OryIdentityVerifier {
 
         let mut validation = Validation::new(Algorithm::RS256);
         validation.set_audience(&[&self.audience]);
+        validation.set_required_spec_claims(&["exp", "aud"]);
+        validation.leeway = 0;
         if let Some(issuer) = &self.issuer {
             // Rejects tokens whose `iss` is absent or does not match — prevents
             // trusting any IdP that merely happens to resolve via the JWKS URL.
