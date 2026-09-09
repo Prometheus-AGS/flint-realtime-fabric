@@ -9,7 +9,10 @@ const config = {
   favicon: 'img/favicon.ico',
   url: process.env.SITE_URL ?? 'https://prometheus-ags.github.io',
   baseUrl: process.env.BASE_URL ?? '/flint-realtime-fabric/',
-  trailingSlash: false,
+  // Directory URLs (/docs/theory/why/) rather than /docs/theory/why.html —
+  // matches the sibling prometheus-entity-management site and keeps links
+  // stable if a page later gains children.
+  trailingSlash: true,
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
   organizationName: 'prometheus-ags',
