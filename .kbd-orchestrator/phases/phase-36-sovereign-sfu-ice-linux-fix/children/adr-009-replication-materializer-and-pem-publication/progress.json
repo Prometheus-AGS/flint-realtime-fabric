@@ -55,10 +55,34 @@
     "p37-c004-aso-replica-runtime",
     "p37-c005-evidence-not-loaded-state"
   ],
-  "last_updated": "2026-09-07T03:15:00Z",
-  "last_updated_by": "kbd-plan",
+  "last_updated": "2026-09-09T10:27:52Z",
+  "last_updated_by": "kbd-apply (evidence run)",
   "sourceTool": "unknown",
   "createdBy": "kbd-new-child",
   "updatedAt": "2026-09-07T03:15:00Z",
-  "phase_complete": true
+  "phase_complete": true,
+  "evidence_status": "EXECUTED",
+  "evidence": {
+    "executed_at": "2026-09-09T10:27:52Z",
+    "aso": {
+      "files": 9,
+      "tests": 80,
+      "passed": 80,
+      "failed": 0
+    },
+    "pem": {
+      "files": 2,
+      "tests": 31,
+      "passed": 31,
+      "failed": 0
+    },
+    "aso_full_suite": {
+      "files": 17,
+      "tests": 155,
+      "passed": 155,
+      "failed": 0
+    },
+    "defects_found": 2,
+    "notes": "First execution of the p37 tests. 111 tests across both repos now pass. Two defects found, both in ASO graph-session-manager.test.ts, neither in implementation code: (1) the dispose-barrier test hung on an unresolvable harness promise \u2014 release() resolved a different promise than dispose() awaited; (2) with that fixed it passed vacuously \u2014 deleting the barrier from open() still passed, because a single await Promise.resolve() yields exactly one microtask tick, and open() cannot complete in one tick with or without the barrier. Both fixed; the guard was then proved to fail under sabotage (1 failed / 7 passed) and pass on revert (8 passed), with graph-session-manager.ts byte-identical. ASO commit 1ff1ec0."
+  }
 }
