@@ -55,8 +55,8 @@
     "p37-c004-aso-replica-runtime",
     "p37-c005-evidence-not-loaded-state"
   ],
-  "last_updated": "2026-09-09T10:27:52Z",
-  "last_updated_by": "kbd-apply (evidence run)",
+  "last_updated": "2026-09-09T10:37:44Z",
+  "last_updated_by": "kbd-apply (QA gate + archive)",
   "sourceTool": "unknown",
   "createdBy": "kbd-new-child",
   "updatedAt": "2026-09-07T03:15:00Z",
@@ -84,5 +84,20 @@
     },
     "defects_found": 2,
     "notes": "First execution of the p37 tests. 111 tests across both repos now pass. Two defects found, both in ASO graph-session-manager.test.ts, neither in implementation code: (1) the dispose-barrier test hung on an unresolvable harness promise \u2014 release() resolved a different promise than dispose() awaited; (2) with that fixed it passed vacuously \u2014 deleting the barrier from open() still passed, because a single await Promise.resolve() yields exactly one microtask tick, and open() cannot complete in one tick with or without the barrier. Both fixed; the guard was then proved to fail under sabotage (1 failed / 7 passed) and pass on revert (8 passed), with graph-session-manager.ts byte-identical. ASO commit 1ff1ec0."
+  },
+  "certification_status": "CERTIFIED",
+  "certification": {
+    "gate_run_at": "2026-09-09T10:37:44Z",
+    "changes_certified": 5,
+    "archived": [
+      "p37-c001-pem-runtime-scoped-state",
+      "p37-c002-pem-dispose-barrier",
+      "p37-c003-pem-checkpoint-atomicity",
+      "p37-c004-aso-replica-runtime",
+      "p37-c005-evidence-not-loaded-state"
+    ],
+    "constraints": "P1, R5, S1, S3 (R1-R4 N/A - no Rust)",
+    "findings": "Two real defects found by the gate, both fixed. (1) R5: local-first-runtime.ts was 553 lines, over the 500 limit - 391 at 4.0.0, 494 after c001, crossed by the c002 dispose barrier. Split into runtime-scope.ts, replay-retry.ts and local-first-types.ts, leaving the runtime at 473. The split first created a circular type import that TypeScript widened to unknown; fixed by lifting shared interfaces into their own module. (2) Archive refused c001, c002 and c005: their deltas used MODIFIED against capabilities that do not exist yet, where OpenSpec permits only ADDED. All six requirements were genuinely new, so the operation was simply wrong. Corrected and revalidated.",
+    "phase_complete": true
   }
 }

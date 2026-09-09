@@ -1,6 +1,6 @@
 # local-first-runtime
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Runtime state SHALL be owned per runtime instance
 
