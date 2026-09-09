@@ -20,7 +20,7 @@ const config = {
   markdown: {mermaid: true},
   themes: ['@docusaurus/theme-mermaid'],
   presets: [['classic', {docs: {sidebarPath: './sidebars.ts'}, blog: false, theme: {customCss: './src/css/custom.css'}}]],
-  plugins: [[require.resolve('@easyops-cn/docusaurus-search-local'), {hashed: true, indexDocs: true}]],
+  plugins: [['@easyops-cn/docusaurus-search-local', {hashed: true, indexDocs: true}]],
   themeConfig: {
     colorMode: {defaultMode: 'dark', respectPrefersColorScheme: true},
     navbar: {title: 'Flint Realtime Fabric', items: [{type: 'docSidebar', sidebarId: 'docsSidebar', label: 'Documentation', position: 'left'}]},
