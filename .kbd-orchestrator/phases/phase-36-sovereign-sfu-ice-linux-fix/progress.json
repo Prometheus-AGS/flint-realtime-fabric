@@ -1,6 +1,6 @@
 {
   "phase": "phase-36-sovereign-sfu-ice-linux-fix",
-  "changes_total": 4,
+  "changes_total": 3,
   "changes_completed": 3,
   "completed_changes": [
     "p36-c001-ice-fix-and-log-capture",
@@ -21,10 +21,22 @@
     "adr-009-replication-materializer-and-pem-publication"
   ],
   "childPointer": "adr-009-replication-materializer-and-pem-publication",
-  "deferred_changes": [
-    "p36-c002-decode-run-and-flip"
+  "deferred_changes": [],
+  "last_updated": "2026-09-09T11:34:35Z",
+  "last_updated_by": "kbd-child-exit",
+  "notes": "Phase 36 CLOSED at 3/3. Goals G1-G4 met; G5 retired. The sovereign SFU gate was flipped ON after a local decode observed framesDecoded > 0, reproduced twice. Scope limit: single Compose bridge, both peers in-network \u2014 NOT multi-host, NAT-traversal or scale. Child phase adr-009 closed at 5/5, evidence executed (111 tests), all five certified and archived. Two changes withdrawn rather than force-completed (see withdrawn_changes). Docs site published and verified: 16/16 routes 200.",
+  "withdrawn_changes": [
+    {
+      "id": "p36-c002-decode-run-and-flip",
+      "reason": "Two remaining tasks both require a CI run, which the permanent local-testing-only policy forbids. Unsatisfiable as written, and superseded by p36-c004, which took the same gate decision from a local run. Withdrawn rather than force-completed: 6 of 8 tasks were genuinely done and marking the other 2 complete would record work that never happened."
+    },
+    {
+      "id": "p37-c006-aso-clinical-materialization",
+      "reason": "Unstarted (0/7, no spec delta) and gated on an architecture decision, not an implementation detail: whether ASO adopts the FRF shape facade at all. Carried forward to .kbd-orchestrator/backlog/aso-facade-adoption.md with the full scope and both sides of the decision, so the next phase inherits the context. Withdrawn rather than left active under a closed phase."
+    }
   ],
-  "last_updated": "2026-09-08T11:49:11Z",
-  "last_updated_by": "kbd-reflect",
-  "notes": "3 of 4 changes complete; p36-c002 remains DEFERRED (its 2 remaining tasks both require a CI run, which the permanent local-testing-only policy forbids) and is SUPERSEDED by p36-c004. p36-c004 PASSED: the local decode proof observed framesDecoded>0 on the authenticated path (decode_exit=0, reproduced twice on different container IPs), so the SFU_MODE=sovereign gate was FLIPPED ON after being held shut since phase 16. Four harness/local-path defects were found and fixed; none was in the SFU. Two were IPv6-before-IPv4 name resolution. Scope limit: the proof is single-bridge and local \u2014 NOT multi-host, NAT-traversal, or scale."
+  "certification_status": "CERTIFIED",
+  "publication_status": "PUBLISHED",
+  "phase_archived": true,
+  "archived_at": "2026-09-09T11:34:35Z"
 }

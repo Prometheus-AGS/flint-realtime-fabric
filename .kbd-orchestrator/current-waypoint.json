@@ -1,21 +1,21 @@
 {
   "phase": "phase-36-sovereign-sfu-ice-linux-fix",
   "previousPhase": "phase-35-sovereign-sfu-decode-ci-linux-proof",
-  "status": "phase_complete",
-  "exactNextCommand": "/kbd-assess (next phase)",
+  "status": "phase_archived",
+  "exactNextCommand": "/kbd-new-phase",
   "activeChange": null,
   "changesCompleted": 3,
-  "changesTotal": 4,
-  "updatedAt": "2026-09-08T11:49:11Z",
+  "changesTotal": 3,
+  "updatedAt": "2026-09-09T11:34:49Z",
   "planComplete": true,
   "assessmentComplete": true,
   "executeComplete": true,
   "reflectComplete": true,
   "backend": "openspec",
-  "next": "/kbd-assess (next phase)",
+  "next": "/kbd-new-phase",
   "changes_completed": 3,
-  "changes_total": 4,
-  "stage": "phase_complete",
+  "changes_total": 3,
+  "stage": "phase_archived",
   "active_change": null,
   "path": [
     "phase-36-sovereign-sfu-ice-linux-fix",
@@ -25,5 +25,5 @@
     "adr-009-replication-materializer-and-pem-publication"
   ],
   "childPointer": null,
-  "currentTask": "phase-36 COMPLETE \u2014 decode proven locally, SFU_MODE=sovereign ON"
+  "currentTask": "phase-36 ARCHIVED \u2014 no active phase; next is /kbd-new-phase"
 }
