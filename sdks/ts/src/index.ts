@@ -22,3 +22,23 @@ export type {
   Cursor,
   Offset,
 } from "./gen/flint/v1/envelope_pb.js";
+
+// Authorized shape facade (ADR-009). Behind the gateway's `shape-facade`
+// feature, which is off by default — see docs/SHAPE-FACADE.md.
+export { ShapeClient } from "./shape/client.js";
+export type {
+  ShapeClientOptions,
+  ShapeCredentials,
+  ShapeCursor,
+  ShapeFetchResult,
+  ShapeMessage,
+  ShapeRequestOptions,
+} from "./shape/client.js";
+export {
+  ShapeError,
+  ShapeGrantExpiredError,
+  ShapeForbiddenError,
+  UnknownShapeError,
+  InvalidShapeRequestError,
+  ShapeUpstreamError,
+} from "./shape/errors.js";

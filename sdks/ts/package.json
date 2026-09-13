@@ -13,11 +13,15 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^1.10.0",
@@ -26,6 +30,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
   }
 }
