@@ -29,7 +29,11 @@ Cross-tool progress: NONE recorded in `progress.json` (phase created today, 0/0)
 
 - **G3 — issue #7, non-UUID tenantId:** MISSING. `tests/e2e/smoke_test.sh:48` sends
   `"tenantId": "e2e-tenant"`; `parse_tenant_id` (`grpc_service.rs:64-68`) rejects any
-  non-UUID with `invalid_argument`. The sibling TS/Go/C# clients already use a valid UUID.
+  non-UUID with `invalid_argument`.
+  **CORRECTED 2026-09-14:** this line previously added "The sibling TS/Go/C# clients already
+  use a valid UUID," which is false — none of them sends a `tenantId` at all. They share
+  `FRF_CHANNEL_ID`, a *channel* UUID; I conflated the two fields. The defect stands, the
+  supporting claim did not.
 
 - **G4 — CLAUDE.md ↔ ADR reconciliation:** MISSING. See SPEC GAP SUMMARY.
 

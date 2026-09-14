@@ -7,6 +7,7 @@
 # Environment variables:
 #   FRF_GATEWAY_URL   (default: http://localhost:4000)
 #   FRF_CHANNEL_ID    (default: 00000000-0000-0000-0000-000000000001)
+#   FRF_TENANT_ID     (default: 00000000-0000-0000-0000-000000000001)
 #   JWT_TOKEN         bearer token for authenticated requests (optional)
 #
 # Each subscriber binary exits 0 on receipt; non-zero failures are reported.
@@ -15,6 +16,10 @@ set -euo pipefail
 
 GATEWAY="${FRF_GATEWAY_URL:-http://localhost:4000}"
 CHANNEL="${FRF_CHANNEL_ID:-00000000-0000-0000-0000-000000000001}"
+# Must be a UUID: the gateway's parse_tenant_id rejects anything else with
+# invalid_argument. Defaults to the fixture tenant (= Uuid::from_u128(1), the
+# same value as CDC_TENANT_ID in compose.yml).
+TENANT="${FRF_TENANT_ID:-00000000-0000-0000-0000-000000000001}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../.. && pwd)"
 PASS=0
 FAIL=0
@@ -45,7 +50,7 @@ PUB_RESPONSE=$(curl -sf -X POST "${GATEWAY}/flint.v1.SpineService/Publish" \
       \"id\": \"${EVENT_ID}\",
       \"channel\": {
         \"id\": \"${CHANNEL}\",
-        \"tenantId\": \"e2e-tenant\",
+        \"tenantId\": \"${TENANT}\",
         \"path\": \"smoke\"
       },
       \"kind\": 1,

@@ -1,25 +1,36 @@
 POSITION REMINDER — read this as your FIRST tool call every turn
 Phase: issue-triage-and-architecture-audit
-Step: 0 of 6
+Step: 2 of 6
 Stage: execute_ready
-Next command: /kbd-apply p38-c001-iggy-handshake-diagnosis
+Next command: /kbd-apply p38-c004-gateway-main-size-and-enforcement
 
 Required signal format (emit BEFORE any tool call):
-  Starting <kbd-skill> — issue-triage-and-architecture-audit (step 0 of 6)
+  Starting <kbd-skill> — issue-triage-and-architecture-audit (step 2 of 6)
   [do work]
-  Completed <kbd-skill> — issue-triage-and-architecture-audit (step 0 of 6)
+  Completed <kbd-skill> — issue-triage-and-architecture-audit (step 2 of 6)
 
-N/T source: progress.json -> completion.implementation {completed: 0, total: 6}.
+N/T source: progress.json -> completion.implementation {completed: 2, total: 6}.
 Never estimate; never use evidence-task completion as the counter.
 
-Ordering constraint from the plan handoff: apply p38-c001 FIRST. It is the only
-true blocker (no Iggy server completes a handshake with the pinned client), and
-p38-c002 cannot be verified until it lands. c001 is scoped to DIAGNOSE BEFORE
-FIXING — the mechanism is undetermined; do not assume a version-mismatch story.
+Change status:
+  p38-c001-iggy-handshake-diagnosis  DONE + PROVEN, archived (commit 3437b95)
+  p38-c003-e2e-tenant-uuid           DONE, NOT PROVEN, archived — static proof only;
+                                     no live publish (Docker down). Issue #7 left OPEN.
+  p38-c002-prove-channel-id-fix      pending — unblocked by c001, but needs a live
+                                     Iggy server for the sabotage run (Docker required)
+  p38-c004-gateway-main-size...      pending — parallel-safe, NO infrastructure needed
+  p38-c005-claude-md-adr-recon...    pending — parallel-safe, docs only
+  p38-c006-dead-code-and-guard...    pending — deletions need nothing; the ignored-test
+                                     classification needs a live server for 2 of 4
 
-KNOWN DEFECT (third occurrence): this file goes stale at every stage transition.
-It said "phase-36 / step 2 of 3 / execute_ready / /kbd-apply p36-c002" (a
-WITHDRAWN change in an ARCHIVED phase) until 2026-09-14, then "plan_ready /
-/kbd-plan" after the plan stage advanced the waypoint past it. Nothing in the
-stage transitions owns rewriting it, so it misdirects every turn until a human
-or agent notices. The authoritative source is current-waypoint.json.
+ENVIRONMENT BLOCKER: the Docker daemon (OrbStack) stopped mid-session and cannot be
+started from the agent environment. c002 and part of c006 need it. c004 and c005 do
+not — prefer those while it is down.
+
+CLEANUP OWED: when OrbStack returns, remove flint-realtime-fabric-iggy-server-1,
+frf-iggy-debug, frf-iggy-pinned. Leave aso-prior-auth-iggy-server-1 alone (another
+project's).
+
+KNOWN DEFECT (fifth occurrence): this file goes stale at every transition — nothing in
+end-task or archive rewrites it. Authoritative sources are current-waypoint.json and
+progress.json. Carry to /kbd-reflect as a process defect, not another one-off patch.

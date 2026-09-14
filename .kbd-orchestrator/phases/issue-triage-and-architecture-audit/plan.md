@@ -100,9 +100,16 @@ what the run actually showed.
 
 **Details.** `tests/e2e/smoke_test.sh:48` sends `"tenantId": "e2e-tenant"`;
 `parse_tenant_id` (`grpc_service.rs:64-68`) rejects any non-UUID with `invalid_argument`,
-so the script cannot pass regardless of any other fix. The sibling TS/Go/C# clients already
-default to a valid UUID. Use the fixture tenant `00000000-0000-0000-0000-000000000001`
-(matching `CDC_TENANT_ID` in `compose.yml:29`) or read it from an env var with that default.
+so the script cannot pass regardless of any other fix. Use the fixture tenant
+`00000000-0000-0000-0000-000000000001` (matching `CDC_TENANT_ID` in `compose.yml:29`) or
+read it from an env var with that default.
+
+**CORRECTED 2026-09-14 (during c003 T1):** this entry previously said "the sibling TS/Go/C#
+clients already default to a valid UUID" for the tenant. False — none of them sends a
+`tenantId` at all (`grep -i tenant` over `smoke.ts`, `main.go`, `Smoke.cs` returns nothing).
+They share `FRF_CHANNEL_ID`, a *channel* UUID, which I conflated with the tenant field.
+`smoke_test.sh` is the only E2E client sending a tenant, so the precedent to follow is its
+own `FRF_CHANNEL_ID` env-var convention at line 17.
 
 **Exit:** the script's publish is accepted at the gateway boundary rather than rejected.
 Note that a *full* green E2E run may still depend on c001.
