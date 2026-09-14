@@ -74,7 +74,7 @@ flint-realtime-fabric/            # Cargo workspace, source of truth
 │   └── frf-wasm/                 # wasm-bindgen core for browser TS
 ├── sdks/                         # generated/bound, published by CI — not hand-edited
 │   ├── go/   ts/   csharp/
-│   ├── swift/   kotlin/   dart/  # flutter_rust_bridge over frf-ffi/core
+│   ├── swift/   kotlin/   dart/  # UniFFI over frf-ffi (Dart: uniffi-bindgen-dart)
 │   └── entity-management/        # thin RealtimeAdapter on the TS SDK
 ├── dagger/                       # CI pipelines (replaces GitHub Actions)
 └── Cargo.toml                    # [workspace] + shared deps + per-plane features
@@ -177,7 +177,7 @@ core — so business logic, CRDT merge, and reconnection live in exactly one pla
 | Swift (iOS/macOS) | FFI bind | UniFFI over `frf-ffi` / Rust core | shared core |
 | Kotlin (Android+JVM) | FFI bind | UniFFI over `frf-ffi` / Rust core | shared core |
 | Java (Android) | FFI bind | consumes the UniFFI *Kotlin* binding — no separate hand-write | shared core |
-| Dart / Flutter | FFI bind | flutter_rust_bridge over the Rust core | shared core |
+| Dart / Flutter | FFI bind | `uniffi-bindgen-dart` over the same UniFFI surface (ADR-003) | shared core |
 
 > **Honest overlap.** Java-for-Android and Kotlin are not two builds. Kotlin is
 > Android's language; the UniFFI-generated Kotlin binding is callable from Java
@@ -313,7 +313,7 @@ Go, C#, browser-TS (Connect-ES) generated from frozen proto; the
 
 ### Phase 3 — CRDT core + offline persistence + FFI tier
 Engine decision (Loro/automerge) committed; `frf-crdt`, `frf-store-redb`; UniFFI
-(Swift, Kotlin) + flutter_rust_bridge (Dart) over the core; offline op-log +
+(Swift, Kotlin, and Dart via `uniffi-bindgen-dart` — ADR-003) over the core; offline op-log +
 incremental reconnect.
 - **Exit:** mobile app edits offline, reconnects, converges; identical merge on all three platforms
 - **Crates/SDKs:** crdt, store-redb, ffi; swift, kotlin, dart
@@ -350,9 +350,9 @@ AuthZ fan-out load test + cache tuning, user-controlled rights API, observabilit
 |---|---|
 | Nine-SDK surface (dominant risk) | Collapsed to three patterns; only Rust hand-written. Every hand-written SDK is a permanent tax. |
 | Proto stability | Freeze v1 in Phase 0. SDKs built before freeze churn. Breaking changes are a new proto version, not an edit. |
-| CRDT engine | **OPEN.** Loro vs automerge-rs — decide before Phase 3; propagates into every FFI binding. |
+| CRDT engine | **RESOLVED** — Loro, [ADR-001](decisions/adr-001-crdt-engine.md), accepted 2026-06-19. `Cargo.toml` ships `loro 1.13.1`. |
 | AuthZ at fan-out | Per-event Keto checks don't scale naively. Subscribe-time scoping + topic partitioning + check-cache in Phase 1. |
 | Iggy maturity (pre-1.0) | Accepted. LogBroker trait keeps NATS/Redpanda a swap; Sync-Mesh P2P is the availability fallback. |
-| Tooling currency | Confirm current versions + language coverage of UniFFI, flutter_rust_bridge, Connect, tonic at Phase 0 kickoff. |
+| Tooling currency | **RESOLVED** — pinned by [ADR-003](decisions/adr-003-ffi-codegen-versions.md): UniFFI + `uniffi-bindgen-dart` (Dart, **not** flutter_rust_bridge), Connect-ES, tonic 0.14. Supersede the ADR rather than re-deciding ad hoc. |
 | Java vs Kotlin | One UniFFI Kotlin binding serves both. Don't double-build. |
 | Team scale | Multi-quarter for a small team. Phases sequenced so each is independently useful — ship and harvest before advancing. |

@@ -2,7 +2,7 @@
   "schemaVersion": "1",
   "generatedBy": "legacy-position-projection",
   "sourceRevision": 4,
-  "updatedAt": "2026-09-14T14:53:57Z",
+  "updatedAt": "2026-09-14T18:31:18Z",
   "cursor": [
     "phase-36-sovereign-sfu-ice-linux-fix",
     "adr-009-replication-materializer-and-pem-publication"

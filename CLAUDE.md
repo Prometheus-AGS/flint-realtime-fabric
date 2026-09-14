@@ -47,7 +47,7 @@ flint-realtime-fabric/
 │   ├── frf-identity-ory/    # Adapter: IdentityVerifier → Kratos/flint-gate (JWT)
 │   ├── frf-policy-cedar/    # Adapter: action policy → Cedar
 │   ├── frf-postgres-cdc/    # Adapter: WAL logical replication → spine
-│   ├── frf-crdt/            # Adapter: Loro/automerge + CrdtStore
+│   ├── frf-crdt/            # Adapter: Loro (ADR-001) + CrdtStore
 │   ├── frf-store-surreal/   # Adapter: server persistence (SurrealDB 3.x)
 │   ├── frf-store-redb/      # Adapter: on-device op-log (redb)
 │   ├── frf-media-str0m/     # Adapter: sovereign SFU signaling
@@ -55,12 +55,17 @@ flint-realtime-fabric/
 │   ├── frf-bridge-matrix/   # Adapter: Tuwunel projection
 │   ├── frf-bridge-atproto/  # Adapter: Tranquil firehose projection
 │   ├── frf-agentproto/      # AG-UI / A2A / A2UI schemas + ContentBlock
+│   ├── frf-shape-electric/  # Adapter: ShapeFacade → ElectricSQL (ADR-009)
+│   ├── frf-did/             # DID identity primitives
+│   ├── frf-wallet/          # wallet primitives
+│   ├── frf-p2p/             # Adapter: TokenVerifier (p2p surface)
 │   ├── frf-librefang/       # ractor publish/consume actors (BossFang)
 │   ├── frf-gateway/         # Interface: Axum 0.8.8, WS mux + gRPC + Connect
 │   ├── frf-cli/             # Interface: ops + dev CLI
 │   ├── frf-sdk-rust/        # SDK: hand-written Rust client
 │   ├── frf-ffi/             # SDK: UniFFI scaffold → Swift, Kotlin
-│   └── frf-wasm/            # SDK: wasm-bindgen → browser TS
+│   ├── frf-wasm/            # SDK: wasm-bindgen → browser TS
+│   └── uniffi-bindgen/      # binary: UniFFI binding generator
 ├── sdks/                    # generated/bound — not hand-edited
 │   ├── go/  ts/  csharp/
 │   ├── swift/  kotlin/  dart/
@@ -99,18 +104,18 @@ Interface (frf-gateway)
 | Event spine | Apache Iggy (GQAdonis fork) behind `LogBroker` |
 | Identity | Ory Kratos + flint-gate (JWT proxy + minting) |
 | AuthZ | Ory Keto (Zanzibar) + Cedar (PAUX-1) |
-| CRDT | Loro **or** automerge-rs — **OPEN, decide before Phase 3** |
+| CRDT | Loro 1.13.1 — decided, [ADR-001](docs/decisions/adr-001-crdt-engine.md) |
 | On-device store | redb |
 | Server store | SurrealDB 3.x |
 | Postgres | PostgreSQL 17 (CDC via logical replication slot) |
 | Media SFU | str0m (sovereign) / LiveKit (hosted) |
 | Federation | Tuwunel (Matrix), Tranquil (ATProto) |
-| FFI | UniFFI (Swift, Kotlin) + flutter_rust_bridge (Dart) |
+| FFI | UniFFI (Swift, Kotlin, **and Dart** via `uniffi-bindgen-dart`) — [ADR-003](docs/decisions/adr-003-ffi-codegen-versions.md) |
 | Browser transport | Connect-ES + WS mux |
 | CI | Dagger |
 | Admin UI | React 19 + Vite 7 + shadcn-ui + Base UI (latest) |
 
-> **Versions for UniFFI, flutter_rust_bridge, Connect, tonic shift.** Confirm current releases and language coverage before committing the FFI/codegen approach. Use Tavily or Firecrawl to validate.
+> **Toolchain versions are pinned by [ADR-003](docs/decisions/adr-003-ffi-codegen-versions.md)** — UniFFI, `uniffi-bindgen-dart`, Connect-ES and tonic 0.14. Do not re-open them ad hoc; supersede the ADR instead.
 
 ---
 
@@ -253,7 +258,7 @@ admin-ui/src/
 | Rust | Hand-written (`frf-sdk-rust`) | — |
 | Go, C#, browser-TS | Generated from frozen proto | hand-write |
 | Swift, Kotlin, Java | UniFFI over `frf-ffi` | hand-write; Java consumes Kotlin binding |
-| Dart / Flutter | flutter_rust_bridge over Rust core | hand-write |
+| Dart / Flutter | `uniffi-bindgen-dart` over the same UniFFI surface (ADR-003) | hand-write; do **not** use flutter_rust_bridge |
 | entity-management | Thin `RealtimeAdapter` on TS SDK | treat as a new SDK |
 
 Only Rust is hand-written. Everything else is generated or FFI-bound. Business logic, CRDT merge, and reconnection logic live in exactly one place.
@@ -271,16 +276,24 @@ Only Rust is hand-written. Everything else is generated or FFI-bound. Business l
 
 ---
 
-## Open Decisions (Must Be Resolved Before Advancing Phases)
+## Resolved Decisions (formerly "Open Decisions")
 
-| Decision | Must Be Made Before |
-|---|---|
-| CRDT engine: Loro vs automerge-rs | Phase 3 |
-| UniFFI / flutter_rust_bridge version | Phase 3 kickoff |
-| Connect-ES version | Phase 2 kickoff |
-| Tonic version | Phase 0 kickoff |
+**All four decisions previously listed here are settled.** Each was verified against its
+ADR *and* the code before this table was rewritten (p38-c005, 2026-09-14) — the table had
+been telling readers to decide things that were decided months earlier.
 
-These are load-bearing choices. Do not code around them without a decision. Surface them explicitly to the operator before proceeding.
+| Decision | Resolved by | Evidence in code |
+|---|---|---|
+| CRDT engine | [ADR-001](docs/decisions/adr-001-crdt-engine.md) — Loro, accepted 2026-06-19 | `Cargo.toml` ships `loro 1.13.1` + `loro-ffi 1.13.1` |
+| UniFFI / Dart FFI | [ADR-003](docs/decisions/adr-003-ffi-codegen-versions.md) — **Dart uses `uniffi-bindgen-dart`, NOT flutter_rust_bridge** | FRB's parser panics on `#[uniffi::export]`; FRB and UniFFI cannot co-own the FFI crate |
+| Connect-ES | [ADR-003](docs/decisions/adr-003-ffi-codegen-versions.md) | `sdks/ts/package.json` pins `@connectrpc/connect ^1.6.1` |
+| Tonic | [ADR-003](docs/decisions/adr-003-ffi-codegen-versions.md) — 0.14 line | `Cargo.toml` pins `tonic 0.14`, `tonic-web 0.14` |
+
+Known minor skew, recorded rather than silently normalised: `admin-ui` is on
+`@connectrpc/connect ^1.7.0` while `sdks/ts` is on `^1.6.1`.
+
+If a genuinely open decision arises, add it here **with the phase it blocks** — and delete
+the row when the ADR lands, not later.
 
 ---
 

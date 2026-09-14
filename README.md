@@ -236,7 +236,7 @@ bash scripts/smoke-cdc.sh
 | Postgres | PostgreSQL 17 (CDC via logical replication slot) |
 | Media SFU | str0m (sovereign) / LiveKit (hosted) |
 | Federation | Tuwunel (Matrix), Tranquil (ATProto) |
-| FFI bindings | UniFFI (Swift, Kotlin) + flutter_rust_bridge (Dart) |
+| FFI bindings | UniFFI (Swift, Kotlin, Dart via `uniffi-bindgen-dart`) — ADR-003 |
 | Browser transport | Connect-ES + WS mux |
 | CI | Dagger (10-stage pipeline) |
 | Admin UI | React 19 + Vite 7 + shadcn-ui + Base UI (latest) |
@@ -253,7 +253,7 @@ Business logic, CRDT merge, and reconnection logic live in exactly one place.
 | Rust | Hand-written (`frf-sdk-rust`) |
 | Go, C#, browser-TS | Generated from frozen proto |
 | Swift, Kotlin | UniFFI over `frf-ffi` |
-| Dart / Flutter | flutter_rust_bridge over Rust core |
+| Dart / Flutter | `uniffi-bindgen-dart` over the same UniFFI surface (ADR-003) |
 | entity-management | Thin `RealtimeAdapter` on TS SDK |
 
 Java-for-Android consumes the UniFFI Kotlin binding — do not hand-write a
