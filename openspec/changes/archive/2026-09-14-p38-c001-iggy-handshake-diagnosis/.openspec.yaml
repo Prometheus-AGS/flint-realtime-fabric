@@ -1,0 +1,8 @@
+schema: spec-driven
+created: 2026-09-14
+goal: Determine why no available Iggy server completes a handshake with the
+  pinned 0.6.203 client; diagnose before fixing
+
+# Diagnostic change: produces a finding, not a capability behaviour change.
+# The event-spine delta belongs to whatever fix follows from T4.
+skip_specs: true

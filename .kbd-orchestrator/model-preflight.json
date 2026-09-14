@@ -3,7 +3,7 @@
   "gateway": "http://localhost:4000/v1",
   "roles": {
     "judge": {
-      "model": "k3",
+      "model": "gpt-5.5",
       "source": "/Users/gqadonis/.prometheus/kbd/models.toml"
     },
     "critic": {
@@ -21,5 +21,5 @@
   "config_path": "/Users/gqadonis/.config/liter-llm/liter-llm-proxy.toml",
   "config_exists": true,
   "config_defects": [],
-  "checked_at": "2026-09-06T21:55:19Z"
+  "checked_at": "2026-09-14T14:07:33Z"
 }

@@ -1,0 +1,8 @@
+schema: spec-driven
+created: 2026-09-14
+goal: Fix tests/e2e/smoke_test.sh sending a non-UUID tenantId that
+  parse_tenant_id always rejects
+
+# Test-script fix: corrects a malformed literal in an E2E harness.
+# No capability behaviour changes, so no spec delta.
+skip_specs: true

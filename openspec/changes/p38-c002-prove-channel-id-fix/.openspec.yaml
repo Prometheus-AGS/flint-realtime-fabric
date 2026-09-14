@@ -1,0 +1,8 @@
+schema: spec-driven
+created: 2026-09-14
+goal: "Run and sabotage the issue #2 guard against a working server; close #2
+  only on demonstrated receipt"
+
+# Verification-only change: runs and sabotages an existing guard.
+# No capability behaviour changes, so no spec delta.
+skip_specs: true

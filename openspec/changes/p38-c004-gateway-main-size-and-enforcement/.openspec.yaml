@@ -1,0 +1,8 @@
+schema: spec-driven
+created: 2026-09-14
+goal: Bring frf-gateway/src/main.rs under the 500-line cap (R5) and add a check
+  that catches the next overage
+
+# Refactor + tooling: splits a file and adds a lint. No behaviour change.
+# No capability delta.
+skip_specs: true

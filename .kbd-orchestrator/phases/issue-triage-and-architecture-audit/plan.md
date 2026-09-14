@@ -288,7 +288,8 @@ share no files with `c001`, so they parallelise safely.
 
 Step 9 calls for `/adversarial-review --mode artifact plan` before emitting change
 structures. **It did not run**, for the same two reasons recorded in `assessment.md`: the
-model gateway at `http://localhost:4000/v1` returns HTTP `000` (the `model-preflight.json`
+model gateway at `http://localhost:4000/v1` returns HTTP `401` — reachable but unauthenticated; CORRECTED
+from an earlier false `000`/unreachable claim (the `model-preflight.json`
 `status: "ok"` is a stale 24 h cache), and `distinct_models: 2` cannot fill three roles, so
 the judge would collide with the producer regardless.
 

@@ -27,7 +27,7 @@ pub struct OffsetsArgs {
     #[arg(
         long,
         env = "IGGY_CONNECTION_STRING",
-        default_value = "iggy://iggy:iggy@localhost:8090"
+        default_value = "iggy://iggy:iggy@127.0.0.1:8090"
     )]
     connection: String,
     /// Channel UUID.
@@ -44,7 +44,7 @@ pub struct CheckpointArgs {
     #[arg(
         long,
         env = "IGGY_CONNECTION_STRING",
-        default_value = "iggy://iggy:iggy@localhost:8090"
+        default_value = "iggy://iggy:iggy@127.0.0.1:8090"
     )]
     connection: String,
     /// Channel UUID.

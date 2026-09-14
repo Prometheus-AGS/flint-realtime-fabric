@@ -1,0 +1,8 @@
+schema: spec-driven
+created: 2026-09-14
+goal: "Delete orphaned ws.rs and classify every #[ignore]d test as
+  runnable-and-run or permanently-unrunnable"
+
+# Dead-code removal and test classification. No capability behaviour changes,
+# so no spec delta.
+skip_specs: true

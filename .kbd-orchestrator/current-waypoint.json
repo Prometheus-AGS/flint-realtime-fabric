@@ -2,9 +2,9 @@
   "phase": "issue-triage-and-architecture-audit",
   "previousPhase": "phase-36-sovereign-sfu-ice-linux-fix",
   "status": "execute_ready",
-  "exactNextCommand": "/kbd-execute issue-triage-and-architecture-audit",
+  "exactNextCommand": "/kbd-apply p38-c001-iggy-handshake-diagnosis",
   "activeChange": null,
-  "updatedAt": "2026-09-14T10:43:35Z",
+  "updatedAt": "2026-09-14T13:37:01Z",
   "planComplete": true,
   "assessmentComplete": true,
   "executeComplete": true,
@@ -17,7 +17,7 @@
   ],
   "childPhases": [],
   "childPointer": null,
-  "currentTask": "apply p38-c001-iggy-handshake-diagnosis (diagnose before fixing)",
+  "currentTask": "apply p38-c001-iggy-handshake-diagnosis — diagnose before fixing; stop and report if the remedy is repinning the client",
   "schemaVersion": "5",
   "change": null,
   "nextPendingChange": "p38-c001-iggy-handshake-diagnosis",
@@ -28,5 +28,5 @@
   "certificationStatus": "NOT_TRACKED",
   "publicationStatus": "NOT_TRACKED",
   "planRevision": 1,
-  "revision": 3
+  "revision": 4
 }

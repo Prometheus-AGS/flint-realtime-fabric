@@ -250,7 +250,9 @@ Two independent reasons:
 
 1. **The model gateway is unreachable.** `.kbd-orchestrator/model-preflight.json` reports
    `status: "ok"` with gateway `http://localhost:4000/v1`, but a live probe of
-   `/v1/models` returns HTTP `000` (no response). **The preflight cache is stale** — it is
+   `/v1/models` returns HTTP `401` — **reachable, but rejecting the request as unauthenticated**
+   (`Missing or invalid Authorization header`). CORRECTED 2026-09-14: this was first
+   recorded as HTTP `000`/unreachable, which was wrong. The cache is still stale in that it
    valid for 24 h and was written while the gateway was up. Any skill trusting that cached
    `ok` without probing will believe review capability exists when it does not.
 2. **Roles are not distinct.** The same file reports `distinct_models: 2` across three

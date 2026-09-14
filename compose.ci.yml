@@ -54,7 +54,7 @@ services:
     environment:
       IGGY_SYSTEM_PATH: "/data"
     healthcheck:
-      test: ["CMD-SHELL", "iggy --transport tcp --server-address localhost:8090 me 2>/dev/null || exit 0"]
+      test: ["CMD-SHELL", "iggy --transport tcp --server-address 127.0.0.1:8090 me 2>/dev/null || exit 0"]
       interval: 5s
       timeout: 3s
       retries: 10

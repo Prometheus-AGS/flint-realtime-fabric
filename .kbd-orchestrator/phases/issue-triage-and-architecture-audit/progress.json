@@ -9,13 +9,13 @@
   "execute_complete": false,
   "reflect_complete": false,
   "implementation_total": 6,
-  "implementation_completed": 0,
+  "implementation_completed": 1,
   "changes_total": 6,
-  "changes_completed": 0,
+  "changes_completed": 1,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 0,
+      "completed": 1,
       "total": 6,
       "status": "PENDING"
     },
@@ -35,7 +35,9 @@
       "blockers": []
     }
   },
-  "completed_changes": [],
+  "completed_changes": [
+    "p38-c001-iggy-handshake-diagnosis"
+  ],
   "active_change": null,
   "blocked_changes": [],
   "changes": [
@@ -46,10 +48,24 @@
     "p38-c005-claude-md-adr-reconciliation",
     "p38-c006-dead-code-and-guard-classification"
   ],
-  "last_updated": "2026-09-14T11:16:22Z",
+  "last_updated": "2026-09-14T14:21:50Z",
   "last_updated_by": "claude-code",
   "sourceTool": "unknown",
   "createdBy": "kbd-new-phase",
-  "updatedAt": "2026-09-14T11:16:22Z",
-  "notes": "Out-of-plan work at operator direction (\"fix the openspec ledger first\"): fixed openspec/config.yaml:57 (unquoted colon made the rules entry parse as a mapping; Zod dropped all 5 proposal rules) taking 120 stderr warnings to 0; added .openspec.yaml with skip_specs:true to all 126 active changes (120 created, 6 appended without clobbering existing keys); archived all 126 after two independent validations agreed (per-change loop 126/0, bulk validator items=126 passed=126 failed=0). Active changes 126 -> 0; archive 89 -> 215. Checkboxes deliberately NOT corrected per operator direction. KNOWN CONDITION: openspec validate --archived now reports 46 failures, exactly the stale-checkbox set; that lint is wired to nothing (no pre-commit config, husky, lefthook or git hook), so it is latent, not blocking. One process error: openspec archive --json is NOT a dry run; an exploratory call archived p0-c001 for real and was reverted via git before further work."
+  "updatedAt": "2026-09-14T14:21:50Z",
+  "notes": "Out-of-plan work at operator direction (\"fix the openspec ledger first\"): fixed openspec/config.yaml:57 (unquoted colon made the rules entry parse as a mapping; Zod dropped all 5 proposal rules) taking 120 stderr warnings to 0; added .openspec.yaml with skip_specs:true to all 126 active changes (120 created, 6 appended without clobbering existing keys); archived all 126 after two independent validations agreed (per-change loop 126/0, bulk validator items=126 passed=126 failed=0). Active changes 126 -> 0; archive 89 -> 215. Checkboxes deliberately NOT corrected per operator direction. KNOWN CONDITION: openspec validate --archived now reports 46 failures, exactly the stale-checkbox set; that lint is wired to nothing (no pre-commit config, husky, lefthook or git hook), so it is latent, not blocking. One process error: openspec archive --json is NOT a dry run; an exploratory call archived p0-c001 for real and was reverted via git before further work.",
+  "execution_dispatched": true,
+  "review": {
+    "p38-c001-iggy-handshake-diagnosis": {
+      "qa_gate": "artifact-refiner: ALL PASS",
+      "adversarial_review": "pending_review",
+      "reason": "LiteLLM proxy at localhost:4000 returns HTTP 401 (reachable, no Authorization header configured); preflight reports providers_detected=[] and distinct_models=2 across 3 roles. Skipped at operator direction. NOTE: earlier artifacts recorded this as HTTP 000/unreachable, which was wrong and has been corrected.",
+      "consequence": "No cross-model judge has examined any artifact in this phase. Final local certification still requires a completed review receipt or an SSH-signed waiver."
+    }
+  },
+  "certification": {
+    "status": "PENDING_REVIEW",
+    "summary": "QA gate passed; adversarial review not run",
+    "blockers": []
+  }
 }

@@ -29,7 +29,7 @@ fn test_envelope(channel: Channel) -> EventEnvelope {
 #[ignore = "requires a live Iggy server — run with: cargo test -p frf-broker-iggy -- --ignored"]
 async fn publish_then_subscribe_receives_message() {
     let connection = std::env::var("IGGY_TEST_CONNECTION_STRING")
-        .unwrap_or_else(|_| "iggy://guest:guest@localhost:8090".to_owned());
+        .unwrap_or_else(|_| "iggy://iggy:iggy@127.0.0.1:8090".to_owned());
     let broker = IggyBroker::new(&connection)
         .await
         .expect("failed to connect to Iggy — ensure local Iggy is running");
@@ -85,7 +85,7 @@ async fn publish_then_subscribe_receives_message() {
 #[ignore = "requires a live Iggy server — run with: cargo test -p frf-broker-iggy -- --ignored"]
 async fn a_subscriber_knowing_only_the_well_known_id_receives_published_events() {
     let connection = std::env::var("IGGY_TEST_CONNECTION_STRING")
-        .unwrap_or_else(|_| "iggy://guest:guest@localhost:8090".to_owned());
+        .unwrap_or_else(|_| "iggy://iggy:iggy@127.0.0.1:8090".to_owned());
     let broker = IggyBroker::new(&connection)
         .await
         .expect("failed to connect to Iggy — ensure local Iggy is running");

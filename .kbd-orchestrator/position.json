@@ -1,27 +1,28 @@
 {
   "schemaVersion": "1",
   "generatedBy": "legacy-position-projection",
-  "sourceRevision": 0,
-  "updatedAt": "2026-09-09T11:35:01Z",
+  "sourceRevision": 4,
+  "updatedAt": "2026-09-14T14:04:31Z",
   "cursor": [
-    "phase-36-sovereign-sfu-ice-linux-fix"
+    "phase-36-sovereign-sfu-ice-linux-fix",
+    "adr-009-replication-materializer-and-pem-publication"
   ],
   "root": {
     "type": "phase",
     "id": "phase-36-sovereign-sfu-ice-linux-fix",
-    "status": "phase_archived",
+    "status": "active-parent",
     "progress": {
-      "done": 3,
-      "total": 3
+      "done": 0,
+      "total": 6
     },
     "children": [
       {
         "type": "phase",
         "id": "adr-009-replication-materializer-and-pem-publication",
-        "status": "phase_archived",
+        "status": "execute_ready",
         "progress": {
-          "done": 5,
-          "total": 5
+          "done": 0,
+          "total": 0
         },
         "children": []
       }
