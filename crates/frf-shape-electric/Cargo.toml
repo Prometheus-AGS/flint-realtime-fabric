@@ -11,12 +11,10 @@ description = "Authorized ElectricSQL shape-facade adapter (ADR-009) for Flint R
 workspace = true
 
 [dependencies]
-frf-domain = { path = "../frf-domain" }
 frf-ports = { path = "../frf-ports" }
 async-trait = { workspace = true }
+futures-util = { workspace = true }
 reqwest = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 

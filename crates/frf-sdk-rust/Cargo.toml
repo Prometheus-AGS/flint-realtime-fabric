@@ -10,6 +10,14 @@ description = "Hand-written Rust client SDK for Flint Realtime Fabric — the si
 [lints]
 workspace = true
 
+[features]
+default = []
+# ADR-009 authorized shape facade client. Off by default, mirroring the
+# gateway's own `shape-facade` gate: the lane is uncertified, and a consumer
+# that does not use it should not inherit an HTTP/TLS stack. `frf-ffi` is this
+# crate's only dependent and enables the feature explicitly.
+shape-facade = ["dep:reqwest", "dep:bytes", "dep:serde"]
+
 [dependencies]
 frf-domain = { path = "../frf-domain" }
 frf-proto = { path = "../frf-proto" }
@@ -25,8 +33,12 @@ serde_json = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
 async-stream = "0.3"
+reqwest = { workspace = true, optional = true }
+bytes = { workspace = true, optional = true }
+serde = { workspace = true, optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
 futures-util = { workspace = true }
 serde_json = { workspace = true }
+httpmock = { workspace = true }

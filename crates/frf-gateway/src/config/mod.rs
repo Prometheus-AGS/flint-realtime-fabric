@@ -3,47 +3,13 @@ use std::net::SocketAddr;
 use anyhow::Context;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SfuMode {
-    /// Sovereign SFU using `str0m` (no cloud dependency).
-    Sovereign,
-    /// Hosted SFU using `LiveKit`.
-    Hosted,
-}
+mod modes;
 
-impl From<SfuMode> for frf_domain::SfuMode {
-    fn from(mode: SfuMode) -> Self {
-        match mode {
-            SfuMode::Sovereign => frf_domain::SfuMode::Sovereign,
-            SfuMode::Hosted => frf_domain::SfuMode::Hosted,
-        }
-    }
-}
-
-/// Selects the `ActionPolicyProvider` implementation at startup.
-///
-/// Controlled by the `POLICY_ENGINE` env var.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum PolicyEngineMode {
-    /// No-op: every action is permitted (default, zero overhead).
-    None,
-    /// Cedar: in-memory `PolicySet` loaded from the bundled `policy.cedar`.
-    Cedar,
-}
-
-/// Selects the authorization adapter composed behind verified JWT identity and
-/// tenant-equality guards.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AuthzBackend {
-    /// Sansaba mode: authentication is the non-admin authorization boundary and
-    /// durable data authorization remains in `PostgreSQL` RLS.
-    VerifiedIdentity,
-    /// Generic platform relationship authorization through Ory Keto.
-    Keto,
-}
+pub use modes::{AuthzBackend, GatewayProfile, PolicyEngineMode, SfuMode};
 
 pub struct GatewayConfig {
     pub bind_addr: SocketAddr,
+    pub profile: GatewayProfile,
     /// gRPC server port (default 9090). Set `GRPC_PORT=0` to disable.
     pub grpc_port: Option<u16>,
     pub iggy_connection_string: String,
@@ -137,6 +103,7 @@ impl GatewayConfig {
         Self {
             // Infallible construction from constant octets — no parse, no panic.
             bind_addr: SocketAddr::from(([127, 0, 0, 1], 0)),
+            profile: GatewayProfile::Full,
             grpc_port: None,
             iggy_connection_string: "test://iggy".to_owned(),
             authz_backend: AuthzBackend::VerifiedIdentity,
@@ -197,6 +164,21 @@ impl GatewayConfig {
     ///
     /// Returns an error describing the first semantic violation found.
     pub fn validate(&self) -> anyhow::Result<()> {
+        if self.profile == GatewayProfile::ShapeOnly {
+            anyhow::ensure!(
+                cfg!(feature = "shape-facade"),
+                "GATEWAY_PROFILE=shape-only requires the shape-facade build feature"
+            );
+            anyhow::ensure!(
+                self.grpc_port.is_none(),
+                "GATEWAY_PROFILE=shape-only requires GRPC_PORT=0"
+            );
+            anyhow::ensure!(
+                !self.cdc_enabled && !self.federation_enabled,
+                "GATEWAY_PROFILE=shape-only requires CDC_ENABLED=false and FEDERATION_ENABLED=false"
+            );
+        }
+
         if self.sfu_mode == SfuMode::Hosted {
             for var in [
                 "LIVEKIT_API_KEY",
@@ -297,6 +279,18 @@ impl GatewayConfig {
             .parse::<SocketAddr>()
             .context("BIND_ADDR must be a valid socket address")?;
 
+        let profile = match std::env::var("GATEWAY_PROFILE")
+            .unwrap_or_else(|_| "full".to_owned())
+            .to_ascii_lowercase()
+            .as_str()
+        {
+            "full" => GatewayProfile::Full,
+            "shape-only" => GatewayProfile::ShapeOnly,
+            value => {
+                anyhow::bail!("GATEWAY_PROFILE must be `full` or `shape-only` (got {value:?})")
+            }
+        };
+
         let iggy_connection_string = std::env::var("IGGY_CONNECTION_STRING")
             .context("IGGY_CONNECTION_STRING must be set")?;
 
@@ -378,6 +372,7 @@ impl GatewayConfig {
 
         Ok(Self {
             bind_addr,
+            profile,
             grpc_port,
             iggy_connection_string,
             authz_backend,

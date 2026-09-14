@@ -82,3 +82,17 @@ async fn cors_origin_not_in_allowlist_is_not_reflected() {
         "disallowed origin must not be reflected"
     );
 }
+
+#[tokio::test]
+async fn requests_per_second_is_converted_to_a_replenishment_period() {
+    let mut cfg = config_with(1024, &[]);
+    cfg.rate_limit_per_sec = 50;
+    cfg.rate_limit_burst = 1;
+    let app = frf_gateway::build_security_test_router(&cfg);
+    let server = TestServer::new(app).expect("test server");
+
+    server.get("/healthz").await.assert_status_ok();
+    assert_eq!(server.get("/healthz").await.status_code(), 429);
+    tokio::time::sleep(std::time::Duration::from_millis(30)).await;
+    server.get("/healthz").await.assert_status_ok();
+}

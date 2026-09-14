@@ -10,7 +10,7 @@ use frf_broker_iggy::IggyBroker;
 use frf_crdt::{InMemoryCrdtStore, LoroDeltaApplier};
 use frf_domain::{Channel, TenantId, ids::ChannelId};
 use frf_gateway::authz_backend::ConfiguredAuthzProvider;
-use frf_gateway::config::{AuthzBackend, PolicyEngineMode};
+use frf_gateway::config::{AuthzBackend, GatewayProfile, PolicyEngineMode};
 use frf_gateway::{
     AppState, GatewayConfig, agent_grpc_service::AgentGrpcService,
     authz_grpc_service::AuthzGrpcService, entity_grpc_service::EntityGrpcService,
@@ -19,11 +19,10 @@ use frf_gateway::{
 };
 use frf_identity_ory::OryIdentityVerifier;
 use frf_librefang::LibreFangBus;
-use frf_media_livekit::LiveKitSignaling;
-use frf_media_str0m::StrOmSignaler;
 use frf_policy_cedar::CedarPolicyEngine;
 use frf_ports::{
-    BoxedPolicyProvider, DynMediaSignaler, DynPolicyProvider, LogBroker, NoOpPolicyProvider,
+    BoxedPolicyProvider, DynAgentEventBus, DynMediaSignaler, DynPolicyProvider, LogBroker,
+    NoOpPolicyProvider,
 };
 use frf_postgres_cdc::{CdcConfig, PostgresCdcConsumer};
 use frf_store_redb::RedbOpStore;
@@ -41,6 +40,9 @@ use tracing_subscriber::util::SubscriberInitExt as _;
 use tracing_subscriber::{EnvFilter, fmt};
 
 mod federation;
+mod inactive_lanes;
+
+use inactive_lanes::InactiveAgentBus;
 
 fn init_telemetry() -> Result<Option<TracerProvider>> {
     let otlp_endpoint = std::env::var("OTEL_EXPORTER_OTLP_ENDPOINT").ok();
@@ -144,11 +146,16 @@ async fn main() -> Result<()> {
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
     let cdc_task = spawn_cdc_consumer(&config, Arc::clone(&broker), shutdown_rx.clone())?;
 
-    let media_signaler = Arc::new(build_media_signaler(&config));
-    let agent_bus = Arc::new(LibreFangBus::start_with_config(
-        config.registry_idle_secs,
-        config.registry_sweep_interval_secs,
-    )?);
+    let media_signaler = Arc::new(inactive_lanes::build_media_signaler(&config));
+    let agent_bus = Arc::new(if config.profile == GatewayProfile::ShapeOnly {
+        tracing::info!("agent event lane disabled for shape-only profile");
+        DynAgentEventBus::new(Arc::new(InactiveAgentBus))
+    } else {
+        DynAgentEventBus::new(Arc::new(LibreFangBus::start_with_config(
+            config.registry_idle_secs,
+            config.registry_sweep_interval_secs,
+        )?))
+    });
     let bind_addr = config.bind_addr;
 
     let federation_bridges = federation::build_federation_bridges(&config);
@@ -159,7 +166,9 @@ async fn main() -> Result<()> {
     // across the gRPC signal service and the /ws/v1/signal inbound path (p23-c003). Building it
     // here (not inline in the gRPC wiring) lets the WS route drive the same bridge. This does
     // NOT flip the gate — end-to-end media is unproven (deferred); hosted stays the media path.
-    let media_bridge = if config.sfu_mode == frf_gateway::SfuMode::Sovereign {
+    let media_bridge = if config.profile != frf_gateway::GatewayProfile::ShapeOnly
+        && config.sfu_mode == frf_gateway::SfuMode::Sovereign
+    {
         // p24-c001: for a real browser↔gateway ICE path the media socket must bind a
         // reachable address + advertise a host-reachable candidate IP on a fixed UDP port.
         // MediaConfig::from_env reads MEDIA_BIND_ADDR / MEDIA_ADVERTISE_IP / MEDIA_UDP_PORT
@@ -176,7 +185,7 @@ async fn main() -> Result<()> {
     };
 
     #[cfg(feature = "shape-facade")]
-    let (shape_facade, shape_resolver) = build_shape_facade(&authz)?;
+    let shape_usecase = build_shape_usecase(&authz, config.profile)?;
     let state = Arc::new(AppState {
         subscribe_pipeline,
         publish_usecase,
@@ -189,9 +198,7 @@ async fn main() -> Result<()> {
         federation_bridges,
         media_bridge,
         #[cfg(feature = "shape-facade")]
-        shape_facade,
-        #[cfg(feature = "shape-facade")]
-        shape_resolver,
+        shape_usecase,
         config: Arc::new(config),
     });
 
@@ -302,48 +309,6 @@ fn build_policy_provider(config: &GatewayConfig) -> Result<BoxedPolicyProvider> 
     }
 }
 
-fn build_media_signaler(config: &GatewayConfig) -> DynMediaSignaler {
-    use frf_gateway::SfuMode;
-
-    match config.sfu_mode {
-        SfuMode::Sovereign => {
-            // Sovereign signaling relay. The str0m MEDIA engine (StrOmTransport) is composed
-            // separately and driven from the signal path via MediaTransportBridge (p22-c003).
-            //
-            // p36-c004: the end-to-end browser decode proof PASSES. A two-browser Chromium run
-            // against this engine observed `inbound-rtp.framesDecoded > 0` on the authenticated
-            // path (see docs/PHASE-36-LOCAL-DECODE-RESULT.md). The gate that phases 16-36 held
-            // shut is therefore open: this is no longer a warning path.
-            //
-            // Scope of that proof, stated precisely: it was a LOCAL run on a single Compose
-            // bridge, both peers inside the network, with coturn available. It demonstrates the
-            // relay decodes real media. It is NOT a multi-host, NAT-traversal, or scale result,
-            // and the advertised-candidate configuration is topology-sensitive (MEDIA_ADVERTISE_IP
-            // must resolve to an address the peer can actually pair with — on a dual-stack bridge
-            // a hostname can resolve IPv6-first and silently strand ICE in `new`).
-            tracing::info!(
-                "SFU_MODE=sovereign: signaling + str0m media engine composed; end-to-end decode \
-                 proven locally (p36-c004, framesDecoded > 0). Verify MEDIA_ADVERTISE_IP is \
-                 peer-reachable for your topology."
-            );
-            DynMediaSignaler::new(Arc::new(StrOmSignaler::new()))
-        }
-        SfuMode::Hosted => {
-            tracing::info!("SFU mode: hosted (LiveKit)");
-            let lk = LiveKitSignaling::from_env().unwrap_or_else(|e| {
-                tracing::warn!(error = %e, "LiveKit env vars absent — signaling disabled");
-                LiveKitSignaling::new(frf_media_livekit::LiveKitConfig {
-                    api_key: String::new(),
-                    api_secret: String::new(),
-                    server_url: String::new(),
-                    room_prefix: String::from("frf/"),
-                })
-            });
-            DynMediaSignaler::new(Arc::new(lk))
-        }
-    }
-}
-
 fn spawn_grpc_server(
     state: Arc<
         AppState<
@@ -351,7 +316,7 @@ fn spawn_grpc_server(
             ConfiguredAuthzProvider,
             OryIdentityVerifier,
             DynMediaSignaler,
-            LibreFangBus,
+            DynAgentEventBus,
             BoxedPolicyProvider,
         >,
     >,
@@ -437,40 +402,34 @@ fn spawn_grpc_server(
 
 /// Compose the ADR-009 relational replication lane from environment configuration.
 ///
-/// Returns `(None, None)` unless **both** `SHAPE_ELECTRIC_URL` and `SHAPE_CATALOG_PATH` are
-/// set. A half-configured deployment therefore gets no `/v1/shape` route at all, rather than
-/// one backed by an empty catalog — an empty catalog would reject every shape, which looks
-/// like a client bug instead of a deployment mistake.
+/// The `shape-only` profile requires both `SHAPE_ELECTRIC_URL` and `SHAPE_CATALOG_PATH` and
+/// fails startup if either is absent. The full profile keeps the feature lane optional.
 ///
-/// `SHAPE_SCOPE_COLUMN` defaults to `practice_id`; it names the column carrying the
-/// practice scope and is server configuration, never client input.
-/// The composed ADR-009 lane: the transport and its resolver, or `None` when unconfigured.
-/// Both are always present or both absent — a facade without a resolver would be an
-/// unauthorized read path.
 #[cfg(feature = "shape-facade")]
-type ShapeLane = (
-    Option<Arc<dyn frf_ports::ShapeFacade>>,
-    Option<Arc<frf_shape_electric::ShapeResolver>>,
-);
+type ShapeLane = Option<Arc<frf_app::ShapeUseCase<ConfiguredAuthzProvider>>>;
 
 #[cfg(feature = "shape-facade")]
-fn build_shape_facade(authz: &Arc<ConfiguredAuthzProvider>) -> anyhow::Result<ShapeLane> {
+fn build_shape_usecase(
+    authz: &Arc<ConfiguredAuthzProvider>,
+    profile: GatewayProfile,
+) -> anyhow::Result<ShapeLane> {
     use anyhow::Context as _;
 
-    let (Ok(url), Ok(catalog_path)) = (
-        std::env::var("SHAPE_ELECTRIC_URL"),
-        std::env::var("SHAPE_CATALOG_PATH"),
-    ) else {
+    let Some((url, catalog_path)) = require_shape_config(
+        profile,
+        std::env::var("SHAPE_ELECTRIC_URL").ok(),
+        std::env::var("SHAPE_CATALOG_PATH").ok(),
+    )?
+    else {
         tracing::info!(
             "ADR-009 shape facade not configured (SHAPE_ELECTRIC_URL / SHAPE_CATALOG_PATH unset) — lane disabled"
         );
-        return Ok((None, None));
+        return Ok(None);
     };
 
     let raw = std::fs::read_to_string(&catalog_path)
         .with_context(|| format!("reading shape catalog from {catalog_path}"))?;
-    let catalog =
-        frf_shape_electric::ShapeCatalog::from_json(&raw).context("parsing shape catalog")?;
+    let catalog = frf_app::ShapeCatalog::from_json(&raw).context("parsing shape catalog")?;
     let shape_count = catalog.len();
 
     let timeout = std::time::Duration::from_secs(
@@ -481,22 +440,48 @@ fn build_shape_facade(authz: &Arc<ConfiguredAuthzProvider>) -> anyhow::Result<Sh
     );
     let upstream =
         frf_shape_electric::HttpElectric::new(&url, timeout).context("building Electric client")?;
-    let facade = frf_shape_electric::ElectricShapeFacade::new(upstream);
+    let facade: Arc<dyn frf_ports::ShapeFacade> =
+        Arc::new(frf_shape_electric::ElectricShapeFacade::new(upstream));
 
-    let scope_column =
-        std::env::var("SHAPE_SCOPE_COLUMN").unwrap_or_else(|_| "practice_id".to_owned());
-    let resolver = frf_shape_electric::ShapeResolver::new(
-        catalog,
-        Arc::clone(authz) as Arc<dyn frf_ports::AuthzProvider>,
-        scope_column,
-    );
+    let usecase = frf_app::ShapeUseCase::new(catalog, Arc::clone(authz), facade);
 
     // Count and endpoint only — never the catalog contents.
     tracing::warn!(
         shapes = shape_count,
-        "ADR-009 shape facade ENABLED — this lane is not certified; the live Electric \
-         exchange is unverified and ASO's replica schema is not finalized"
+        "ADR-009 shape facade ENABLED — measured revocation and deployment-specific \
+         topology certification remain open"
     );
 
-    Ok((Some(Arc::new(facade)), Some(Arc::new(resolver))))
+    Ok(Some(Arc::new(usecase)))
+}
+
+#[cfg(feature = "shape-facade")]
+fn require_shape_config(
+    profile: GatewayProfile,
+    url: Option<String>,
+    catalog_path: Option<String>,
+) -> anyhow::Result<Option<(String, String)>> {
+    match (url, catalog_path) {
+        (Some(url), Some(catalog_path)) => Ok(Some((url, catalog_path))),
+        _ if profile == GatewayProfile::ShapeOnly => anyhow::bail!(
+            "GATEWAY_PROFILE=shape-only requires SHAPE_ELECTRIC_URL and SHAPE_CATALOG_PATH"
+        ),
+        _ => Ok(None),
+    }
+}
+
+#[cfg(all(test, feature = "shape-facade"))]
+mod shape_config_tests {
+    use super::*;
+
+    #[test]
+    fn shape_only_profile_refuses_to_start_without_both_shape_sources() {
+        let error = require_shape_config(
+            GatewayProfile::ShapeOnly,
+            Some("http://electric:3000".to_owned()),
+            None,
+        )
+        .expect_err("shape-only must not start without a catalog");
+        assert!(error.to_string().contains("requires SHAPE_ELECTRIC_URL"));
+    }
 }

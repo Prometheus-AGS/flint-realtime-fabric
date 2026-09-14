@@ -15,11 +15,15 @@
 //! facade constrains *what* may be requested; it does not reinterpret the protocol.
 //!
 //! This crate holds no implementation (the absolute dependency rule). The adapter lives in
-//! `frf-shape-electric`; authorization is composed over this port in `frf-gateway`, never
-//! inside the adapter.
+//! `frf-shape-electric`; `frf-app` composes authorization and server policy over this port,
+//! and `frf-gateway` supplies the concrete dependencies.
+
+use std::pin::Pin;
 
 use async_trait::async_trait;
+use bytes::Bytes;
 use frf_domain::TenantId;
+use futures_core::Stream;
 
 use crate::error::PortError;
 
@@ -35,6 +39,8 @@ use crate::error::PortError;
 pub enum Cursor {
     /// No prior state — request the full initial snapshot for the shape.
     Initial,
+    /// Start at Electric's current log position without historical rows.
+    Now,
     /// Resume an existing shape stream at `offset` under `handle`.
     Resume {
         /// Electric's shape handle, as previously returned upstream.
@@ -42,6 +48,20 @@ pub enum Cursor {
         /// Electric's offset within that handle.
         offset: String,
     },
+}
+
+/// Electric protocol options that a trusted facade may forward unchanged.
+///
+/// Shape-defining values (`table`, `where`, and `columns`) deliberately do not
+/// appear here. The server derives those from policy after authorization.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ShapeProtocol {
+    /// Electric long-polling mode from the `live` query parameter.
+    pub live: Option<String>,
+    /// Electric cache-busting cursor from the `cursor` query parameter.
+    pub cursor: Option<String>,
+    /// Conditional request validator from `If-None-Match`.
+    pub if_none_match: Option<String>,
 }
 
 /// A client's request for one shape, before authorization.
@@ -62,51 +82,114 @@ pub struct ShapeRequest {
     pub params: Vec<(String, String)>,
     /// Where to resume from.
     pub cursor: Cursor,
+    /// Client protocol options that are safe to forward unchanged.
+    pub protocol: ShapeProtocol,
 }
 
-/// One chunk of Electric's response, with its protocol metadata preserved.
+/// One HTTP response header preserved from Electric.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ShapeHeader {
+    /// Lowercase HTTP header name.
+    pub name: String,
+    /// Header bytes as received from Electric.
+    pub value: Vec<u8>,
+}
+
+impl ShapeHeader {
+    /// Construct a preserved response header.
+    #[must_use]
+    pub fn new(name: impl Into<String>, value: impl Into<Vec<u8>>) -> Self {
+        Self {
+            name: name.into(),
+            value: value.into(),
+        }
+    }
+}
+
+/// Shell-neutral stream of protected Electric response frames.
 ///
-/// `body` is Electric's own payload, forwarded unaltered — the facade authorizes and
-/// constrains requests, it does not rewrite response data. `must_refetch` surfaces Electric's
-/// refetch signal so the client can rebuild the affected replica generation rather than
-/// merging a new snapshot into stale rows (ADR-009, §8 of the ASO runtime architecture).
-#[derive(Debug, Clone)]
-#[non_exhaustive]
-pub struct ShapeChunk {
-    /// Electric's shape handle for this stream.
-    pub handle: String,
-    /// The offset a client should resume from next.
-    pub next_offset: String,
-    /// Electric's response payload, unmodified.
-    pub body: Vec<u8>,
-    /// `true` when upstream signalled that the client must discard and refetch.
-    pub must_refetch: bool,
-    /// `true` when this chunk completes the initial snapshot — the client may not present a
-    /// cold-start view as current until it has seen this.
-    pub snapshot_complete: bool,
+/// The Electric adapter supplies frames in upstream order. The application layer wraps this
+/// stream with a [`ShapeLease`] before it crosses the interface boundary. Dropping the wrapped
+/// stream must release its lease and any uncommitted continuation state. Axum, Hyper, Tauri, or
+/// another shell type must not appear in this contract.
+pub type ShapeBodyStream = Pin<Box<dyn Stream<Item = Result<Bytes, PortError>> + Send + 'static>>;
+
+/// Authority decision bound to one protected shape response.
+///
+/// One lease instance captures one verified grant and its server-derived authorization tuple.
+/// [`ShapeLease::revalidate`] returns `Ok(())` only while that exact authority remains current.
+/// Permission denial, expiry, timeout, transport loss, and every other error are terminal for the
+/// protected body that owns the lease; callers must cancel rather than reuse an earlier success.
+/// The application layer owns the monotonic cancellation worker and the response stream owns that
+/// worker through completion or drop.
+#[async_trait]
+pub trait ShapeLease: Send + Sync + 'static {
+    /// Revalidate the exact grant captured for this response.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`PortError::PermissionDenied`] when authority has ended and another
+    /// [`PortError`] when current authority cannot be established. Both outcomes require the
+    /// protected stream to terminate without another frame.
+    async fn revalidate(&self) -> Result<(), PortError>;
 }
 
-impl ShapeChunk {
-    /// Build a chunk from an upstream response.
+/// One Electric HTTP response, with protocol metadata and control frames intact.
+///
+/// The adapter does not translate response status, headers, or body. This keeps
+/// initial snapshots, 304 responses, 409 must-refetch frames, schema metadata,
+/// cursors, cache validators, and future control messages observable to the real
+/// Electric client.
+#[non_exhaustive]
+pub struct ShapeResponse {
+    /// Exact upstream HTTP status code.
+    pub status: u16,
+    /// Electric protocol and HTTP cache headers selected by the adapter.
+    pub headers: Vec<ShapeHeader>,
+    /// Electric response frames, including control messages, in upstream order.
+    pub body: ShapeBodyStream,
+}
+
+impl ShapeResponse {
+    /// Build a preserved response from one buffered body.
     ///
-    /// `ShapeChunk` is `#[non_exhaustive]` so new protocol metadata can be added without
+    /// `ShapeResponse` is `#[non_exhaustive]` so new protocol metadata can be added without
     /// breaking downstream matches; adapters construct it through this constructor rather
     /// than a struct literal.
     #[must_use]
-    pub const fn new(
-        handle: String,
-        next_offset: String,
-        body: Vec<u8>,
-        must_refetch: bool,
-        snapshot_complete: bool,
-    ) -> Self {
+    pub fn new(status: u16, headers: Vec<ShapeHeader>, body: Vec<u8>) -> Self {
+        let frame = (!body.is_empty()).then(|| Ok(Bytes::from(body)));
+        Self::streamed(status, headers, Box::pin(futures_util::stream::iter(frame)))
+    }
+
+    /// Build a preserved response from an ordered body stream.
+    #[must_use]
+    pub fn streamed(status: u16, headers: Vec<ShapeHeader>, body: ShapeBodyStream) -> Self {
         Self {
-            handle,
-            next_offset,
+            status,
+            headers,
             body,
-            must_refetch,
-            snapshot_complete,
         }
+    }
+
+    /// Return a preserved header using an ASCII case-insensitive lookup.
+    #[must_use]
+    pub fn header(&self, name: &str) -> Option<&[u8]> {
+        self.headers
+            .iter()
+            .find(|header| header.name.eq_ignore_ascii_case(name))
+            .map(|header| header.value.as_slice())
+    }
+}
+
+impl std::fmt::Debug for ShapeResponse {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("ShapeResponse")
+            .field("status", &self.status)
+            .field("headers", &self.headers)
+            .field("body", &"<stream>")
+            .finish_non_exhaustive()
     }
 }
 
@@ -120,9 +203,9 @@ impl ShapeChunk {
 /// # Authorization
 ///
 /// Implementations of this port are **not** the authorization boundary; they receive a
-/// request that the gateway has already resolved and authorized. This mirrors ADR-007's
-/// media-path split: the adapter stays a pure transport, and composition of
-/// (shape × authz) happens only in `frf-gateway`.
+/// request that the application use case has already resolved and authorized. The adapter
+/// stays a pure transport; `frf-app` owns the use case and the gateway is its composition
+/// root.
 #[async_trait]
 pub trait ShapeFacade: Send + Sync + 'static {
     /// Fetch the next chunk for an already-authorized, already-constrained request.
@@ -132,24 +215,26 @@ pub trait ShapeFacade: Send + Sync + 'static {
     /// [`PortError::NotFound`] if the shape is unknown upstream, [`PortError::Timeout`] on a
     /// slow upstream, [`PortError::Transport`] or [`PortError::Upstream`] on a failed
     /// exchange.
-    async fn fetch(&self, request: &AuthorizedShapeRequest) -> Result<ShapeChunk, PortError>;
+    async fn fetch(&self, request: &AuthorizedShapeRequest) -> Result<ShapeResponse, PortError>;
 }
 
 /// A [`ShapeRequest`] that has passed policy resolution and an authorization check.
 ///
 /// This type is the seam that makes "authorize every continuation" structural rather than a
-/// convention: the adapter's `fetch` takes only this, and it cannot be constructed outside
-/// the gateway's authorization path (its fields are populated by the resolver, which is the
-/// only place the Keto check happens). An unauthorized request is therefore not merely
-/// rejected — it is unrepresentable at the transport boundary.
+/// convention: the adapter's `fetch` takes only this, and the application use case constructs
+/// it only after server policy and the live authorization check pass. An unauthorized request
+/// is therefore unrepresentable at the transport boundary.
 #[derive(Debug, Clone)]
 pub struct AuthorizedShapeRequest {
     /// The upstream table this shape reads.
     pub table: String,
     /// The exact column set the subject may see. Never client-supplied.
     pub columns: Vec<String>,
-    /// The server-derived row filter, including the subject's practice scoping.
-    pub where_clause: String,
+    /// The server-derived row filter. Practice projections always carry one;
+    /// explicitly approved reference projections may omit it.
+    pub where_clause: Option<String>,
     /// Cursor to forward upstream.
     pub cursor: Cursor,
+    /// Authorized Electric protocol options to forward unchanged.
+    pub protocol: ShapeProtocol,
 }
