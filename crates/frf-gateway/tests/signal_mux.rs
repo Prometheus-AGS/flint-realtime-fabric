@@ -202,9 +202,7 @@ fn make_state(
         media_bridge: None,
         // ADR-009 lane not exercised by the signal-mux tests.
         #[cfg(feature = "shape-facade")]
-        shape_facade: None,
-        #[cfg(feature = "shape-facade")]
-        shape_resolver: None,
+        shape_usecase: None,
         config: Arc::new(GatewayConfig::test_default()),
     })
 }

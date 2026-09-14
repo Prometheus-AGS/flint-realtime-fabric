@@ -69,8 +69,9 @@ thiserror = { workspace = true }
 [features]
 default = []
 dev-endpoints = []
-# ADR-009 relational replication facade. Off by default: the lane stays disabled until its
-# verification criteria are proved, and the live Electric exchange is unverified.
+# ADR-009 relational replication facade. Off by default: bounded live exchange, persisted
+# transition, expired-handle and client-segment proofs pass; measured revocation and deployment
+# topology remain open.
 shape-facade = ["dep:frf-shape-electric"]
 
 [dev-dependencies]

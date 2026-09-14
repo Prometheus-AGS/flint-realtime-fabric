@@ -1,4 +1,4 @@
-use std::pin::Pin;
+use std::{pin::Pin, sync::Arc};
 
 use async_trait::async_trait;
 use futures_core::Stream;
@@ -31,4 +31,25 @@ pub trait AgentEventBus: Send + Sync + 'static {
     ///
     /// Returns `PortError::Unavailable` if the subscription actor cannot be reached.
     async fn subscribe(&self, tenant_id: &str) -> Result<AgentEventStream, PortError>;
+}
+
+/// Type-erased `AgentEventBus` that forwards calls to the selected runtime adapter.
+pub struct DynAgentEventBus(Arc<dyn AgentEventBus>);
+
+impl DynAgentEventBus {
+    #[must_use]
+    pub fn new(inner: Arc<dyn AgentEventBus>) -> Self {
+        Self(inner)
+    }
+}
+
+#[async_trait]
+impl AgentEventBus for DynAgentEventBus {
+    async fn publish(&self, event: AgentEvent) -> Result<(), PortError> {
+        self.0.publish(event).await
+    }
+
+    async fn subscribe(&self, tenant_id: &str) -> Result<AgentEventStream, PortError> {
+        self.0.subscribe(tenant_id).await
+    }
 }

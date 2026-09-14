@@ -12,6 +12,7 @@ manager · **Dev-only** = must NOT be set in production.
 | Variable | Req | Secret | Default | Purpose |
 |----------|:---:|:------:|---------|---------|
 | `BIND_ADDR` | | | `0.0.0.0:8080` | HTTP (Axum) listen address. |
+| `GATEWAY_PROFILE` | | | `full` | `full` mounts the normal FRF surfaces; `shape-only` mounts only health, readiness, and the authorized Electric facade and requires the `shape-facade` build feature, `GRPC_PORT=0`, CDC off, and federation off. |
 | `GRPC_PORT` | | | `9090` | gRPC / gRPC-web port. `0` disables the gRPC server. |
 | `IGGY_CONNECTION_STRING` | ✅ | ✅ | — | Iggy broker DSN `iggy://user:pass@host:port` (contains credentials). |
 | `RUST_LOG` | | | `info` | `tracing` log filter. |

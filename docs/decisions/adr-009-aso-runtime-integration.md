@@ -29,13 +29,25 @@ other clone.
 
 ### Relational replication
 
-> **Implementation status — 2026-09-06.** The FRF side of the shape facade now exists:
-> the `ShapeFacade` port (`frf-ports`), the `frf-shape-electric` adapter (server-side
-> shape catalog, parameter allow-listing, per-request/per-continuation Keto
-> authorization, and a live Electric HTTP client), and a `GET /v1/shape` gateway route
-> behind the off-by-default `shape-facade` feature. **The lane remains disabled.** The
-> live Electric exchange has not been run against a server, and the materializer, checkpoint
-> atomicity and PEM publication contract below are still unimplemented.
+> **Implementation status — 2026-09-08.** The `ShapeFacade` port and one-port
+> `frf-shape-electric` HTTP adapter exist. `frf-app` owns the server shape catalog,
+> parameter allow-listing, per-request/per-continuation authorization and handle binding;
+> `frf-gateway` verifies identity and exposes `GET /v1/shape` behind the off-by-default
+> `shape-facade` feature. A bounded local composition exercised real Kratos v26.2.0
+> sessions, Gate RS256 grants, the FRF verifier and Electric 1.8.0. Initial exchange,
+> same-session continuation with a fresh Gate token, and scope, projection,
+> cross-identity handle and expired-handle denials passed. A client-only segment reached
+> Gate while direct FRF, Electric service and operator-loopback access failed. **The lane remains
+> uncertified and disabled by default.** Persisted row-transition, measured session or
+> membership revocation, deployment-specific topology, materializer, checkpoint atomicity
+> and PEM publication proofs remain open.
+>
+> **Streaming correction — 2026-09-12.** FRF now treats the Electric handle returned in response
+> metadata as provisional. It becomes reusable only when the server body consumer observes the
+> completion marker after the final ordered frame. Lease cancellation, upstream body failure or
+> consumer drop discards that provisional state and removes the current grant's resuming binding;
+> a normally completed `304` preserves its prior handle. Status and allowed protocol headers remain
+> unchanged, while the gateway continues to replace upstream cache policy with `private, no-store`.
 >
 > **Correction 2026-09-06:** an earlier revision of this note said ASO "has not yet defined the
 > privacy-approved replica schema (sequence step 1)". That was wrong. It exists in the
@@ -47,10 +59,11 @@ other clone.
 > error came from reading the ASO sequence table's "step 1" as "not done" without checking the
 > repo. FRF's catalog conforms to that schema; the schema does not change to suit FRF. See
 > `docs/architecture/frf-shape-facade-integration.md` in `prior-auth`. The Verification
-> section's criteria are unmet; nothing here certifies the lane.
+> section records the bounded criteria that have passed and those still open; nothing here
+> certifies the lane.
 
 Provide an authorized HTTP shape facade between Electric and the ASO local
-SQL replica. This facade and its materializer integration are planned work.
+SQL replica. The facade exists; its materializer integration remains planned work.
 Preserve Electric snapshot, continuation, handle, offset and refetch semantics.
 Derive allowed practice, rows and columns on the server; authorize every
 continuation and prevent client parameters from widening the approved shape.
@@ -76,6 +89,29 @@ TTL, downstream token expiry, open streams, disconnect propagation and client
 locking. Session expiry or revoked membership must stop protected delivery
 within that bound. A token refresh must revalidate identity and membership;
 refreshing an old grant cannot extend it indefinitely.
+
+> **RA06 implementation status — 2026-09-09.** The bound was fixed before runtime
+> implementation at 5,000 ms from authoritative revocation commit or session expiry through
+> the last protected byte. Gate now retains authoritative Kratos expiry and uses a monotonic
+> generation to prevent an invalidated cache miss, authentication result or Redis backfill from
+> publishing stale identity. FRF streams Electric frames through a bounded background producer
+> that retains the original 1,750 ms request deadline, revalidates at most every 750 ms, bounds
+> each local authorization call to 750 ms and drops the upstream body on deadline, denial, error
+> or consumer drop. A timeout before response metadata returns an empty Electric-compatible `204`;
+> cancellation after metadata terminates the body. The shell samples monotonic time before
+> sub-second Unix time and passes both, so FRF anchors integer JWT expiry to its exact second
+> boundary without adding dispatch delay. The response stream checks its monotonic deadline on
+> both sides of receiver polling so a queued frame cannot beat a waking
+> cancellation worker. Gate's ASO composition mints a
+> token for at most three seconds and every reconnect resolves a fresh ASO replica grant. The
+> extra second covers whole-second JWT expiry precision while FRF still closes each protected
+> response after at most 1,750 ms. A local campaign measured active-response closure 278.672 ms
+> after session expiry, 1,737.861 ms after logout and 1,429.459 ms after membership removal.
+> New requests denied, stale-refill racers did not restore access, and an unavailable grant
+> authority closed in 1,749.861 ms and exposed no protected body or Electric headers. The
+> `verified-identity` FRF backend is only a relation-name check, so Gate's response watchdog remains
+> the fresh ASO authority owner and its downstream closure triggers FRF producer cleanup. The lane remains uncertified until
+> its materializer, checkpoint atomicity and deployment-specific proofs pass.
 
 ASO protected agent output requires subject/run visibility before delivery, in
 addition to tenant isolation. Use current authorization checks or bounded,
@@ -118,5 +154,12 @@ widen access, every continuation is authorized, subject/run visibility is
 respected, and expiry/revocation stops delivery within the chosen bound. Test
 account/practice switches with in-flight work and logout across reloads. Prove
 SQL/checkpoint crash consistency and atomic PEM publication for relational
-replication. Native parity, real Kratos deployment and protected media remain
-separate release gates. No runtime tests are claimed by this documentation edit.
+replication. The bounded local shape composition has proved malformed request
+denial, authorization on continuation, real Gate-to-FRF verification, a live
+Electric initial/continuation exchange, expired-handle denial under a refreshed
+grant, a committed synthetic gate transition, and a client segment that cannot bypass Gate,
+FRF or reach the loopback diagnostic. Deterministic tests prove the fixed response lease,
+post-fetch denial and Gate cache-refill fence. A local campaign proved bounded session expiry,
+logout and membership removal with fresh-request denial and fail-closed authority loss. Each
+deployment-specific topology, native parity, production Kratos deployment and protected media
+remain separate gates.

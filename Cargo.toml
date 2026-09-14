@@ -120,7 +120,7 @@ iroh-mdns-address-lookup = "0.4"
 n0-error = "1.0"
 
 # HTTP / WebSocket clients
-reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+reqwest = { version = "0.12", features = ["json", "rustls-tls", "stream"], default-features = false }
 metrics = "0.24"
 metrics-exporter-prometheus = { version = "0.18", default-features = false }
 tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"] }

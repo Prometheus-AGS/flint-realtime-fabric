@@ -15,6 +15,7 @@ pub mod signal_service;
 pub mod sync_grpc_service;
 
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum::Router;
 use axum::http::{HeaderValue, Method, header};
@@ -30,7 +31,7 @@ use tower_governor::{
 use tower_http::cors::CorsLayer;
 use tower_http::limit::RequestBodyLimitLayer;
 
-pub use config::{AuthzBackend, GatewayConfig, PolicyEngineMode, SfuMode};
+pub use config::{AuthzBackend, GatewayConfig, GatewayProfile, PolicyEngineMode, SfuMode};
 pub use error::GatewayError;
 
 pub struct AppState<L, A, I, M, B, P> {
@@ -54,15 +55,10 @@ pub struct AppState<L, A, I, M, B, P> {
     /// Sovereign SFU bridge — present only for `SFU_MODE=sovereign`. Drives the str0m media
     /// engine from the `/ws/v1/signal` inbound path (p23-c003). `None` for hosted deployments.
     pub media_bridge: Option<Arc<media_bridge::MediaTransportBridge>>,
-    /// ADR-009 relational replication facade — the authorized Electric read path. `None`
-    /// unless the `shape-facade` feature is enabled *and* the lane is configured; ADR-009
-    /// keeps it disabled until its verification criteria are proved.
+    /// ADR-009 authorized Electric application boundary. `None` unless the
+    /// `shape-facade` feature is enabled and the lane is configured.
     #[cfg(feature = "shape-facade")]
-    pub shape_facade: Option<Arc<dyn frf_ports::ShapeFacade>>,
-    /// Resolver holding the shape catalog + authz — the only producer of an authorized
-    /// request. Paired with `shape_facade`; both present or both absent.
-    #[cfg(feature = "shape-facade")]
-    pub shape_resolver: Option<Arc<frf_shape_electric::ShapeResolver>>,
+    pub shape_usecase: Option<Arc<frf_app::ShapeUseCase<A>>>,
     pub config: Arc<GatewayConfig>,
 }
 
@@ -82,6 +78,23 @@ where
     B: AgentEventBus + 'static,
     P: ActionPolicyProvider + 'static,
 {
+    if state.config.profile == GatewayProfile::ShapeOnly {
+        // `router` is reassigned only under `shape-facade`; with default features
+        // it is never mutated. Same reason as the parallel branch below.
+        #[allow(unused_mut)]
+        let mut router = Router::new()
+            .route("/healthz", get(routes::health::healthz))
+            .route("/readyz", get(routes::health::readyz::<L, A, I, M, B, P>));
+        #[cfg(feature = "shape-facade")]
+        {
+            router = router.route(
+                "/v1/shape",
+                get(routes::shape::get_shape::<L, A, I, M, B, P>),
+            );
+        }
+        return apply_security_layers(router, &state.config).with_state(state);
+    }
+
     #[allow(unused_mut)]
     let mut router = Router::new()
         .route("/healthz", get(routes::health::healthz))
@@ -146,12 +159,19 @@ where
     // limiting is a future enhancement once proxy-trust config exists.
     // A degenerate config (rate or burst == 0) skips the layer with a warning
     // rather than panicking at startup.
-    if let Some(governor_conf) = GovernorConfigBuilder::default()
-        .key_extractor(GlobalKeyExtractor)
-        .per_second(config.rate_limit_per_sec)
-        .burst_size(config.rate_limit_burst)
-        .finish()
-    {
+    #[allow(
+        clippy::cast_precision_loss,
+        reason = "the configured request rate is converted only to derive a Duration"
+    )]
+    let replenishment_period = (config.rate_limit_per_sec > 0)
+        .then(|| Duration::from_secs_f64(1.0 / config.rate_limit_per_sec as f64));
+    if let Some(governor_conf) = replenishment_period.and_then(|period| {
+        GovernorConfigBuilder::default()
+            .key_extractor(GlobalKeyExtractor)
+            .period(period)
+            .burst_size(config.rate_limit_burst)
+            .finish()
+    }) {
         router = router.layer(GovernorLayer::new(Arc::new(governor_conf)));
     } else {
         tracing::warn!(

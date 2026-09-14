@@ -28,8 +28,22 @@ mod convert;
 mod error;
 mod resilient;
 mod services;
+#[cfg(feature = "shape-facade")]
+mod shape;
 
 pub use client::{AuthInterceptor, FrfClient};
 pub use error::SdkError;
 pub use resilient::{ReconnectPolicy, SubscribeTarget, resilient_subscribe};
 pub use services::ServiceClients;
+
+/// Authorized shape facade client (ADR-009), behind the `shape-facade` feature.
+///
+/// Off by default, mirroring the gateway's own gate: the lane is uncertified,
+/// and a consumer that does not use it should not inherit an HTTP/TLS stack.
+#[cfg(feature = "shape-facade")]
+pub use shape::{
+    ShapeClient, ShapeCursor, ShapeFrame, ShapeMessage, ShapeMessageHeaders, ShapeRequestOptions,
+};
+
+#[cfg(all(feature = "shape-facade", not(target_arch = "wasm32")))]
+pub use shape::ShapeStreamHead;

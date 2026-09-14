@@ -1,3 +1,8 @@
+// The whole file exercises `routes::shape` and `AppState::shape_usecase`, both of
+// which exist only under `shape-facade`. Without this gate the target fails to
+// COMPILE under default features, which takes `cargo test --workspace` down with
+// it — the suite cannot run at all rather than reporting a skipped lane.
+#![cfg(feature = "shape-facade")]
 #![allow(clippy::unwrap_used, clippy::expect_used)] // test crate — see clippy.toml + rules/rust/testing.md
 
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -7,13 +12,13 @@ use async_trait::async_trait;
 use axum::Router;
 use axum::routing::get;
 use axum_test::TestServer;
+use frf_app::{ShapeCatalog, ShapeUseCase};
 use frf_domain::{Channel, ChannelId, Cursor, EventEnvelope, Offset, SessionId, TenantId};
 use frf_gateway::{AppState, GatewayConfig};
 use frf_ports::{
     AuthorizedShapeRequest, AuthzProvider, IdentityVerifier, LogBroker, PortError, RelationTuple,
-    ShapeChunk, ShapeFacade, VerifiedClaims,
+    ShapeFacade, ShapeHeader, ShapeResponse, VerifiedClaims,
 };
-use frf_shape_electric::{ShapeCatalog, ShapeResolver};
 
 struct NoopBroker;
 
@@ -82,25 +87,31 @@ impl IdentityVerifier for FixedIdentity {
     }
 }
 
-#[derive(Default)]
 struct CountingFacade {
     calls: AtomicUsize,
-    body: Vec<u8>,
+    response: Mutex<Option<ShapeResponse>>,
     seen: Mutex<Option<AuthorizedShapeRequest>>,
+    /// The authorization counter, so the facade can observe how many checks had
+    /// run at the moment it was called. This is what turns an arithmetic
+    /// assertion ("2 checks happened") into an ordering one ("one check ran
+    /// BEFORE the fetch, and another AFTER it").
+    authz: Arc<CountingAuthz>,
+    /// Authorization count sampled on entry to `fetch`.
+    authz_calls_at_fetch: AtomicUsize,
 }
 
 #[async_trait]
 impl ShapeFacade for CountingFacade {
-    async fn fetch(&self, request: &AuthorizedShapeRequest) -> Result<ShapeChunk, PortError> {
+    async fn fetch(&self, request: &AuthorizedShapeRequest) -> Result<ShapeResponse, PortError> {
+        self.authz_calls_at_fetch
+            .store(self.authz.calls.load(Ordering::SeqCst), Ordering::SeqCst);
         self.calls.fetch_add(1, Ordering::SeqCst);
         *self.seen.lock().expect("facade request lock") = Some(request.clone());
-        Ok(ShapeChunk::new(
-            "unused".to_owned(),
-            "unused".to_owned(),
-            self.body.clone(),
-            false,
-            true,
-        ))
+        self.response
+            .lock()
+            .expect("facade response lock")
+            .take()
+            .ok_or_else(|| PortError::Transport("test response already consumed".to_owned()))
     }
 }
 
@@ -140,10 +151,21 @@ fn mounted_server(
     let identity = Arc::new(FixedIdentity { claims });
     let facade = Arc::new(CountingFacade {
         calls: AtomicUsize::new(0),
-        body,
+        response: Mutex::new(Some(ShapeResponse::new(
+            200,
+            vec![
+                ShapeHeader::new("electric-handle", b"shape-handle".to_vec()),
+                ShapeHeader::new("electric-offset", b"17".to_vec()),
+                ShapeHeader::new("electric-schema", b"schema-v1".to_vec()),
+                ShapeHeader::new("etag", b"shape-etag".to_vec()),
+            ],
+            body,
+        ))),
         seen: Mutex::new(None),
+        authz: authz.clone(),
+        authz_calls_at_fetch: AtomicUsize::new(0),
     });
-    let resolver = Arc::new(ShapeResolver::new(catalog, authz.clone(), "practice_id"));
+    let usecase = Arc::new(ShapeUseCase::new(catalog, authz.clone(), facade.clone()));
 
     let state = Arc::new(AppState {
         subscribe_pipeline: Arc::new(frf_app::SubscribePipeline::new(
@@ -164,8 +186,7 @@ fn mounted_server(
         action_policy: Arc::new(()),
         federation_bridges: Vec::new(),
         media_bridge: None,
-        shape_facade: Some(facade.clone()),
-        shape_resolver: Some(resolver),
+        shape_usecase: Some(usecase),
         config: Arc::new(GatewayConfig::test_default()),
     });
 
@@ -227,7 +248,8 @@ async fn authorized_shape_route_preserves_a_cleared_gate_summary() {
                 ],
                 "allowed_params": [],
                 "relation": "view",
-                "object_namespace": "practice"
+                "object_namespace": "practice",
+                "scope_column": "practice_id"
             }
         }"#,
     )
@@ -241,7 +263,37 @@ async fn authorized_shape_route_preserves_a_cleared_gate_summary() {
 
     response.assert_status_ok();
     assert_eq!(response.as_bytes(), body.as_slice());
-    assert_eq!(authz.calls.load(Ordering::SeqCst), 1);
+    assert_eq!(
+        response
+            .headers()
+            .get("electric-handle")
+            .expect("electric handle"),
+        "shape-handle"
+    );
+    assert_eq!(
+        response
+            .headers()
+            .get("electric-schema")
+            .expect("electric schema"),
+        "schema-v1"
+    );
+    // Bounded revocation (ADR-009, SHAPE-FACADE.md §"before and after"): the use
+    // case authorizes, fetches, then RE-authorizes before releasing rows, so a
+    // grant revoked mid-exchange cannot have its data returned.
+    //
+    // Asserting the ordering rather than the total. A bare `== 2` would also pass
+    // if both checks ran before the fetch — which would leave the revocation
+    // window wide open while looking correct.
+    assert_eq!(
+        facade.authz_calls_at_fetch.load(Ordering::SeqCst),
+        1,
+        "exactly one authorization must precede the Electric exchange",
+    );
+    assert_eq!(
+        authz.calls.load(Ordering::SeqCst),
+        2,
+        "a second authorization must follow the exchange before rows are released",
+    );
     assert_eq!(facade.calls.load(Ordering::SeqCst), 1);
     let seen = facade.seen.lock().expect("facade request lock");
     let request = seen.as_ref().expect("authorized request");
@@ -263,8 +315,9 @@ async fn authorized_shape_route_preserves_a_cleared_gate_summary() {
             .iter()
             .any(|column| column == "gate_affirmed_by")
     );
+    let expected_scope = format!("practice_id = '{practice_id}'");
     assert_eq!(
-        request.where_clause,
-        format!("practice_id = '{practice_id}'")
+        request.where_clause.as_deref(),
+        Some(expected_scope.as_str())
     );
 }

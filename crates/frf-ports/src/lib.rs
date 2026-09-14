@@ -16,7 +16,7 @@ pub mod op_store;
 pub mod policy;
 pub mod shape_facade;
 
-pub use agent_bus::{AgentEventBus, AgentEventStream};
+pub use agent_bus::{AgentEventBus, AgentEventStream, DynAgentEventBus};
 pub use authz::{AuthzProvider, RelationTuple};
 pub use crdt_store::{CrdtSnapshot, CrdtStore};
 pub use entity_store::{EntityChangeStream, EntityStore};
@@ -30,4 +30,7 @@ pub use op_store::{ApplyDelta, OpStore, PendingOp};
 pub use policy::{
     ActionPolicyProvider, BoxedPolicyProvider, DynPolicyProvider, NoOpPolicyProvider, PolicyError,
 };
-pub use shape_facade::{AuthorizedShapeRequest, Cursor, ShapeChunk, ShapeFacade, ShapeRequest};
+pub use shape_facade::{
+    AuthorizedShapeRequest, Cursor, ShapeBodyStream, ShapeFacade, ShapeHeader, ShapeLease,
+    ShapeProtocol, ShapeRequest, ShapeResponse,
+};

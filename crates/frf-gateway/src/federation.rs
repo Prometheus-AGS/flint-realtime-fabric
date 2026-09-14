@@ -13,9 +13,9 @@ use frf_broker_iggy::IggyBroker;
 use frf_domain::{TenantId, ids::ChannelId};
 use frf_gateway::{AppState, GatewayConfig, authz_backend::ConfiguredAuthzProvider};
 use frf_identity_ory::OryIdentityVerifier;
-use frf_librefang::LibreFangBus;
 use frf_ports::{
-    BoxedPolicyProvider, DynMediaSignaler, FederationBridge, FederationProtocol, LogBroker,
+    BoxedPolicyProvider, DynAgentEventBus, DynMediaSignaler, FederationBridge, FederationProtocol,
+    LogBroker,
 };
 use futures_util::StreamExt as _;
 
@@ -26,7 +26,7 @@ type GatewayAppState = AppState<
     ConfiguredAuthzProvider,
     OryIdentityVerifier,
     DynMediaSignaler,
-    LibreFangBus,
+    DynAgentEventBus,
     BoxedPolicyProvider,
 >;
 
