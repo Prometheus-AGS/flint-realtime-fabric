@@ -13,7 +13,14 @@ use tokio::sync::watch;
 use uuid::Uuid;
 
 #[tokio::test]
-#[ignore = "requires a local Postgres 17 instance with logical replication configured"]
+// VACUOUS — no assertions in any revision since `abc6587`. The wiring below is real, but
+// the only terminal statement is a `println!` of `published.len()`, so the test passes at
+// 0 envelopes exactly as it would at 500. It also never performs the INSERT it sleeps
+// waiting for, making 0 the ordinary outcome — and still a pass. Real CDC coverage lives
+// in `consumer_smoke.rs` and `src/decode.rs`, which do assert.
+// Classified 2026-09-14 (p38-c006). Needs an INSERT and an assertion on the decoded
+// envelope before it is a guard; delete this notice when that lands.
+#[ignore = "VACUOUS: no assertions — passes at 0 envelopes; also never performs the INSERT"]
 async fn cdc_consumer_publishes_insert_event() {
     use async_trait::async_trait;
     use frf_domain::ChannelId;

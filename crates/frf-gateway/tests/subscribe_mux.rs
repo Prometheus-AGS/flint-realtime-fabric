@@ -7,7 +7,13 @@
 //   GATEWAY_JWKS_URL, JWT_AUDIENCE
 
 #[tokio::test]
-#[ignore = "requires live infrastructure (Iggy, Keto, flint-gate)"]
+// VACUOUS — this test has never contained a single assertion, in any revision since
+// `bfa764b` created it. The body below is a comment outline ending in a `println!`, so it
+// passes unconditionally: against a fully live Iggy/Keto/flint-gate stack it would still
+// prove nothing. Infrastructure is NOT what stops it being a guard; the missing body is.
+// Classified 2026-09-14 (p38-c006). Left in place rather than deleted because the outline
+// records the intended scenario; whoever writes the assertions should delete this notice.
+#[ignore = "VACUOUS: no assertions — passes even against live infrastructure; outline only"]
 async fn subscriber_receives_published_event() {
     // Integration smoke test outline:
     //

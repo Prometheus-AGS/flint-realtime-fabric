@@ -1,52 +1,61 @@
 POSITION REMINDER — read this as your FIRST tool call every turn
 Phase: issue-triage-and-architecture-audit
-Step: 5 of 6
-Stage: execute_ready
-Next command: /kbd-apply p38-c006-dead-code-and-guard-classification
+Step: 6 of 6
+Stage: implementation_complete
+Next command: /kbd-reflect issue-triage-and-architecture-audit
 
 Required signal format (emit BEFORE any tool call):
-  Starting <kbd-skill> — issue-triage-and-architecture-audit (step 5 of 6)
+  Starting <kbd-skill> — issue-triage-and-architecture-audit (step 6 of 6)
   [do work]
-  Completed <kbd-skill> — issue-triage-and-architecture-audit (step 5 of 6)
+  Completed <kbd-skill> — issue-triage-and-architecture-audit (step 6 of 6)
 
-N/T source: progress.json -> completion.implementation {completed: 5, total: 6}.
+N/T source: progress.json -> completion.implementation {completed: 6, total: 6}.
 
-Change status:
-  p38-c001-iggy-handshake-diagnosis  DONE + PROVEN, archived (3437b95)
-  p38-c002-prove-channel-id-fix      DONE + PROVEN, archived (851b328) — guard
-                                     observed to FAIL under sabotage. ISSUE #2 CLOSED.
-  p38-c003-e2e-tenant-uuid           DONE, NOT PROVEN, archived (3af3e93) — static
-                                     proof only; issue #7 left OPEN
-  p38-c004-gateway-main-size...      DONE + PROVEN, archived (139d3c7)
-  p38-c005-claude-md-adr-recon...    DONE, archived — docs reconciled to the ADRs
-  p38-c006-dead-code-and-guard...    LAST ONE. ws.rs deletion needs nothing; the
-                                     #[ignore]d-test classification wants a live
-                                     server (Docker is UP).
+ALL SIX CHANGES ARCHIVED. active=0, archive=221.
+  p38-c001-iggy-handshake-diagnosis  DONE + PROVEN (3437b95) — IPv6-first resolution
+  p38-c002-prove-channel-id-fix      DONE + PROVEN (851b328) — guard observed FAILING
+                                     under sabotage with the verbatim issue-#2 error.
+  p38-c003-e2e-tenant-uuid           DONE, NOT PROVEN (3af3e93) — static proof only
+  p38-c004-gateway-main-size...      DONE + PROVEN (139d3c7) — guard bit, then its own
+                                     blind spot was found by sabotage and fixed
+  p38-c005-claude-md-adr-recon...    DONE (5f7a37e) — docs reconciled to the ADRs
+  p38-c006-dead-code-and-guard...    DONE — ws.rs deleted (orphan PROVEN by build),
+                                     2 more vacuous guards found and labelled
 
-*** FOREIGN UNCOMMITTED WORK IN THE TREE — DO NOT COMMIT IT BLIND ***
+*** FOREIGN UNCOMMITTED WORK STILL IN THE TREE — NEVER COMMIT IT BLIND ***
   crates/frf-app/src/shape/mod.rs
   crates/frf-app/src/shape/tests.rs
   crates/frf-gateway/src/routes/shape.rs
-All three carry mtime 11:57:55, predating this session's c005 work. The diff is
-deliberate ADR-009 shape-lease engineering: a new ShapeUseCaseError::HandleExpired
-variant, a same_authority comparison distinguishing an expired lease from a genuine
-handle mismatch, and a matching test. It is NOT mine. c005 excluded it by scoping
-git add to an explicit pathspec, verified with `git add --dry-run` before staging.
-c006 must do the same — it touches crates/, so blanket `git add -A crates/` WOULD
-sweep this in.
+Deliberate ADR-009 shape-lease engineering (ShapeUseCaseError::HandleExpired, a
+same_authority comparison, a matching test). NOT mine; mtime predates this session.
+Both c005 and c006 excluded it via an explicit pathspec verified with `git add --dry-run`
+BEFORE staging. Any future change touching crates/ must do the same.
 
-GITHUB ISSUES: #2 CLOSED (proven). #6 CLOSED (IPv6 root cause). #7 OPEN (c003
-statically proven, never observed publishing). #8 OPEN (46 archived changes with
-unticked tasks).
+VACUOUS GUARDS FOUND IN THIS CODEBASE: five total. Three removed earlier; c006 labelled
+two more that were born empty (0 assertions in EVERY revision):
+  frf-gateway/tests/subscribe_mux.rs      — outline + println!, passes even live
+  frf-postgres-cdc/tests/cdc_integration.rs — no assert; never does the INSERT it awaits
+Their #[ignore] strings now name the real defect instead of blaming infrastructure.
+
+GITHUB ISSUES: #2 CLOSED (proven). #6 CLOSED (IPv6). #7 OPEN (c003 never observed
+publishing). #8 OPEN (46 archived changes with unticked tasks).
 
 OPEN FINDINGS recorded, not fixed:
-  1. ci.yml:50-61 runs `cargo test --all` — violates AGENTS.md's "CI/CD is never
-     used to run tests. Ever." Predates the policy (6e549e8).
-  2. ci.yml:45 is RED: clippy --features dev-endpoints fails E0063 "missing field
-     `subject`" at routes/dev.rs:161. Proven pre-existing by stashing vs HEAD.
-  3. dagger/codegen.ts stage 4 (frb-dart) is doubly unsatisfiable — flagged in
-     c005, not fixed.
+  1. ci.yml:50-61 runs `cargo test --all` — violates "CI/CD is never used to run tests.
+     Ever." Predates the policy (6e549e8).
+  2. ci.yml:45 RED: clippy --features dev-endpoints fails E0063 at routes/dev.rs:161.
+     Proven pre-existing. Default-feature clippy is GREEN.
+  3. dagger/codegen.ts stage 4 (frb-dart) doubly unsatisfiable — flagged in c005.
+  4. Local stack cannot start: compose interpolates the whole file, and
+     FLINT_GATE_JWT_SECRET has no value (no .env, only .env.example). Supplying it was
+     deliberately DECLINED — it is a secret. This blocked re-running the two runnable
+     Iggy tests in c006; they remain proven from c001/c002 earlier this session.
 
-KNOWN DEFECT (eighth occurrence): this file goes stale at every transition; nothing
-in end-task or archive rewrites it. Authoritative: current-waypoint.json +
-progress.json. Carry to /kbd-reflect as a process defect.
+CARRY TO /kbd-reflect AS PROCESS DEFECTS:
+  a. This file goes stale at every transition (NINE occurrences). Nothing in end-task or
+     archive rewrites it. Authoritative: current-waypoint.json + progress.json.
+  b. "Docker is UP" in a prior revision of this file was WRONG and nearly caused a false
+     finding — every running container belongs to other projects, including ones whose
+     names match 'flint' (aso-prior-auth-flint-gate-*).
+  c. Adversarial review never ran for ANY change this phase (proxy HTTP 401);
+     all six are pending_review. No cross-model judge saw any artifact.

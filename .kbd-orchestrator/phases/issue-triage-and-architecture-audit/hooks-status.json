@@ -1,1 +1,1 @@
-{"totalRuns":118,"failedRuns":0,"lastRun":{"ts":"2026-09-14T18:31:19Z","kind":"task","edge":"after","name":"p38-c005-claude-md-adr-reconciliation:5","hookId":"legacy-change-complete","layer":"builtin","mode":"augment","status":0},"lastFailure":null}
+{"totalRuns":143,"failedRuns":0,"lastRun":{"ts":"2026-09-14T18:42:42Z","kind":"task","edge":"after","name":"p38-c006-dead-code-and-guard-classification:6","hookId":"legacy-change-complete","layer":"builtin","mode":"augment","status":0},"lastFailure":null}
