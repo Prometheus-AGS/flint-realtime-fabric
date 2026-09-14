@@ -1,4 +1,4 @@
-.PHONY: help baseline-wasm cdc-smoke build test clippy fmt compose-up compose-down layer3-e2e
+.PHONY: help baseline-wasm cdc-smoke build test clippy fmt check-file-size compose-up compose-down layer3-e2e
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -28,6 +28,9 @@ clippy: ## Run Clippy (CI-equivalent)
 
 fmt: ## Format all Rust code
 	cargo fmt --all
+
+check-file-size: ## Enforce the 500-line file cap (CLAUDE.md / constraints.md R5)
+	bash scripts/check-file-size.sh
 
 compose-up: ## Start the full compose stack
 	docker compose up -d

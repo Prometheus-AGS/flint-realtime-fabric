@@ -22,6 +22,17 @@ jobs:
       - name: cargo fmt --check
         run: cargo fmt --all --check
 
+  file-size:
+    name: File size cap (500 lines)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Lint only — CLAUDE.md's file-size rule and constraints.md R5 (BLOCKING).
+      # AGENTS.md permits CI for "build, lint, typecheck, formatting and
+      # packaging"; this is a lint, not a test.
+      - name: Enforce the 500-line cap
+        run: bash scripts/check-file-size.sh
+
   clippy:
     name: Clippy (pedantic)
     runs-on: ubuntu-latest

@@ -9,13 +9,13 @@
   "execute_complete": false,
   "reflect_complete": false,
   "implementation_total": 6,
-  "implementation_completed": 2,
+  "implementation_completed": 3,
   "changes_total": 6,
-  "changes_completed": 2,
+  "changes_completed": 3,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 2,
+      "completed": 3,
       "total": 6,
       "status": "PENDING"
     },
@@ -37,7 +37,8 @@
   },
   "completed_changes": [
     "p38-c001-iggy-handshake-diagnosis",
-    "p38-c003-e2e-tenant-uuid"
+    "p38-c003-e2e-tenant-uuid",
+    "p38-c004-gateway-main-size-and-enforcement"
   ],
   "active_change": null,
   "blocked_changes": [],
@@ -49,11 +50,11 @@
     "p38-c005-claude-md-adr-reconciliation",
     "p38-c006-dead-code-and-guard-classification"
   ],
-  "last_updated": "2026-09-14T14:31:31Z",
+  "last_updated": "2026-09-14T14:44:42Z",
   "last_updated_by": "claude-code",
   "sourceTool": "unknown",
   "createdBy": "kbd-new-phase",
-  "updatedAt": "2026-09-14T14:31:31Z",
+  "updatedAt": "2026-09-14T14:44:42Z",
   "notes": "Out-of-plan work at operator direction (\"fix the openspec ledger first\"): fixed openspec/config.yaml:57 (unquoted colon made the rules entry parse as a mapping; Zod dropped all 5 proposal rules) taking 120 stderr warnings to 0; added .openspec.yaml with skip_specs:true to all 126 active changes (120 created, 6 appended without clobbering existing keys); archived all 126 after two independent validations agreed (per-change loop 126/0, bulk validator items=126 passed=126 failed=0). Active changes 126 -> 0; archive 89 -> 215. Checkboxes deliberately NOT corrected per operator direction. KNOWN CONDITION: openspec validate --archived now reports 46 failures, exactly the stale-checkbox set; that lint is wired to nothing (no pre-commit config, husky, lefthook or git hook), so it is latent, not blocking. One process error: openspec archive --json is NOT a dry run; an exploratory call archived p0-c001 for real and was reverted via git before further work.",
   "execution_dispatched": true,
   "review": {
@@ -68,6 +69,16 @@
       "adversarial_review": "pending_review",
       "reason": "LiteLLM proxy at localhost:4000 returns HTTP 401 (reachable, no Authorization header configured); preflight reports providers_detected=[] and distinct_models=2 across 3 roles.",
       "verification": "DONE, NOT PROVEN — statically proven (Uuid::parse_str rejects e2e-tenant, accepts the fixture UUID); no live publish, Docker daemon down and unstartable from the agent environment. Issue #7 left OPEN for that reason."
+    },
+    "p38-c004-gateway-main-size-and-enforcement": {
+      "qa_gate": "artifact-refiner: ALL PASS (R1, R3, R4, R5, S1, S2, A3, P1, bash -n, shellcheck)",
+      "adversarial_review": "pending_review",
+      "reason": "LiteLLM proxy at localhost:4000 returns HTTP 401 (reachable, no Authorization header configured); preflight reports providers_detected=[] and distinct_models=2 across 3 roles.",
+      "verification": "PROVEN. main.rs 504 -> 425 lines; moved fn bodies diff IDENTICAL to the pre-edit backup. The new size check was sabotage-tested: it FAILED on a 601-line file (exit 1) and passed after removal. Sabotage also exposed a real blind spot in the check (git ls-files sees tracked files only) which was fixed and re-proved closed with an unstaged probe.",
+      "out_of_scope_findings": [
+        "ci.yml:50-61 runs `cargo test --all`, violating AGENTS.md CI-never-runs-tests. Pre-dates the policy (traced to 6e549e8).",
+        "ci.yml:45 (clippy --features dev-endpoints) is RED today: E0063 missing field `subject` at routes/dev.rs:161. Proven pre-existing by stashing this work and re-running against HEAD."
+      ]
     }
   },
   "certification": {

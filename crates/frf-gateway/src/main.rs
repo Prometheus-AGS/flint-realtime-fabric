@@ -8,7 +8,7 @@ use frf_app::SyncUseCase;
 use frf_app::{AuthzUseCase, EntityUseCase, PublishUseCase, SubscribePipeline};
 use frf_broker_iggy::IggyBroker;
 use frf_crdt::{InMemoryCrdtStore, LoroDeltaApplier};
-use frf_domain::{Channel, TenantId, ids::ChannelId};
+use frf_domain::TenantId;
 use frf_gateway::authz_backend::ConfiguredAuthzProvider;
 use frf_gateway::config::{AuthzBackend, GatewayProfile, PolicyEngineMode};
 use frf_gateway::{
@@ -21,99 +21,20 @@ use frf_identity_ory::OryIdentityVerifier;
 use frf_librefang::LibreFangBus;
 use frf_policy_cedar::CedarPolicyEngine;
 use frf_ports::{
-    BoxedPolicyProvider, DynAgentEventBus, DynMediaSignaler, DynPolicyProvider, LogBroker,
-    NoOpPolicyProvider,
+    BoxedPolicyProvider, DynAgentEventBus, DynMediaSignaler, DynPolicyProvider, NoOpPolicyProvider,
 };
 use frf_postgres_cdc::{CdcConfig, PostgresCdcConsumer};
 use frf_store_redb::RedbOpStore;
-use opentelemetry::KeyValue;
-use opentelemetry::global;
-use opentelemetry::trace::TracerProvider as _;
-use opentelemetry_otlp::WithExportConfig as _;
-use opentelemetry_sdk::Resource;
 use opentelemetry_sdk::trace::TracerProvider;
 use tokio::net::TcpListener;
 use tokio::sync::watch;
-use tracing_opentelemetry::OpenTelemetryLayer;
-use tracing_subscriber::layer::SubscriberExt as _;
-use tracing_subscriber::util::SubscriberInitExt as _;
-use tracing_subscriber::{EnvFilter, fmt};
 
+mod bootstrap;
 mod federation;
 mod inactive_lanes;
 
+use bootstrap::{ensure_entities_channel, init_telemetry};
 use inactive_lanes::InactiveAgentBus;
-
-fn init_telemetry() -> Result<Option<TracerProvider>> {
-    let otlp_endpoint = std::env::var("OTEL_EXPORTER_OTLP_ENDPOINT").ok();
-
-    if let Some(endpoint) = otlp_endpoint {
-        let service_name =
-            std::env::var("OTEL_SERVICE_NAME").unwrap_or_else(|_| "frf-gateway".to_owned());
-
-        let exporter = opentelemetry_otlp::SpanExporter::builder()
-            .with_tonic()
-            .with_endpoint(endpoint)
-            .build()
-            .context("build OTLP span exporter")?;
-
-        let resource = Resource::new(vec![KeyValue::new("service.name", service_name)]);
-
-        let provider = TracerProvider::builder()
-            .with_batch_exporter(exporter, opentelemetry_sdk::runtime::Tokio)
-            .with_resource(resource)
-            .build();
-
-        global::set_tracer_provider(provider.clone());
-
-        let tracer = provider.tracer("frf-gateway");
-        let otel_layer = OpenTelemetryLayer::new(tracer);
-
-        tracing_subscriber::registry()
-            .with(otel_layer)
-            .with(fmt::layer())
-            .with(EnvFilter::from_default_env())
-            .init();
-
-        Ok(Some(provider))
-    } else {
-        fmt().with_env_filter(EnvFilter::from_default_env()).init();
-        Ok(None)
-    }
-}
-
-/// Pre-create the well-known entities channel that the E2E clients subscribe to.
-///
-/// `ensure_channel` is idempotent — safe to call on every restart.
-///
-/// This previously ran inline in `main` with `ChannelId::new()`, creating
-/// `channel-<random-uuid>` on every boot: a stream nobody could address, while a
-/// `warn!` made the failure look benign. The id must match
-/// [`ChannelId::WELL_KNOWN_ENTITIES`] or no subscriber can reach the entity feed.
-async fn ensure_entities_channel(broker: &IggyBroker) -> Result<()> {
-    // Fixture tenant 00000000-0000-0000-0000-000000000001, built infallibly from its
-    // integer value (no parse, no panic). The shared `1` with the channel id above is
-    // coincidental — distinct types, unrelated meanings.
-    let fixture_channel = Channel {
-        id: ChannelId::WELL_KNOWN_ENTITIES,
-        tenant_id: TenantId::from_uuid(uuid::Uuid::from_u128(1)),
-        path: "entities".into(),
-    };
-    let channel_id = fixture_channel.id;
-
-    // Not "non-fatal": if this fails the entities channel does not exist and every
-    // subscriber to it receives nothing. Fail the boot rather than serving a gateway
-    // that looks healthy and delivers no events.
-    broker
-        .ensure_channel(fixture_channel)
-        .await
-        .with_context(|| {
-            format!("failed to pre-create the well-known entities channel {channel_id}")
-        })?;
-
-    tracing::info!(%channel_id, "entities channel ready");
-    Ok(())
-}
 
 #[tokio::main]
 async fn main() -> Result<()> {

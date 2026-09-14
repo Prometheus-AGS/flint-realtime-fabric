@@ -1,36 +1,41 @@
 POSITION REMINDER — read this as your FIRST tool call every turn
 Phase: issue-triage-and-architecture-audit
-Step: 2 of 6
+Step: 3 of 6
 Stage: execute_ready
-Next command: /kbd-apply p38-c004-gateway-main-size-and-enforcement
+Next command: /kbd-apply p38-c005-claude-md-adr-reconciliation
 
 Required signal format (emit BEFORE any tool call):
-  Starting <kbd-skill> — issue-triage-and-architecture-audit (step 2 of 6)
+  Starting <kbd-skill> — issue-triage-and-architecture-audit (step 3 of 6)
   [do work]
-  Completed <kbd-skill> — issue-triage-and-architecture-audit (step 2 of 6)
+  Completed <kbd-skill> — issue-triage-and-architecture-audit (step 3 of 6)
 
-N/T source: progress.json -> completion.implementation {completed: 2, total: 6}.
+N/T source: progress.json -> completion.implementation {completed: 3, total: 6}.
 Never estimate; never use evidence-task completion as the counter.
 
 Change status:
   p38-c001-iggy-handshake-diagnosis  DONE + PROVEN, archived (commit 3437b95)
-  p38-c003-e2e-tenant-uuid           DONE, NOT PROVEN, archived — static proof only;
-                                     no live publish (Docker down). Issue #7 left OPEN.
-  p38-c002-prove-channel-id-fix      pending — unblocked by c001, but needs a live
-                                     Iggy server for the sabotage run (Docker required)
-  p38-c004-gateway-main-size...      pending — parallel-safe, NO infrastructure needed
-  p38-c005-claude-md-adr-recon...    pending — parallel-safe, docs only
+  p38-c003-e2e-tenant-uuid           DONE, NOT PROVEN, archived (commit 3af3e93) —
+                                     static proof only; issue #7 left OPEN
+  p38-c004-gateway-main-size...      DONE + PROVEN, archived — main.rs 504 -> 425,
+                                     size check sabotage-tested and bit
+  p38-c002-prove-channel-id-fix      pending — NOW UNBLOCKED (Docker is back up)
+  p38-c005-claude-md-adr-recon...    pending — docs only, no infrastructure needed
   p38-c006-dead-code-and-guard...    pending — deletions need nothing; the ignored-test
-                                     classification needs a live server for 2 of 4
+                                     classification needs a live server (now available)
 
-ENVIRONMENT BLOCKER: the Docker daemon (OrbStack) stopped mid-session and cannot be
-started from the agent environment. c002 and part of c006 need it. c004 and c005 do
-not — prefer those while it is down.
+ENVIRONMENT: Docker/OrbStack is UP again as of 2026-09-14T14:4x. The cleanup debt from
+c001 is discharged — flint-realtime-fabric-iggy-server-1, frf-iggy-debug and
+frf-iggy-pinned are all removed. aso-prior-auth-iggy-server-1 belongs to another
+project and was deliberately left alone.
 
-CLEANUP OWED: when OrbStack returns, remove flint-realtime-fabric-iggy-server-1,
-frf-iggy-debug, frf-iggy-pinned. Leave aso-prior-auth-iggy-server-1 alone (another
-project's).
+OPEN FINDINGS from c004, recorded but NOT fixed (out of scope for a file-size change):
+  1. ci.yml:50-61 runs `cargo test --all`, violating AGENTS.md's non-negotiable
+     "CI/CD is never used to run tests. Ever." Pre-dates the policy (traced to 6e549e8).
+  2. ci.yml:45 is RED today: `clippy --features dev-endpoints` fails with E0063
+     "missing field `subject`" at routes/dev.rs:161. Proven pre-existing by stashing
+     and re-running against HEAD. Cause: SignalEnvelope gained `subject` in e649db3
+     and this feature-gated construction site was never updated.
 
-KNOWN DEFECT (fifth occurrence): this file goes stale at every transition — nothing in
+KNOWN DEFECT (sixth occurrence): this file goes stale at every transition — nothing in
 end-task or archive rewrites it. Authoritative sources are current-waypoint.json and
 progress.json. Carry to /kbd-reflect as a process defect, not another one-off patch.
