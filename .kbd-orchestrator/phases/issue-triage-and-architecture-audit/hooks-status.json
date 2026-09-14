@@ -1,1 +1,1 @@
-{"totalRuns":143,"failedRuns":0,"lastRun":{"ts":"2026-09-14T18:42:42Z","kind":"task","edge":"after","name":"p38-c006-dead-code-and-guard-classification:6","hookId":"legacy-change-complete","layer":"builtin","mode":"augment","status":0},"lastFailure":null}
+{"totalRuns":151,"failedRuns":0,"lastRun":{"ts":"2026-09-14T18:58:13Z","kind":"phase","edge":"after","name":"issue-triage-and-architecture-audit","hookId":"legacy-phase-complete","layer":"builtin","mode":"augment","status":0},"lastFailure":null}
