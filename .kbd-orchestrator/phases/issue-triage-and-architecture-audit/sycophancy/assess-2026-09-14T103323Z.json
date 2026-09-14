@@ -1,0 +1,16 @@
+{
+  "audit_trail": {
+    "agent_did": null,
+    "executed_at": "2026-09-14T10:32:43.841617Z",
+    "hook_log": [],
+    "passes": 0,
+    "skill_id": "sycophancy.correction",
+    "strictness": "standard",
+    "version": "1.0.0"
+  },
+  "classifications": [],
+  "correction_mandatory": false,
+  "delta_summary": "No changes needed: score below clean threshold and no sycophancy patterns were detected.",
+  "sycophancy_score": 0.0,
+  "_kbd_note": "detect_only on the assess draft, per prompts/assess.md. Score 0.0 < 0.3 threshold -> proceed, write as-is."
+}

@@ -1,10 +1,19 @@
 POSITION REMINDER — read this as your FIRST tool call every turn
-Phase: phase-36-sovereign-sfu-ice-linux-fix
-Step: 2 of 3
-Stage: execute_ready
-Next command: /kbd-apply p36-c002-decode-run-and-flip
+Phase: issue-triage-and-architecture-audit
+Step: 0 of 0
+Stage: plan_ready
+Next command: /kbd-plan issue-triage-and-architecture-audit
 
 Required signal format (emit BEFORE any tool call):
-  Starting <kbd-skill> — phase-36-sovereign-sfu-ice-linux-fix (step 2 of 3)
+  Starting <kbd-skill> — issue-triage-and-architecture-audit (step 0 of 0)
   [do work]
-  Completed <kbd-skill> — phase-36-sovereign-sfu-ice-linux-fix (step 2 of 3)
+  Completed <kbd-skill> — issue-triage-and-architecture-audit (step 0 of 0)
+
+Note: step counts are 0 of 0 until /kbd-plan produces a change list; take N/T from
+progress.json -> completion.implementation, never by estimating.
+
+This file was regenerated 2026-09-14 during /kbd-assess. It had gone stale: it still
+named phase-36-sovereign-sfu-ice-linux-fix at "Step 2 of 3 / execute_ready" pointing at
+/kbd-apply p36-c002-decode-run-and-flip — a change that was WITHDRAWN, in a phase archived
+at 3/3. Nothing in the phase-flip path rewrites this file, so it misdirects every turn
+until someone notices. See assessment.md -> "Process-state defects found while assessing".

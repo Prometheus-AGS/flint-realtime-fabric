@@ -1,4 +1,0 @@
-schema: spec-driven
-created: 2026-06-17
-goal: frf-domain compiles with serde only; (de)serialization round-trip unit
-  tests pass

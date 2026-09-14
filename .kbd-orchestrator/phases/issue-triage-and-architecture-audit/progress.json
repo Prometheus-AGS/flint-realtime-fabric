@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "2",
+  "phase": "issue-triage-and-architecture-audit",
+  "parentPhase": null,
+  "childPhases": [],
+  "childPointer": null,
+  "assessment_complete": true,
+  "plan_complete": true,
+  "execute_complete": false,
+  "reflect_complete": false,
+  "implementation_total": 6,
+  "implementation_completed": 0,
+  "changes_total": 6,
+  "changes_completed": 0,
+  "completion": {
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 0,
+      "total": 6,
+      "status": "PENDING"
+    },
+    "evidence": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "completed_changes": [],
+  "active_change": null,
+  "blocked_changes": [],
+  "changes": [
+    "p38-c001-iggy-handshake-diagnosis",
+    "p38-c002-prove-channel-id-fix",
+    "p38-c003-e2e-tenant-uuid",
+    "p38-c004-gateway-main-size-and-enforcement",
+    "p38-c005-claude-md-adr-reconciliation",
+    "p38-c006-dead-code-and-guard-classification"
+  ],
+  "last_updated": "2026-09-14T11:16:22Z",
+  "last_updated_by": "claude-code",
+  "sourceTool": "unknown",
+  "createdBy": "kbd-new-phase",
+  "updatedAt": "2026-09-14T11:16:22Z",
+  "notes": "Out-of-plan work at operator direction (\"fix the openspec ledger first\"): fixed openspec/config.yaml:57 (unquoted colon made the rules entry parse as a mapping; Zod dropped all 5 proposal rules) taking 120 stderr warnings to 0; added .openspec.yaml with skip_specs:true to all 126 active changes (120 created, 6 appended without clobbering existing keys); archived all 126 after two independent validations agreed (per-change loop 126/0, bulk validator items=126 passed=126 failed=0). Active changes 126 -> 0; archive 89 -> 215. Checkboxes deliberately NOT corrected per operator direction. KNOWN CONDITION: openspec validate --archived now reports 46 failures, exactly the stale-checkbox set; that lint is wired to nothing (no pre-commit config, husky, lefthook or git hook), so it is latent, not blocking. One process error: openspec archive --json is NOT a dry run; an exploratory call archived p0-c001 for real and was reverted via git before further work."
+}

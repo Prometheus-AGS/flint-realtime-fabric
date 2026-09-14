@@ -1,0 +1,4 @@
+schema: spec-driven
+# Added 2026-09-14: this change predates the spec-delta convention and carries
+# no capability delta. Required for `openspec validate` to pass (constraint P1).
+skip_specs: true

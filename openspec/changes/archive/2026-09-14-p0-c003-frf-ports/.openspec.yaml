@@ -1,0 +1,7 @@
+schema: spec-driven
+created: 2026-06-17
+goal: frf-ports compiles; frf-app can depend on it without adapter crates
+
+# Added 2026-09-14: this change carries no capability spec delta.
+# Required for `openspec validate` to pass (P1). See commit message.
+skip_specs: true

@@ -54,7 +54,7 @@ context: |
 rules:
   proposal:
     - Proposals must reference the affected crate(s) by exact name (e.g. frf-domain, frf-gateway)
-    - Include the dependency-rule impact: which layers are touched and why it is safe
+    - "Include the dependency-rule impact: which layers are touched and why it is safe"
     - State the Phase 0 exit criterion this change satisfies
     - Keep proposals under 400 words
     - Include a "Non-goals" section listing what this change deliberately does NOT do
