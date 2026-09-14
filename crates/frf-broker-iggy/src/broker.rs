@@ -84,6 +84,42 @@ impl IggyBroker {
 
         Ok(stored.map(|info| Offset(info.stored_offset)))
     }
+
+    /// Create `stream` and `topic` if they do not already exist.
+    ///
+    /// Shared by [`LogBroker::publish`] and [`LogBroker::ensure_channel`] so both use
+    /// one definition of "exists". Idempotent: an already-existing stream or topic is
+    /// treated as success, not as an error.
+    async fn create_stream_and_topic(&self, stream: &str, topic: &str) -> Result<(), PortError> {
+        match self.client.create_stream(stream, None).await {
+            Ok(_) | Err(IggyError::StreamNameAlreadyExists(_)) => {}
+            Err(e) => return Err(IggyBrokerError::Transport(e).into()),
+        }
+
+        let stream_id = stream
+            .try_into()
+            .map_err(|e: IggyError| IggyBrokerError::Transport(e))?;
+
+        match self
+            .client
+            .create_topic(
+                &stream_id,
+                topic,
+                1,
+                CompressionAlgorithm::None,
+                None,
+                None,
+                IggyExpiry::NeverExpire,
+                MaxTopicSize::ServerDefault,
+            )
+            .await
+        {
+            Ok(_) | Err(IggyError::TopicNameAlreadyExists(_, _)) => {}
+            Err(e) => return Err(IggyBrokerError::Transport(e).into()),
+        }
+
+        Ok(())
+    }
 }
 
 #[async_trait]
@@ -98,6 +134,12 @@ impl LogBroker for IggyBroker {
     async fn publish(&self, envelope: EventEnvelope) -> Result<Offset, PortError> {
         let stream = format!("channel-{}", envelope.channel.id);
         let topic = "events";
+
+        // Create the stream+topic if absent. Without this, publishing to a channel that
+        // was never `ensure_channel`ed fails at `producer.init()`, making delivery depend
+        // on boot ordering. The stream name derives from the channel id alone, so no
+        // tenant or path is needed here — the same reason `subscribe` can address it.
+        self.create_stream_and_topic(&stream, topic).await?;
 
         let payload =
             serde_json::to_vec(&envelope).map_err(|e| PortError::Serialization(e.to_string()))?;
@@ -269,36 +311,6 @@ impl LogBroker for IggyBroker {
     #[instrument(name = "port::LogBroker::ensure_channel", skip(self))]
     async fn ensure_channel(&self, channel: Channel) -> Result<(), PortError> {
         let stream = format!("channel-{}", channel.id);
-        let topic = "events";
-
-        match self.client.create_stream(&stream, None).await {
-            Ok(_) | Err(IggyError::StreamNameAlreadyExists(_)) => {}
-            Err(e) => return Err(IggyBrokerError::Transport(e).into()),
-        }
-
-        let stream_id = stream
-            .as_str()
-            .try_into()
-            .map_err(|e: IggyError| IggyBrokerError::Transport(e))?;
-
-        match self
-            .client
-            .create_topic(
-                &stream_id,
-                topic,
-                1,
-                CompressionAlgorithm::None,
-                None,
-                None,
-                IggyExpiry::NeverExpire,
-                MaxTopicSize::ServerDefault,
-            )
-            .await
-        {
-            Ok(_) | Err(IggyError::TopicNameAlreadyExists(_, _)) => {}
-            Err(e) => return Err(IggyBrokerError::Transport(e).into()),
-        }
-
-        Ok(())
+        self.create_stream_and_topic(&stream, "events").await
     }
 }

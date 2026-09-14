@@ -1,17 +1,13 @@
-use frf_domain::TenantId;
-/// Maps a `TenantId` to an Iggy stream name (one stream per tenant).
-#[must_use]
-pub fn stream_name(tenant_id: TenantId) -> String {
-    format!("tenant-{tenant_id}")
-}
-
-/// Maps a channel path to an Iggy topic name.
-///
-/// Iggy topic names must not contain `/` — this replaces all `/` with `_`.
-#[must_use]
-pub fn topic_name(path: &str) -> String {
-    path.replace('/', "_")
-}
+//! Iggy naming for the channel adapter.
+//!
+//! Streams are named `channel-{channel_id}` and the topic is the constant `"events"`
+//! (see `broker.rs`). Neither derives from the tenant id or the channel path.
+//!
+//! This module previously exported `stream_name(TenantId) -> "tenant-{id}"` and
+//! `topic_name(&str)`. Commit `26e4dfc` switched the adapter to `channel-{id}` naming
+//! and dropped their only callers, but left the functions and their tests in place —
+//! so a green suite kept asserting a `tenant-` prefix that no code produced. They are
+//! removed rather than left as a misleading description of the wire format.
 
 /// Returns the single partition used by the channel adapter.
 ///
@@ -27,34 +23,6 @@ pub const fn partition_id(_consumer_id: &str) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use uuid::Uuid;
-
-    #[test]
-    fn tenant_maps_to_stream() {
-        let id = TenantId::from_uuid(Uuid::nil());
-        let name = stream_name(id);
-        assert!(
-            name.starts_with("tenant-"),
-            "expected 'tenant-' prefix, got {name}"
-        );
-        assert!(!name.is_empty());
-    }
-
-    #[test]
-    fn path_encodes_without_slash() {
-        let topic = topic_name("entity/user/updates");
-        assert!(
-            !topic.contains('/'),
-            "topic name must not contain '/', got {topic}"
-        );
-        assert_eq!(topic, "entity_user_updates");
-    }
-
-    #[test]
-    fn empty_path_encodes_without_panic() {
-        let topic = topic_name("");
-        assert_eq!(topic, "");
-    }
 
     #[test]
     fn consumer_partition_is_stable() {

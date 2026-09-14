@@ -82,6 +82,39 @@ fn init_telemetry() -> Result<Option<TracerProvider>> {
     }
 }
 
+/// Pre-create the well-known entities channel that the E2E clients subscribe to.
+///
+/// `ensure_channel` is idempotent — safe to call on every restart.
+///
+/// This previously ran inline in `main` with `ChannelId::new()`, creating
+/// `channel-<random-uuid>` on every boot: a stream nobody could address, while a
+/// `warn!` made the failure look benign. The id must match
+/// [`ChannelId::WELL_KNOWN_ENTITIES`] or no subscriber can reach the entity feed.
+async fn ensure_entities_channel(broker: &IggyBroker) -> Result<()> {
+    // Fixture tenant 00000000-0000-0000-0000-000000000001, built infallibly from its
+    // integer value (no parse, no panic). The shared `1` with the channel id above is
+    // coincidental — distinct types, unrelated meanings.
+    let fixture_channel = Channel {
+        id: ChannelId::WELL_KNOWN_ENTITIES,
+        tenant_id: TenantId::from_uuid(uuid::Uuid::from_u128(1)),
+        path: "entities".into(),
+    };
+    let channel_id = fixture_channel.id;
+
+    // Not "non-fatal": if this fails the entities channel does not exist and every
+    // subscriber to it receives nothing. Fail the boot rather than serving a gateway
+    // that looks healthy and delivers no events.
+    broker
+        .ensure_channel(fixture_channel)
+        .await
+        .with_context(|| {
+            format!("failed to pre-create the well-known entities channel {channel_id}")
+        })?;
+
+    tracing::info!(%channel_id, "entities channel ready");
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let tracer_provider = init_telemetry()?;
@@ -98,23 +131,7 @@ async fn main() -> Result<()> {
     config.validate()?;
     let broker = Arc::new(IggyBroker::new(&config.iggy_connection_string).await?);
 
-    // Pre-create the fixture channel used by integration and Layer 3 E2E tests.
-    // IggyBroker::publish requires the stream + topic to exist before publishing.
-    // ensure_channel is idempotent — safe to call on every restart.
-    {
-        use uuid::Uuid;
-        // Fixture tenant 00000000-0000-0000-0000-000000000001, built infallibly
-        // from its integer value (no parse, no panic).
-        let fixture_tenant_uuid = Uuid::from_u128(1);
-        let fixture_channel = Channel {
-            id: ChannelId::new(),
-            tenant_id: TenantId::from_uuid(fixture_tenant_uuid),
-            path: "entities".into(),
-        };
-        if let Err(e) = broker.ensure_channel(fixture_channel).await {
-            tracing::warn!(error = %e, "fixture channel pre-creation failed (non-fatal)");
-        }
-    }
+    ensure_entities_channel(&broker).await?;
 
     let authz = Arc::new(match config.authz_backend {
         AuthzBackend::VerifiedIdentity => ConfiguredAuthzProvider::verified_identity(),

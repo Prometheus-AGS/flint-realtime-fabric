@@ -102,11 +102,22 @@ impl<L: LogBroker + Send + Sync + 'static> PostgresCdcConsumer<L> {
         let cancel_token_shutdown = cancel_token.clone();
         let mut event_stream = stream.into_stream(cancel_token);
 
+        // The Iggy stream name derives from the channel id alone, so a per-run
+        // `ChannelId::new()` publishes every event to `channel-<random-uuid>` that no
+        // subscriber can address. Use the well-known id the E2E clients subscribe to.
         let channel = Channel {
-            id: ChannelId::new(),
+            id: ChannelId::WELL_KNOWN_ENTITIES,
             tenant_id: self.config.tenant_id,
             path: self.config.channel_path.clone(),
         };
+
+        // Log the channel id so an operator can subscribe to it. Never log the tenant
+        // id (CLAUDE.md: never log JWT payloads, relation tuples, or tenant identifiers).
+        tracing::info!(
+            channel_id = %channel.id,
+            path = %channel.path,
+            "cdc consumer publishing to channel",
+        );
 
         let mut offset = Offset::BEGINNING;
 
