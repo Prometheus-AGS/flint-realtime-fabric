@@ -6,18 +6,18 @@
   "childPointer": null,
   "assessment_complete": true,
   "plan_complete": true,
-  "execute_complete": false,
-  "reflect_complete": false,
+  "execute_complete": true,
+  "reflect_complete": true,
   "implementation_total": 6,
-  "implementation_completed": 5,
+  "implementation_completed": 6,
   "changes_total": 6,
-  "changes_completed": 5,
+  "changes_completed": 6,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 5,
+      "completed": 6,
       "total": 6,
-      "status": "PENDING"
+      "status": "COMPLETE"
     },
     "evidence": {
       "status": "NOT_TRACKED",
@@ -40,23 +40,78 @@
     "p38-c002-prove-channel-id-fix",
     "p38-c003-e2e-tenant-uuid",
     "p38-c004-gateway-main-size-and-enforcement",
-    "p38-c005-claude-md-adr-reconciliation"
+    "p38-c005-claude-md-adr-reconciliation",
+    "p38-c006-dead-code-and-guard-classification"
   ],
   "active_change": null,
   "blocked_changes": [],
   "changes": [
-    "p38-c001-iggy-handshake-diagnosis",
-    "p38-c002-prove-channel-id-fix",
-    "p38-c003-e2e-tenant-uuid",
-    "p38-c004-gateway-main-size-and-enforcement",
-    "p38-c005-claude-md-adr-reconciliation",
-    "p38-c006-dead-code-and-guard-classification"
+    {
+      "id": "p38-c001-iggy-handshake-diagnosis",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 6,
+      "tasks_done": 6,
+      "last_task_completed": null,
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "p38-c002-prove-channel-id-fix",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": null,
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "p38-c003-e2e-tenant-uuid",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 3,
+      "tasks_done": 3,
+      "last_task_completed": null,
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "p38-c004-gateway-main-size-and-enforcement",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 6,
+      "tasks_done": 6,
+      "last_task_completed": null,
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "p38-c005-claude-md-adr-reconciliation",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": null,
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "p38-c006-dead-code-and-guard-classification",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 6,
+      "tasks_done": 6,
+      "last_task_completed": null,
+      "next_task_pending": null,
+      "blockers": []
+    }
   ],
-  "last_updated": "2026-09-14T18:32:27Z",
+  "last_updated": "2026-09-15T06:04:06Z",
   "last_updated_by": "claude-code",
   "sourceTool": "unknown",
   "createdBy": "kbd-new-phase",
-  "updatedAt": "2026-09-14T18:32:27Z",
+  "updatedAt": "2026-09-15T06:04:06Z",
   "notes": "Out-of-plan work at operator direction (\"fix the openspec ledger first\"): fixed openspec/config.yaml:57 (unquoted colon made the rules entry parse as a mapping; Zod dropped all 5 proposal rules) taking 120 stderr warnings to 0; added .openspec.yaml with skip_specs:true to all 126 active changes (120 created, 6 appended without clobbering existing keys); archived all 126 after two independent validations agreed (per-change loop 126/0, bulk validator items=126 passed=126 failed=0). Active changes 126 -> 0; archive 89 -> 215. Checkboxes deliberately NOT corrected per operator direction. KNOWN CONDITION: openspec validate --archived now reports 46 failures, exactly the stale-checkbox set; that lint is wired to nothing (no pre-commit config, husky, lefthook or git hook), so it is latent, not blocking. One process error: openspec archive --json is NOT a dry run; an exploratory call archived p0-c001 for real and was reverted via git before further work.",
   "execution_dispatched": true,
   "review": {

@@ -1,7 +1,8 @@
 # Reflection — issue-triage-and-architecture-audit
 
 _Written 2026-09-14. Six changes planned, six implemented, archived, committed and pushed.
-The phase ledger says 5/6 — see "The ledger is wrong, and I could not fix it honestly"._
+The phase ledger read 5/6 when this was written; it was repaired on 2026-09-15 and now
+reads 6/6 — see "The ledger was wrong; the schema was the cause"._
 
 ## Goal achievement
 
@@ -91,17 +92,25 @@ proxy returns HTTP 401 (reachable, no Authorization header configured); prefligh
 `pending_review`. No cross-model judge has examined any artifact. A 100% first-pass rate
 with no independent reviewer is a self-assessment, not a certification.
 
-## The ledger is wrong, and I could not fix it honestly
+## The ledger was wrong; the schema was the cause
 
-`progress.json` reads `completed: 5, total: 6`; `current-waypoint.json` reads
-`implementationCompleted: 0` with `exactNextCommand: /kbd-apply p38-c001`. Both contradict
-git, which shows six commits on `origin/main`, zero active openspec changes, and six
-archived `tasks.md` with **zero open boxes**.
+> **Updated 2026-09-15.** This section originally ended "the ledger stays at 5/6." It no
+> longer does: the operator directed a schema repair, and the counter now reads **6/6** and
+> validates. The original refusal is preserved below because it was correct on the evidence
+> then available — the fix was a *schema conversion*, which is a different and larger action
+> than the counter bump I was asked for on 2026-09-14, and forcing the number without it
+> would have written a value the structure could not support.
 
-The root cause is not a stale number. `progress.json` declares `schemaVersion: "2"`, whose
+As written on 2026-09-14, `progress.json` read `completed: 5, total: 6`; `current-waypoint.json` read
+`implementationCompleted: 0` with `exactNextCommand: /kbd-apply p38-c001`. Both contradicted
+git, which showed six commits on `origin/main`, zero active openspec changes, and six
+archived `tasks.md` with **zero open boxes**. (`progress.json` has since been repaired; the
+waypoint has not — see the end of this section.)
+
+The root cause was not a stale number. `progress.json` declared `schemaVersion: "2"`, whose
 invariant is **array-of-objects only** — every `.changes[]` must be an object with `.id`,
-`status` and `implementation_status`. This ledger's `.changes` is an array of **strings**.
-`kbd_progress_validate` therefore fails on the *untouched* file, before any edit. Verified
+`status` and `implementation_status`. This ledger's `.changes` was an array of **strings**.
+`kbd_progress_validate` therefore failed on the *untouched* file, before any edit. Verified
 directly, not inferred.
 
 Three paths, all rejected:
@@ -115,14 +124,59 @@ Three paths, all rejected:
 Hand-editing `progress.json` was never an option: the skills forbid it, and the invariant
 exists precisely to stop a number being forced past the structure that should derive it.
 
-**So the ledger stays at 5/6 and this reflection says so.** `progress.json` is
-byte-identical to its pre-run state (verified by diff); a backup sits at
-`/tmp/claude-501/kbd-backup-135334/`.
+**On 2026-09-14 the ledger stayed at 5/6 and this reflection said so.** `progress.json` was
+left byte-identical to its pre-run state (verified by diff).
+
+### Resolution, 2026-09-15
+
+The operator directed the schema repair. `.changes` was converted from six strings to six
+v2 object rows carrying real per-change truth (`status: DONE`, `implementation_status:
+COMPLETE`, `tasks_done`/`tasks_total` of 6/5/3/6/5/6, all verified against the archive),
+with the mirror counters moved to 6/6 in the **same atomic pass** — the invariant requires
+`count(implementation_status == COMPLETE) == impl_done`, so rows and counters cannot move
+separately. The candidate was validated *before* it replaced anything; the live file
+validates; `kbd_progress_mark_implementation_complete` now exits 0.
+
+The shape was copied from a ledger that actually passes validation
+(`graph-explorer/.kbd-orchestrator/phases/graph-explorer-ui/progress.json`), not invented.
+No top-level key was added or dropped and change-id order is preserved — verified by diff.
+
+**The helper was then sabotage-tested rather than trusted.** Its first exit-0 proved only
+idempotency, since the file was already correct. Setting c006 back to `PENDING` with the
+counter at 5 and re-running it moved 5 → 6 and validated: it genuinely drives the
+transition.
+
+**New defect found by that sabotage:** the helper sets `implementation_status` but **never
+reconciles `.status`**, so the restored row read `IN_PROGRESS/COMPLETE`. The v2 invariant
+does not catch this — a row may carry `PENDING`/`COMPLETE` and still validate. The live
+file is consistent only because the conversion wrote `DONE` explicitly.
+
+**Still not done, deliberately:** `current-waypoint.json` remains at
+`implementationCompleted: 0` with `exactNextCommand: /kbd-apply p38-c001`. `waypoint.sh`
+only *reads* that field to render a display string (`:61`); the sole writers are
+`kbd-new-phase.sh` and `kbd-next-phase.sh`, i.e. advancing to a next phase. There is no
+sanctioned in-place refresh, and hand-editing the waypoint would repeat the exact error
+this section is about.
 
 ## Technical debt
 
-1. **`progress.json` is schema-non-conformant** — v2 declared, v1 string rows. Affects
-   this phase's ledger and blocks every sanctioned counter mutation. **Highest priority.**
+1. ~~**`progress.json` is schema-non-conformant**~~ — **RESOLVED 2026-09-15.** Converted to
+   six v2 object rows; counter reads 6/6 and validates. See "Resolution, 2026-09-15".
+1a. **`kbd_progress_mark_implementation_complete` never reconciles `.status`** — it sets
+   `implementation_status` only, so a row can end up `IN_PROGRESS`/`COMPLETE`. Found by
+   sabotage-testing the helper, not by reading it. The v2 invariant does **not** catch the
+   contradiction: a `PENDING`/`COMPLETE` row validates cleanly. Any future caller must set
+   `.status` itself, as the 2026-09-15 conversion did.
+1b. **`current-waypoint.json` has no sanctioned in-place refresh** — it still reads
+   `implementationCompleted: 0` and points at c001 while `progress.json` reads 6/6.
+   `waypoint.sh:61` only *reads* the field; the only writers are `kbd-new-phase.sh` and
+   `kbd-next-phase.sh`. A projection that can go stale with no way to re-derive it is the
+   root of this phase's nine position-reminder staleness events.
+1c. **`reflect_complete` vs `reflection_complete`** — the orchestrator disagrees with
+   itself. Live code reads `reflect_complete` (`rollup.sh:58`, `kbd-child-exit.sh:100`,
+   both phase-creation scripts); `progress.schema.json:47` and
+   `kbd-next-phase.sh:270` write `reflection_complete`. Left alone deliberately: renaming
+   would break the readers. `additionalProperties: true` means both validate.
 2. **`ci.yml:50-61` runs `cargo test --all`** — violates the non-negotiable "CI/CD is never
    used to run tests. Ever." Predates the policy (`6e549e8`), so drift, not defiance.
 3. **`ci.yml:45` is red today** — `clippy --features dev-endpoints` fails `E0063` at
