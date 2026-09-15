@@ -1,0 +1,20 @@
+{
+  "artifact_type": "content",
+  "constraints": [
+    {"id":"A","description":"The contract covers accepted schema, tenant, key, transaction, snapshot/replay, authorization, deletion, lag and cancellation semantics.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"deterministic cross-language contract fixture"}},
+    {"id":"B","description":"Current proto/flint/v1 bytes remain exact while flint.v2 generates and coexists with existing consumers.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"v1 hash checker, Buf FILE breaking check, prost round-trip and dependent cargo check"}},
+    {"id":"C","description":"Forge and PEM consumer expectations are recorded against exact clean revisions before proto edits/codegen.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":false,"validation_method":"timestamped source-bound consumer-acceptance record and baseline"}},
+    {"id":"D","description":"Public API semver and one-port adapter ownership effects are explicit and preserve clean architecture.","severity":"blocking","type":"structural","validation":{"requires_code_execution":false,"validation_method":"ADR-010 and acceptance-B inspection"}},
+    {"id":"P1","description":"Rust, proto, fixture, file-size, diff and OpenSpec quality gates pass locally.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"format, strict Clippy, tests, Buf, Node, size, diff and OpenSpec checks"}}
+  ],
+  "global_rules": [
+    "Runtime tests execute locally; CI results are not evidence.",
+    "v1 protobuf files are immutable within this change.",
+    "Missing or unauthorized history never becomes a data frame.",
+    "c006 freezes a contract and does not claim later runtime implementation."
+  ],
+  "termination_conditions": [
+    "All blocking c006 constraints pass.",
+    "Independent review has no unresolved critical or warning finding."
+  ]
+}

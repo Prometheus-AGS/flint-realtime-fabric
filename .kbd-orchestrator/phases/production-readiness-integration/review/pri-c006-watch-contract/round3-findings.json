@@ -1,0 +1,22 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [],
+  "checked_classes": [
+    "Spec violations \u2014 acceptance criteria are represented by added OpenSpec task/spec files, source-bound evidence, v2 contract artifacts, v1 hash preservation checks, and semver/adapter ownership documentation in the diff.",
+    "Correctness \u2014 reviewed Rust build/module export changes, generated-contract tests, proto schema structure, fixture checker logic, and contract fixtures; no concrete logic defect is evident from the provided diff.",
+    "Regressions \u2014 proto/flint/v1 is not modified, existing frf_proto::fv1 export remains, and v2 is added as a separate module/package.",
+    "Security \u2014 no hardcoded credentials, auth bypass configuration, sensitive logging, or tenant-isolation weakening is introduced in the touched files.",
+    "Constraint breaches \u2014 no adapter dependency-direction violation, frozen v1 proto edit, library unwrap/expect addition, OpenSpec-format violation, or touched file over 500 lines is evident from the diff.",
+    "Silent failure \u2014 added checker fails hard on contract mismatches and the contract documents terminal error/control behavior rather than silently seeking, dropping, or skipping."
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

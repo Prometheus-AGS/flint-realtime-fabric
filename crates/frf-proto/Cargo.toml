@@ -5,7 +5,7 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
-description = "Generated protobuf/gRPC types for Flint Realtime Fabric (proto/flint/v1)"
+description = "Generated protobuf/gRPC types for Flint Realtime Fabric"
 
 [dependencies]
 prost = { workspace = true }

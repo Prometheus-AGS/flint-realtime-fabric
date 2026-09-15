@@ -1,0 +1,25 @@
+{
+  "artifact_type": "code",
+  "variants": [
+    {
+      "name": "versioned-watch-contract",
+      "files": [
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/proto/flint/v2/entity.proto",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/proto/flint/v2/watch-contract-fixtures.json",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/docs/decisions/adr-010-watch-entity-type-v2.md",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-proto/tests/watch_v2_contract.rs",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/scripts/check-watch-contract.mjs"
+      ],
+      "format": "mixed-source",
+      "description": "The additive flint.v2 entity-type watch schema, normative recovery/mapping decision, cross-language fixtures and deterministic compatibility checks."
+    }
+  ],
+  "preview": {"required": false, "runs": []},
+  "validation": {
+    "preview_status": "pass",
+    "has_console_errors": false,
+    "has_request_failures": false,
+    "notes": ["Frozen-v1 hashes, Buf lint/breaking/build, five generated-contract tests, full workspace compile and required workspace Clippy variants, dependent compilation, strict OpenSpec validation and fresh independent resolution review all pass."]
+  },
+  "generated_at": "2026-09-15T14:38:49Z"
+}

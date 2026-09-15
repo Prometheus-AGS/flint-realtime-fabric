@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/pri-c006-watch-contract/tasks.md",
+      "line": 8,
+      "claim": "The change has not satisfied its own final acceptance task because the source-bound receipt/local quality gate/review-resolution item remains unchecked.",
+      "evidence": "Acceptance criteria item 5 is still `- [ ] 5. Save a source-bound receipt ... run applicable local quality checks and openspec validate ... Resolve required review findings before archive.`; the same unchecked task is added in `openspec/changes/pri-c006-watch-contract/tasks.md`.",
+      "suggested_fix": "Complete item 5 and mark it checked only after the receipt, local quality checks, OpenSpec validation, and review-finding resolution are actually current for this diff."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}
