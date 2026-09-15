@@ -1,0 +1,32 @@
+{
+  "captured_at": "2026-09-15",
+  "command": "cargo audit --json",
+  "fabric_head": "52ab9b3874abbe35bbca73720d85578f3db70943",
+  "database": {
+    "advisory_count": 1246,
+    "last_commit": "e2e640471715167f73e22eaf761f2e547adafeec",
+    "last_updated": "2026-09-14T18:06:06+02:00"
+  },
+  "lockfile_dependency_count": 1070,
+  "counts": {
+    "vulnerabilities": 8,
+    "unmaintained": 7,
+    "unsound": 4,
+    "yanked": 2
+  },
+  "vulnerabilities": [
+    {"id":"RUSTSEC-2026-0193","package":"ammonia","version":"4.1.2","patched":">=4.1.4"},
+    {"id":"RUSTSEC-2026-0213","package":"ammonia","version":"4.1.2","patched":">=4.1.4"},
+    {"id":"RUSTSEC-2026-0204","package":"crossbeam-epoch","version":"0.9.18","patched":">=0.9.20"},
+    {"id":"RUSTSEC-2026-0258","package":"h2","version":"0.4.15","patched":">=0.4.16"},
+    {"id":"RUSTSEC-2026-0185","package":"quinn-proto","version":"0.11.14","patched":">=0.11.15"},
+    {"id":"RUSTSEC-2026-0235","package":"rkyv","version":"0.7.46","patched":">=0.8.17"},
+    {"id":"RUSTSEC-2023-0071","package":"rsa","version":"0.9.10","patched":null},
+    {"id":"RUSTSEC-2026-0285","package":"rustls","version":"0.23.40","patched":">=0.23.45"}
+  ],
+  "unmaintained": ["async-std 1.13.2","atomic-polyfill 1.0.3","bitmaps 2.1.0","im 15.1.0","instant 0.1.13","paste 1.0.15","sized-chunks 0.6.5"],
+  "unsound": ["anyhow 1.0.102","event-listener 5.4.1","im 15.1.0","sized-chunks 0.6.5"],
+  "yanked": ["chacha20 0.10.0","spin 0.9.8"],
+  "result": "BLOCKED",
+  "note": "This compact receipt preserves the actionable result. The command was also inspected with cargo tree to map release-relevant paths; dependency-qualification.md records those paths and remediation owners."
+}
