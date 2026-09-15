@@ -1,0 +1,74 @@
+{
+  "refinement_id": "e46cff86-93b9-436c-a3c9-3ed21796d5a9",
+  "artifact_name": "pri-c008-cdc-commit-mapping",
+  "artifact_type": "code",
+  "content_type": "direct:code",
+  "started_at": "2026-09-15T19:00:10Z",
+  "updated_at": "2026-09-15T20:26:33Z",
+  "current_iteration": 5,
+  "max_iterations": 5,
+  "goals": [
+    "Deliver catalog-validated typed CDC with commit-controlled durable checkpointing"
+  ],
+  "constraints": [
+    {
+      "id": "A"
+    },
+    {
+      "id": "B"
+    },
+    {
+      "id": "C"
+    },
+    {
+      "id": "D"
+    },
+    {
+      "id": "P1"
+    }
+  ],
+  "phases_completed": [
+    "specify",
+    "plan",
+    "execute",
+    "reflect",
+    "persist"
+  ],
+  "convergence_status": "converged",
+  "iteration_history": [
+    {
+      "iteration": 1,
+      "result": "DETERMINISTIC_PASS_REVIEW_PENDING",
+      "blocking_violations": 0,
+      "notes": "Owned PostgreSQL/Iggy acceptance and focused quality gates pass; independent review is pending."
+    },
+    {
+      "iteration": 2,
+      "result": "REVIEW_FINDINGS_RESOLVED_REVIEW_PENDING",
+      "blocking_violations": 0,
+      "notes": "Gateway-owned composition test and distinct timestamp-without-zone value pass a fresh source-bound live run; resolution review is pending."
+    },
+    {
+      "iteration": 3,
+      "result": "REVIEW_FINDINGS_RESOLVED_REVIEW_PENDING",
+      "blocking_violations": 0,
+      "notes": "Removed anyhow from the adapter and made broker-assigned per-event offsets explicit with a live uniqueness assertion; another source-bound run and review are pending."
+    },
+    {
+      "iteration": 4,
+      "result": "PASS",
+      "blocking_violations": 0,
+      "notes": "All-columns publication metadata handles null attnames; all prior review findings are resolved and c008 is converged for archive review."
+    },
+    {
+      "iteration": 5,
+      "result": "PASS",
+      "blocking_violations": 0,
+      "notes": "All findings are resolved, including identity proof, redaction, distinct tenant routing with channel creation, shared epoch validation, empty optional UUID handling, portability, and safe disabled-by-default CDC. The thirteenth fresh-context review passed with no findings."
+    }
+  ],
+  "workflow_triggers": [],
+  "checkpoints": [],
+  "prior_cycle_id": null,
+  "finalized_at": "2026-09-15T20:26:33Z"
+}

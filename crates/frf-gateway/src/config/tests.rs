@@ -19,6 +19,25 @@ fn valid_default_config_passes_validation() {
         .expect("default config should be valid");
 }
 
+#[test]
+fn empty_optional_cdc_tenant_is_unset() {
+    assert_eq!(
+        parse_optional_uuid("CDC_TENANT_ID", Some(String::new())).unwrap(),
+        None
+    );
+    assert_eq!(
+        parse_optional_uuid("CDC_TENANT_ID", Some("  ".to_owned())).unwrap(),
+        None
+    );
+}
+
+#[test]
+fn malformed_optional_cdc_tenant_is_rejected() {
+    let error = parse_optional_uuid("CDC_TENANT_ID", Some("not-a-uuid".to_owned()))
+        .expect_err("non-empty malformed UUID must fail");
+    assert!(error.to_string().contains("CDC_TENANT_ID"));
+}
+
 // The issuer-mandatory rule only exists in production (non-`dev-endpoints`) builds;
 // in dev builds a missing issuer is a warning, not a hard error (see `main.rs`).
 #[cfg(not(feature = "dev-endpoints"))]
@@ -66,8 +85,42 @@ fn cdc_enabled_with_all_fields_passes() {
     cfg.cdc_replication_url = Some("postgres://x".to_owned());
     cfg.cdc_slot_name = Some("frf_slot".to_owned());
     cfg.cdc_publication_name = Some("frf_pub".to_owned());
+    cfg.cdc_tenant_id = Some(uuid::Uuid::nil());
+    cfg.cdc_channel_path = Some("entities".to_owned());
+    cfg.cdc_source_epoch = Some("test-epoch-1".to_owned());
+    cfg.cdc_enrollments_json = Some(
+        r#"[{"schema":"public","table":"items","projection":"default","columns":["id"],"tenant":{"mode":"fixed"}}]"#.to_owned(),
+    );
     cfg.validate()
         .expect("CDC config with all fields should be valid");
+}
+
+#[test]
+fn cdc_enabled_without_explicit_enrollment_fails_fast() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.cdc_enabled = true;
+    cfg.cdc_replication_url = Some("postgres://x".to_owned());
+    cfg.cdc_slot_name = Some("frf_slot".to_owned());
+    cfg.cdc_publication_name = Some("frf_pub".to_owned());
+    cfg.cdc_tenant_id = Some(uuid::Uuid::nil());
+    cfg.cdc_channel_path = Some("entities".to_owned());
+    cfg.cdc_source_epoch = Some("epoch".to_owned());
+    let error = cfg.validate().expect_err("missing enrollment must fail");
+    assert!(error.to_string().contains("CDC_ENROLLMENTS_JSON"));
+}
+
+#[test]
+fn cdc_enabled_with_invalid_source_epoch_fails_fast() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.cdc_enabled = true;
+    cfg.cdc_replication_url = Some("postgres://x".to_owned());
+    cfg.cdc_slot_name = Some("frf_slot".to_owned());
+    cfg.cdc_publication_name = Some("frf_pub".to_owned());
+    cfg.cdc_tenant_id = Some(uuid::Uuid::nil());
+    cfg.cdc_channel_path = Some("entities".to_owned());
+    cfg.cdc_source_epoch = Some("restore/2".to_owned());
+    let error = cfg.validate().expect_err("unsafe source epoch must fail");
+    assert!(error.to_string().contains("CDC_SOURCE_EPOCH"));
 }
 
 #[test]

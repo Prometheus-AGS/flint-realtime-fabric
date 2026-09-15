@@ -93,16 +93,48 @@ impl GatewayConfig {
     fn validate_cdc(&self) -> anyhow::Result<()> {
         if self.cdc_enabled {
             anyhow::ensure!(
-                self.cdc_replication_url.is_some(),
+                self.cdc_replication_url
+                    .as_ref()
+                    .is_some_and(|value| !value.trim().is_empty()),
                 "CDC_ENABLED=true requires CDC_REPLICATION_URL"
             );
             anyhow::ensure!(
-                self.cdc_slot_name.is_some(),
+                self.cdc_slot_name
+                    .as_ref()
+                    .is_some_and(|value| !value.trim().is_empty()),
                 "CDC_ENABLED=true requires CDC_SLOT_NAME"
             );
             anyhow::ensure!(
-                self.cdc_publication_name.is_some(),
+                self.cdc_publication_name
+                    .as_ref()
+                    .is_some_and(|value| !value.trim().is_empty()),
                 "CDC_ENABLED=true requires CDC_PUBLICATION_NAME"
+            );
+            anyhow::ensure!(
+                self.cdc_tenant_id.is_some(),
+                "CDC_ENABLED=true requires CDC_TENANT_ID"
+            );
+            anyhow::ensure!(
+                self.cdc_channel_path
+                    .as_ref()
+                    .is_some_and(|value| !value.trim().is_empty()),
+                "CDC_ENABLED=true requires CDC_CHANNEL_PATH"
+            );
+            let source_epoch = self
+                .cdc_source_epoch
+                .as_deref()
+                .ok_or_else(|| anyhow::anyhow!("CDC_ENABLED=true requires CDC_SOURCE_EPOCH"))?;
+            frf_postgres_cdc::CdcConfig::validate_source_epoch(source_epoch)
+                .map_err(|error| anyhow::anyhow!("CDC_SOURCE_EPOCH is invalid: {error}"))?;
+            let enrollment_json = self
+                .cdc_enrollments_json
+                .as_deref()
+                .ok_or_else(|| anyhow::anyhow!("CDC_ENABLED=true requires CDC_ENROLLMENTS_JSON"))?;
+            let enrollments = frf_postgres_cdc::CdcConfig::parse_enrollments(enrollment_json)
+                .map_err(|error| anyhow::anyhow!(error))?;
+            anyhow::ensure!(
+                !enrollments.is_empty(),
+                "CDC_ENROLLMENTS_JSON must contain at least one enrollment"
             );
         }
         Ok(())

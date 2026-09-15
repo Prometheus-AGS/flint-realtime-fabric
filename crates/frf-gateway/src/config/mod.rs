@@ -43,6 +43,8 @@ pub struct GatewayConfig {
     pub cdc_publication_name: Option<String>,
     pub cdc_tenant_id: Option<Uuid>,
     pub cdc_channel_path: Option<String>,
+    pub cdc_source_epoch: Option<String>,
+    pub cdc_enrollments_json: Option<String>,
     /// SFU mode: "sovereign" → `str0m`, "hosted" → `LiveKit` (default: "hosted").
     pub sfu_mode: SfuMode,
     /// Optional endpoint lanes, each requiring an explicit deployment opt-in.
@@ -113,6 +115,15 @@ fn env_enabled(name: &str) -> bool {
     std::env::var(name).is_ok_and(|value| value.eq_ignore_ascii_case("true") || value == "1")
 }
 
+fn parse_optional_uuid(name: &str, value: Option<String>) -> anyhow::Result<Option<Uuid>> {
+    let Some(value) = value.filter(|value| !value.trim().is_empty()) else {
+        return Ok(None);
+    };
+    Uuid::parse_str(&value)
+        .map(Some)
+        .with_context(|| format!("{name} must be a valid UUID"))
+}
+
 impl GatewayConfig {
     /// Construct a minimal `GatewayConfig` suitable for unit and integration tests.
     ///
@@ -142,6 +153,8 @@ impl GatewayConfig {
             cdc_publication_name: None,
             cdc_tenant_id: None,
             cdc_channel_path: None,
+            cdc_source_epoch: None,
+            cdc_enrollments_json: None,
             // `test_default` uses Sovereign deliberately — unlike the production `from_env`
             // default (Hosted), it avoids the LiveKit-credentials requirement so unit tests
             // don't need `LIVEKIT_*` set. This intentional divergence is why the two
@@ -242,10 +255,8 @@ impl GatewayConfig {
         let cdc_enabled =
             std::env::var("CDC_ENABLED").is_ok_and(|v| v.eq_ignore_ascii_case("true") || v == "1");
 
-        let cdc_tenant_id = std::env::var("CDC_TENANT_ID")
-            .ok()
-            .map(|v| Uuid::parse_str(&v).context("CDC_TENANT_ID must be a valid UUID"))
-            .transpose()?;
+        let cdc_tenant_id =
+            parse_optional_uuid("CDC_TENANT_ID", std::env::var("CDC_TENANT_ID").ok())?;
 
         let (federation_enabled, federation_tenant_id, federation_channel_id) =
             Self::federation_config_from_env()?;
@@ -309,6 +320,8 @@ impl GatewayConfig {
             cdc_publication_name: std::env::var("CDC_PUBLICATION_NAME").ok(),
             cdc_tenant_id,
             cdc_channel_path: std::env::var("CDC_CHANNEL_PATH").ok(),
+            cdc_source_epoch: std::env::var("CDC_SOURCE_EPOCH").ok(),
+            cdc_enrollments_json: std::env::var("CDC_ENROLLMENTS_JSON").ok(),
             sfu_mode,
             lanes,
             registry_idle_secs: std::env::var("REGISTRY_IDLE_SECS")

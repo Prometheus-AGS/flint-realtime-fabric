@@ -65,16 +65,24 @@ manager · **Dev-only** = must NOT be set in production.
 | `SHAPE_CATALOG_PATH` | ⚠️ | | — | Read-only JSON catalog path. Required with `SHAPE_ELECTRIC_URL` and exclusive to `shape-only`. |
 | `SHAPE_TIMEOUT_SECS` | | | `30` | Upstream Electric request timeout. |
 
-## CDC (Postgres logical replication) (p16-c020)
+## CDC (Postgres logical replication)
 
 | Variable | Req | Secret | Default | Purpose |
 |----------|:---:|:------:|---------|---------|
 | `CDC_ENABLED` | | | `false` | Enable Postgres CDC → spine ingestion. |
-| `CDC_REPLICATION_URL` | ⚠️ | ✅ | — | Postgres DSN (contains credentials). Required when `CDC_ENABLED=true`. |
+| `CDC_REPLICATION_URL` | ⚠️ | ✅ | — | Normal Postgres DSN (contains credentials). Required when `CDC_ENABLED=true`; the adapter adds replication mode only to its WAL connection. |
 | `CDC_SLOT_NAME` | ⚠️ | | — | Logical replication slot. Required when `CDC_ENABLED=true`. |
 | `CDC_PUBLICATION_NAME` | ⚠️ | | — | Publication name. Required when `CDC_ENABLED=true`. |
-| `CDC_TENANT_ID` | | | — | Tenant UUID that ingested changes are stamped with. |
+| `CDC_TENANT_ID` | ⚠️ | | — | Effective tenant UUID for `fixed` tenant enrollments and the CDC channel. Required when CDC is enabled. |
 | `CDC_CHANNEL_PATH` | | | — | Channel path on the spine (e.g. `entities`). |
+| `CDC_SOURCE_EPOCH` | ⚠️ | | — | Stable identity for this slot's logical history. Keep it across ordinary restarts; rotate it after slot/history recreation or source restore. |
+| `CDC_ENROLLMENTS_JSON` | ⚠️ | | — | Non-empty server-owned JSON allowlist of schema, table, projection, projected columns, tenant mode and optional unsigned-domain columns. Catalog validation fails startup for an unsafe mapping. |
+
+The configured publication must exist, must not use `FOR ALL TABLES`, and must
+already contain every enrolled table. Add tables through reviewed database
+migrations. Each table needs a primary key and replica identity that retains its
+primary key plus a column-based tenant key. `fixed` tenant tables need the primary
+key in replica identity. Unsupported types stop enrollment.
 
 ## Federation (DEFERRED / half-implemented — off by default) (p16-c009)
 
@@ -137,7 +145,9 @@ all other paths return `404` at the TLS boundary.
 ## Minimum required to boot (production)
 
 The `full` profile requires `IGGY_CONNECTION_STRING`, `KETO_BASE_URL`,
-`GATEWAY_JWKS_URL`, `JWT_AUDIENCE`, and `JWT_ISSUER`. The `shape-only` profile
+`GATEWAY_JWKS_URL`, `JWT_AUDIENCE`, and `JWT_ISSUER`. When its reference profile
+enables CDC, it also requires the CDC URL, slot, publication, tenant, source epoch,
+and enrollment allowlist described above. The `shape-only` profile
 requires the identity inputs plus both shape inputs and rejects Iggy, gRPC, CDC,
 federation and media. `LIVEKIT_*` is required only when `MEDIA_ENABLED=true` and
 `SFU_MODE=hosted`. `config.validate()` fails before binding a public socket when

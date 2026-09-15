@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-gateway/tests/cdc_integration.rs",
+      "line": 124,
+      "claim": "The acceptance test does not actually prove column-derived tenant routing independently from fixed tenant routing because both modes use the same UUID.",
+      "evidence": "The gateway test creates the broker channel with `TenantId::from_uuid(TENANT)` and inserts order rows with tenant_id `00000000-0000-0000-0000-000000000007`, while `TENANT` is `Uuid::from_u128(7)` in `crates/frf-gateway/tests/support/cdc/mod.rs`; acceptance criterion 3 requires accepted tenant modes to be exercised.",
+      "suggested_fix": "Use a column-derived tenant UUID different from the fixed tenant UUID, ensure/subscribe the corresponding tenant channel as needed, and assert envelope/payload equality and delivery for both distinct tenants."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-postgres-cdc/src/consumer.rs",
+      "line": 178,
+      "claim": "Production CDC publishing switches the envelope channel tenant per mutation but never ensures that per-tenant channel exists.",
+      "evidence": "`publish_commit` clones the configured channel and assigns `event_channel.tenant_id = mutation.tenant_id` before `self.broker.publish(envelope).await?`, while `spawn_cdc_consumer` only constructs `PostgresCdcConsumer::new(cdc_config, broker)` and contains no `ensure_channel` call; the only explicit `ensure_channel` in the diff is test setup for the single configured `TENANT`.",
+      "suggested_fix": "Call `LogBroker::ensure_channel` for each tenant-specific event channel before publishing, or document and enforce that the broker creates channels atomically on publish."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-postgres-cdc/src/decode.rs",
+      "line": 51,
+      "claim": "Updates with absent old-row/key data are accepted and checkpointable instead of being treated as a poison transaction.",
+      "evidence": "Acceptance criterion 4 requires that \"missing old-key data cannot be skipped beneath an acknowledged checkpoint,\" but `decode_update` returns a normal `ChangeOp::Update` when `old_row` is `None` (`let Some(old_row) = old_row else { return Ok(vec![pending(... ChangeOp::Update ...)]); };`).",
+      "suggested_fix": "Fail closed when old-key data is unavailable for an enrolled update path that needs identity safety, or explicitly prove from WAL metadata that the key/tenant could not have changed before accepting the update."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

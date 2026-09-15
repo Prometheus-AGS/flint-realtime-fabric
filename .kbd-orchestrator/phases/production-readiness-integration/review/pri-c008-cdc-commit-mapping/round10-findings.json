@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "compose.yml",
+      "line": 48,
+      "claim": "The reference compose profile injects an empty `CDC_TENANT_ID` environment variable when CDC is disabled, which can make gateway configuration parsing fail before the new disabled-CDC validation path is reached.",
+      "evidence": "The compose hunk changes `CDC_TENANT_ID` to `\"${FRF_CDC_TENANT_ID:-}\"`, while `GatewayConfig` declares `cdc_tenant_id: Option<Uuid>` and `from_env` assigns `cdc_tenant_id` unconditionally before validation; the acceptance receipt states the profile should accept empty CDC-specific inputs while disabled.",
+      "suggested_fix": "Do not set `CDC_TENANT_ID` at all when disabled, or normalize empty CDC env values to `None` before UUID parsing in `GatewayConfig::from_env`."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

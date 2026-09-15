@@ -227,6 +227,15 @@ fn spawn_cdc_consumer(
         .cdc_channel_path
         .clone()
         .context("CDC_CHANNEL_PATH must be set when CDC_ENABLED=true")?;
+    let source_epoch = config
+        .cdc_source_epoch
+        .clone()
+        .context("CDC_SOURCE_EPOCH must be set when CDC_ENABLED=true")?;
+    let enrollment_json = config
+        .cdc_enrollments_json
+        .as_deref()
+        .context("CDC_ENROLLMENTS_JSON must be set when CDC_ENABLED=true")?;
+    let enrollments = CdcConfig::parse_enrollments(enrollment_json)?;
 
     let cdc_config = CdcConfig::new(
         replication_url,
@@ -234,7 +243,9 @@ fn spawn_cdc_consumer(
         publication_name,
         TenantId::from_uuid(tenant_uuid),
         channel_path,
-    );
+    )
+    .with_source_epoch(source_epoch)
+    .with_enrollments(enrollments);
     let consumer = PostgresCdcConsumer::new(cdc_config, broker);
     tracing::info!("starting CDC consumer");
     Ok(Some(tokio::spawn(async move {

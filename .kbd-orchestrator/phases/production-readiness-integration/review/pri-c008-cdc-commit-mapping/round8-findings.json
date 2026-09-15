@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "compose.yml",
+      "line": 45,
+      "claim": "The reference compose profile enables CDC but the deployment now creates an empty publication, so the documented example enrollment cannot pass startup catalog validation.",
+      "evidence": "compose.yml sets `CDC_ENABLED: \"true\"` and requires `CDC_ENROLLMENTS_JSON`; .env.example adds an enrollment for `public.entities`; deploy/postgres/init.sql changed from `CREATE PUBLICATION frf_pub FOR ALL TABLES;` to `CREATE PUBLICATION frf_pub;` with no corresponding `ALTER PUBLICATION frf_pub ADD TABLE public.entities` or migration in the diff. The new catalog validation returns `TableNotPublished` when an enrolled table is not in `pg_publication_tables`.",
+      "suggested_fix": "Either include a reviewed migration/init step that adds the example enrolled table(s) to `frf_pub`, or disable CDC by default in the reference compose profile until an explicit publication migration is present."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

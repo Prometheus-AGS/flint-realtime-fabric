@@ -91,12 +91,28 @@ and update the secret store.
 ## 3. CDC replication-slot lifecycle & recovery
 
 CDC (`CDC_ENABLED=true`) streams Postgres logical-replication changes onto the spine.
+The reference Compose profile defaults it off until reviewed migrations add
+every configured enrollment to the explicit publication.
 Postgres must run with `wal_level=logical` (the reference compose sets
 `-c wal_level=logical -c max_replication_slots=5 -c max_wal_senders=5`).
 
-**Lifecycle:** the gateway's `PostgresCdcConsumer` creates the slot
-(`CDC_SLOT_NAME`) and publication (`CDC_PUBLICATION_NAME`) on first start and consumes
-from it, advancing the slot's confirmed LSN as it processes changes.
+**Lifecycle:** a reviewed database migration creates the explicit publication
+(`CDC_PUBLICATION_NAME`) and adds its tables. `FOR ALL TABLES` is rejected. The
+gateway validates `CDC_ENROLLMENTS_JSON` against the live catalog before creating
+or opening `CDC_SLOT_NAME`. It rejects missing keys, inadequate replica identity,
+unapproved or duplicate projection columns, and unsupported source types.
+
+The consumer buffers row events until PostgreSQL COMMIT, maps keys and values to
+the canonical v2 contract, and publishes every mutation in transaction order.
+It advances the slot's confirmed LSN only after the full commit is durable in
+Iggy. A broker, decode, schema, or transaction error leaves that commit below the
+checkpoint. A retry republishes the same stable event IDs, and Iggy deduplicates
+the already-durable prefix.
+
+`CDC_SOURCE_EPOCH` identifies the slot's logical history. Keep it stable across
+normal gateway and database restarts. Rotate it when the slot is dropped and
+recreated, or when PostgreSQL is restored to a history that can reuse source
+positions; downstream type watches must resnapshot for the new epoch.
 
 ### ⚠️ WAL pinning — the critical failure mode
 
@@ -122,8 +138,9 @@ Alert when `retained` grows past a threshold, or `active = false` while CDC is e
    ```sh
    frf cdc slot drop --slot frf_slot          # or: SELECT pg_drop_replication_slot('frf_slot');
    ```
-   The gateway recreates it on next start (from the current LSN — the gap is lost). To
-   pre-create it explicitly instead of relying on gateway startup: `frf cdc slot create`.
+   The gateway recreates it on next start from the current LSN, so the gap is lost.
+   Rotate `CDC_SOURCE_EPOCH` and require downstream resnapshot before restoring
+   service. To pre-create it explicitly: `frf cdc slot create`.
 3. **Emergency disk pressure:** free space (archive/expand) first so Postgres stays up,
    then apply (1) or (2).
 
@@ -133,6 +150,16 @@ CLI reference:
 - `frf broker checkpoint --channel <uuid> --consumer <id> --offset <n>` — force a cursor.
 - `frf broker offsets --channel <uuid> --consumer <id>` — read a consumer's stored offset.
 - `frf keto seed|revoke` — manage Keto relation tuples.
+
+Local acceptance for mapping and checkpoint behavior:
+
+```sh
+./scripts/run-cdc-integration.sh
+```
+
+The runner uses an owned PostgreSQL 17 plus Iggy Compose project, executes the
+ignored test by exact name, records image and source hashes, and removes only its
+project's containers and volumes.
 
 ---
 
@@ -166,5 +193,7 @@ CLI reference:
 - **Keto migrations:** Keto migrations are generally forward-only — prefer rolling
   forward with a fix. If a rollback is unavoidable, restore the Keto DB from backup
   (do NOT down-migrate a live authz store casually).
-- **CDC:** on rollback, verify the slot is still active and lag is bounded (Section 3);
-  a rolled-back consumer resumes from the slot's confirmed LSN.
+- **CDC:** retain the same enrollment and source epoch when rolling back to a
+  compatible consumer. Verify the slot remains active and lag is bounded. Never
+  move the slot forward manually to bypass a poison commit; repair the mapping or
+  source data and restart from the unchanged confirmed LSN.

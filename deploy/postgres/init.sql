@@ -1,7 +1,9 @@
 -- Postgres initialization for CDC logical replication
 -- Creates the publication used by frf-postgres-cdc.
 
-CREATE PUBLICATION frf_pub FOR ALL TABLES;
+-- Tables are added only by explicit, reviewed enrollment migrations. A
+-- FOR ALL TABLES publication would bypass the CDC allowlist contract.
+CREATE PUBLICATION frf_pub;
 
 -- Grant replication privilege so the frf user can open a replication connection.
 ALTER USER frf REPLICATION;

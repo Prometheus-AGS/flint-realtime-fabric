@@ -1,0 +1,22 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [],
+  "checked_classes": [
+    "Spec violations \u2014 checked acceptance criteria 1-5 against the diff: source-bound evidence, OpenSpec delta, CDC implementation paths, integration runner, and recorded quality checks are present in the changed files.",
+    "Correctness \u2014 checked transaction buffering, commit-bound publishing, LSN advancement after durable publish, schema revalidation, poison handling, tenant derivation, and replay identity paths shown in the Rust diffs; no concrete defect was provable from the packet.",
+    "Regressions \u2014 checked removed row-at-a-time CDC decode/publish behavior against the stated replacement criteria; the changed behavior is aligned with the requested committed-transaction mapping.",
+    "Security \u2014 checked for hardcoded secrets, production auth bypass, sensitive CDC logging, and tenant-channel handling in touched config/code; no blocking violation was evidenced in the packet.",
+    "Constraint breaches \u2014 checked A1-A3, R1-R5 applicability from manifests and touched files, S1-S4, F1 non-applicability, and P1 OpenSpec delta presence; no concrete breach was provable from the packet.",
+    "Silent failure \u2014 checked decode/catalog/broker error paths and disabled CDC config behavior; errors are propagated or fail-fast in the shown code rather than silently skipped."
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

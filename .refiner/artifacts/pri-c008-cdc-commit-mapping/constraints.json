@@ -1,0 +1,20 @@
+{
+  "artifact_type": "code",
+  "constraints": [
+    {"id":"A","description":"Only committed source transactions publish, in source order, with schema-qualified routing, ordered composite keys and canonical typed values.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"owned live PostgreSQL 17 and Iggy CRUD, rollback, multi-row, composite-key and typed-value scenarios"}},
+    {"id":"B","description":"Applied WAL progress advances only after every event in a source commit is durably accepted; restart replay uses stable event identity without loss.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"injected post-publish crash, slot LSN observation, restart and broker deduplication scenario"}},
+    {"id":"C","description":"Unsupported types, inadequate identity, poison values, missing old keys, schema drift and unchanged TOAST are explicit and cannot be skipped under a checkpoint.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"live enrollment/poison/schema scenarios and focused transaction tests"}},
+    {"id":"D","description":"Gateway and deployment require a stable source epoch and explicit server-owned enrollment against an explicit publication.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"gateway config tests, catalog validation and deployment documentation review"}},
+    {"id":"P1","description":"Focused Rust tests, pedantic clippy, formatting, diff hygiene, file size, strict OpenSpec and independent adversarial review pass locally.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"recorded local quality and review matrix"}}
+  ],
+  "global_rules": [
+    "Runtime tests execute locally; CI results are not evidence.",
+    "Source receipts bind every candidate implementation and fixture file by SHA-256.",
+    "The fixture owns and removes every PostgreSQL and Iggy resource it creates.",
+    "c008 does not claim delivery of the later entity-watch, SDK, operations or release gates."
+  ],
+  "termination_conditions": [
+    "All blocking c008 constraints pass.",
+    "Independent review has no unresolved critical or warning finding."
+  ]
+}

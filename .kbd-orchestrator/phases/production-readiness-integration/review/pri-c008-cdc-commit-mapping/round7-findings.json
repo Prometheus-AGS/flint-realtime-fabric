@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-postgres-cdc/src/consumer.rs",
+      "line": 190,
+      "claim": "Column-derived tenant CDC mutations are published on the fixed config tenant channel, allowing the envelope tenant and payload tenant to diverge and breaking tenant isolation.",
+      "evidence": "In `run_inner`, the `Channel` is constructed once with `tenant_id: self.config.tenant_id`; `publish_commit` then uses `channel: channel.clone()` for every mutation, while `decode.rs` extracts `mutation.tenant_id` from `TenantMode::Column` source data. Constraint S4 requires tenant isolation and an app-layer tenant-equality guard, but no equality check or per-mutation channel tenant assignment exists.",
+      "suggested_fix": "Either reject column-tenant rows whose decoded tenant differs from the configured channel tenant before publishing, or construct/ensure the event channel per mutation using `mutation.tenant_id` so envelope tenant and payload tenant always match."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

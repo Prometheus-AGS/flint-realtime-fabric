@@ -76,6 +76,7 @@ shape-facade = ["dep:frf-shape-electric"]
 
 [dev-dependencies]
 axum-test = "17"
+tokio-postgres.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-tungstenite = "0.26"
 tokio-stream = { workspace = true, features = ["net"] }

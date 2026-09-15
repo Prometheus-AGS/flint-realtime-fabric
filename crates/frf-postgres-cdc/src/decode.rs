@@ -1,278 +1,230 @@
-use chrono::Utc;
-use frf_domain::{ChangeOp, EntityChange, EntityId, TenantId};
-use serde_json::{Map, Value};
+use std::sync::Arc;
 
-/// Lightweight representation of a pgoutput relation (table) descriptor.
-///
-/// In the actual WAL stream this arrives as a `RelationMessage` before any
-/// row-level messages for that relation.
-#[derive(Debug, Clone)]
-pub struct Relation {
-    pub oid: u32,
-    pub namespace: String,
-    pub name: String,
-    /// Ordered list of column names in the relation.
-    pub columns: Vec<String>,
-    /// Index of the primary-key column within `columns` (0-based).
-    pub pk_index: usize,
-}
+use frf_domain::{ChangeOp, TenantId};
+use pg_walstream::RowData;
 
-/// A single column value decoded from a pgoutput tuple data.
+use crate::{
+    canonical::{CanonicalError, canonical_key, canonical_value},
+    catalog::RelationMapping,
+    config::TenantMode,
+    model::{EntityField, EntityKey, KeyPart},
+};
+
 #[derive(Debug, Clone)]
-pub struct Column {
-    /// Column name (from the associated `Relation`).
-    pub name: String,
-    /// Text-decoded value. `None` means SQL NULL.
-    pub value: Option<String>,
+pub(crate) struct PendingMutation {
+    pub schema: String,
+    pub table: String,
+    pub projection: String,
+    pub entity_type: String,
+    pub tenant_id: TenantId,
+    pub key: EntityKey,
+    pub op: ChangeOp,
+    pub record: Option<Vec<EntityField>>,
+    pub unchanged_toast: Vec<String>,
 }
 
 #[non_exhaustive]
 #[derive(Debug, thiserror::Error)]
 pub enum DecodeError {
-    #[error("null primary key in relation '{0}'")]
-    NullPrimaryKey(String),
-    #[error("invalid entity id '{value}' in relation '{relation}': {source}")]
-    InvalidEntityId {
-        relation: String,
-        value: String,
-        source: uuid::Error,
-    },
-    #[error("pk_index {0} out of bounds for relation '{1}'")]
-    PkIndexOutOfBounds(usize, String),
+    #[error(transparent)]
+    Canonical(#[from] CanonicalError),
+    #[error("required source column '{column}' is absent for '{relation}'")]
+    MissingColumn { relation: String, column: String },
+    #[error("tenant column '{column}' is not a UUID for '{relation}'")]
+    InvalidTenant { relation: String, column: String },
+    #[error("update old-key tuple is incomplete for '{0}'")]
+    MissingOldKey(String),
 }
 
-fn columns_to_json(cols: &[Column]) -> Value {
-    let mut map = Map::new();
-    for col in cols {
-        map.insert(
-            col.name.clone(),
-            col.value
-                .as_deref()
-                .map_or(Value::Null, |v| Value::String(v.to_owned())),
-        );
+pub(crate) fn decode_insert(
+    relation: &RelationMapping,
+    fixed_tenant: TenantId,
+    row: &RowData,
+) -> Result<Vec<PendingMutation>, DecodeError> {
+    let key = extract_key(relation, row)?;
+    let tenant_id = extract_tenant(relation, fixed_tenant, row)?;
+    let (record, unchanged_toast) = extract_record(relation, row, false)?;
+    Ok(vec![pending(
+        relation,
+        tenant_id,
+        key,
+        ChangeOp::Insert,
+        Some(record),
+        unchanged_toast,
+    )])
+}
+
+pub(crate) fn decode_update(
+    relation: &RelationMapping,
+    fixed_tenant: TenantId,
+    old_row: Option<&RowData>,
+    new_row: &RowData,
+    replica_identity: pg_walstream::ReplicaIdentity,
+    key_columns: &[Arc<str>],
+) -> Result<Vec<PendingMutation>, DecodeError> {
+    let new_key = extract_key(relation, new_row)?;
+    let new_tenant = extract_tenant(relation, fixed_tenant, new_row)?;
+    let (record, unchanged_toast) = extract_record(relation, new_row, true)?;
+    let Some(old_row) = old_row else {
+        if !relation.update_without_old_key_is_safe(replica_identity, key_columns) {
+            return Err(DecodeError::MissingOldKey(relation.entity_type()));
+        }
+        return Ok(vec![pending(
+            relation,
+            new_tenant,
+            new_key,
+            ChangeOp::Update,
+            Some(record),
+            unchanged_toast,
+        )]);
+    };
+
+    let old_key = extract_key(relation, old_row)
+        .map_err(|_| DecodeError::MissingOldKey(relation.entity_type()))?;
+    let old_tenant = extract_tenant(relation, fixed_tenant, old_row)
+        .map_err(|_| DecodeError::MissingOldKey(relation.entity_type()))?;
+    if old_key.canonical_id == new_key.canonical_id && old_tenant == new_tenant {
+        return Ok(vec![pending(
+            relation,
+            new_tenant,
+            new_key,
+            ChangeOp::Update,
+            Some(record),
+            unchanged_toast,
+        )]);
     }
-    Value::Object(map)
+
+    Ok(vec![
+        pending(
+            relation,
+            old_tenant,
+            old_key,
+            ChangeOp::Delete,
+            None,
+            Vec::new(),
+        ),
+        pending(
+            relation,
+            new_tenant,
+            new_key,
+            ChangeOp::Insert,
+            Some(record),
+            unchanged_toast,
+        ),
+    ])
 }
 
-fn extract_entity_id(relation: &Relation, row: &[Column]) -> Result<EntityId, DecodeError> {
-    let col = row
-        .get(relation.pk_index)
-        .ok_or_else(|| DecodeError::PkIndexOutOfBounds(relation.pk_index, relation.name.clone()))?;
-    let raw = col
-        .value
-        .as_deref()
-        .ok_or_else(|| DecodeError::NullPrimaryKey(relation.name.clone()))?;
-    let uuid = uuid::Uuid::parse_str(raw).map_err(|source| DecodeError::InvalidEntityId {
-        relation: relation.name.clone(),
-        value: raw.to_owned(),
-        source,
+pub(crate) fn decode_delete(
+    relation: &RelationMapping,
+    fixed_tenant: TenantId,
+    old_row: &RowData,
+) -> Result<Vec<PendingMutation>, DecodeError> {
+    let key = extract_key(relation, old_row)?;
+    let tenant_id = extract_tenant(relation, fixed_tenant, old_row)?;
+    Ok(vec![pending(
+        relation,
+        tenant_id,
+        key,
+        ChangeOp::Delete,
+        None,
+        Vec::new(),
+    )])
+}
+
+fn pending(
+    relation: &RelationMapping,
+    tenant_id: TenantId,
+    key: EntityKey,
+    op: ChangeOp,
+    record: Option<Vec<EntityField>>,
+    unchanged_toast: Vec<String>,
+) -> PendingMutation {
+    PendingMutation {
+        schema: relation.schema.clone(),
+        table: relation.table.clone(),
+        projection: relation.projection.clone(),
+        entity_type: relation.entity_type(),
+        tenant_id,
+        key,
+        op,
+        record,
+        unchanged_toast,
+    }
+}
+
+fn extract_key(relation: &RelationMapping, row: &RowData) -> Result<EntityKey, DecodeError> {
+    let mut parts = Vec::with_capacity(relation.primary_key.len());
+    for index in &relation.primary_key {
+        let column = &relation.columns[*index];
+        let value = row
+            .get(&column.name)
+            .ok_or_else(|| DecodeError::MissingColumn {
+                relation: relation.entity_type(),
+                column: column.name.clone(),
+            })?;
+        parts.push(KeyPart {
+            column: column.name.clone(),
+            value: canonical_value(&column.name, column.source_type, value)?,
+        });
+    }
+    Ok(canonical_key(parts)?)
+}
+
+fn extract_tenant(
+    relation: &RelationMapping,
+    fixed_tenant: TenantId,
+    row: &RowData,
+) -> Result<TenantId, DecodeError> {
+    let TenantMode::Column { column } = &relation.tenant else {
+        return Ok(fixed_tenant);
+    };
+    let mapping = relation
+        .column(column)
+        .ok_or_else(|| DecodeError::MissingColumn {
+            relation: relation.entity_type(),
+            column: column.clone(),
+        })?;
+    let source = row.get(column).ok_or_else(|| DecodeError::MissingColumn {
+        relation: relation.entity_type(),
+        column: column.clone(),
     })?;
-    Ok(EntityId::from_uuid(uuid))
+    let value = canonical_value(column, mapping.source_type, source)?;
+    let crate::model::CanonicalValue::Uuid(value) = value else {
+        return Err(DecodeError::InvalidTenant {
+            relation: relation.entity_type(),
+            column: column.clone(),
+        });
+    };
+    uuid::Uuid::parse_str(&value)
+        .map(TenantId::from_uuid)
+        .map_err(|_| DecodeError::InvalidTenant {
+            relation: relation.entity_type(),
+            column: column.clone(),
+        })
 }
 
-/// Decode a pgoutput `INSERT` tuple into an `EntityChange`.
-///
-/// # Errors
-///
-/// Returns [`DecodeError`] if the primary key column is absent, null, or not a valid UUID.
-pub fn decode_insert(
-    relation: &Relation,
-    tenant_id: TenantId,
-    row: &[Column],
-) -> Result<EntityChange, DecodeError> {
-    let entity_id = extract_entity_id(relation, row)?;
-    Ok(EntityChange {
-        entity_id,
-        tenant_id,
-        entity_type: relation.name.clone(),
-        op: ChangeOp::Insert,
-        data: columns_to_json(row),
-        previous: None,
-        session_id: None,
-        timestamp: Utc::now(),
-        version: 0,
-    })
-}
-
-/// Decode a pgoutput `UPDATE` tuple into an `EntityChange`.
-///
-/// # Errors
-///
-/// Returns [`DecodeError`] if the primary key column is absent, null, or not a valid UUID.
-pub fn decode_update(
-    relation: &Relation,
-    tenant_id: TenantId,
-    old_row: Option<&[Column]>,
-    new_row: &[Column],
-) -> Result<EntityChange, DecodeError> {
-    let entity_id = extract_entity_id(relation, new_row)?;
-    Ok(EntityChange {
-        entity_id,
-        tenant_id,
-        entity_type: relation.name.clone(),
-        op: ChangeOp::Update,
-        data: columns_to_json(new_row),
-        previous: old_row.map(columns_to_json),
-        session_id: None,
-        timestamp: Utc::now(),
-        version: 0,
-    })
-}
-
-/// Decode a pgoutput `DELETE` tuple into an `EntityChange`.
-///
-/// # Errors
-///
-/// Returns [`DecodeError`] if the primary key column is absent, null, or not a valid UUID.
-pub fn decode_delete(
-    relation: &Relation,
-    tenant_id: TenantId,
-    old_row: &[Column],
-) -> Result<EntityChange, DecodeError> {
-    let entity_id = extract_entity_id(relation, old_row)?;
-    Ok(EntityChange {
-        entity_id,
-        tenant_id,
-        entity_type: relation.name.clone(),
-        op: ChangeOp::Delete,
-        data: Value::Null,
-        previous: Some(columns_to_json(old_row)),
-        session_id: None,
-        timestamp: Utc::now(),
-        version: 0,
-    })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use uuid::Uuid;
-
-    fn test_tenant() -> TenantId {
-        TenantId::from_uuid(Uuid::nil())
+fn extract_record(
+    relation: &RelationMapping,
+    row: &RowData,
+    allow_unchanged: bool,
+) -> Result<(Vec<EntityField>, Vec<String>), DecodeError> {
+    let mut record = Vec::new();
+    let mut unchanged_toast = Vec::new();
+    for column in relation.columns.iter().filter(|column| column.projected) {
+        let Some(value) = row.get(&column.name) else {
+            if allow_unchanged {
+                unchanged_toast.push(column.name.clone());
+                continue;
+            }
+            return Err(DecodeError::MissingColumn {
+                relation: relation.entity_type(),
+                column: column.name.clone(),
+            });
+        };
+        record.push(EntityField {
+            column: column.name.clone(),
+            value: canonical_value(&column.name, column.source_type, value)?,
+        });
     }
-
-    fn test_relation() -> Relation {
-        Relation {
-            oid: 1234,
-            namespace: "public".to_owned(),
-            name: "users".to_owned(),
-            columns: vec!["id".to_owned(), "email".to_owned(), "name".to_owned()],
-            pk_index: 0,
-        }
-    }
-
-    fn id_col(uuid: &str) -> Column {
-        Column {
-            name: "id".to_owned(),
-            value: Some(uuid.to_owned()),
-        }
-    }
-
-    fn email_col(email: &str) -> Column {
-        Column {
-            name: "email".to_owned(),
-            value: Some(email.to_owned()),
-        }
-    }
-
-    fn name_col(name: &str) -> Column {
-        Column {
-            name: "name".to_owned(),
-            value: Some(name.to_owned()),
-        }
-    }
-
-    #[test]
-    fn decode_insert_produces_insert_op() {
-        let rel = test_relation();
-        let id = Uuid::new_v4().to_string();
-        let row = vec![id_col(&id), email_col("a@b.com"), name_col("Alice")];
-
-        let change = decode_insert(&rel, test_tenant(), &row).expect("decode_insert failed");
-
-        assert_eq!(change.op, ChangeOp::Insert);
-        assert_eq!(change.entity_type, "users");
-        assert!(change.previous.is_none());
-        assert_eq!(change.data["email"], "a@b.com");
-    }
-
-    #[test]
-    fn decode_update_with_old_row() {
-        let rel = test_relation();
-        let id = Uuid::new_v4().to_string();
-        let old = vec![id_col(&id), email_col("old@b.com"), name_col("Old")];
-        let new = vec![id_col(&id), email_col("new@b.com"), name_col("New")];
-
-        let change =
-            decode_update(&rel, test_tenant(), Some(&old), &new).expect("decode_update failed");
-
-        assert_eq!(change.op, ChangeOp::Update);
-        assert!(change.previous.is_some());
-        assert_eq!(change.data["email"], "new@b.com");
-        assert_eq!(change.previous.as_ref().unwrap()["email"], "old@b.com");
-    }
-
-    #[test]
-    fn decode_update_without_old_row() {
-        let rel = test_relation();
-        let id = Uuid::new_v4().to_string();
-        let new = vec![id_col(&id), email_col("new@b.com"), name_col("New")];
-
-        let change = decode_update(&rel, test_tenant(), None, &new).expect("decode_update failed");
-
-        assert_eq!(change.op, ChangeOp::Update);
-        assert!(change.previous.is_none());
-    }
-
-    #[test]
-    fn decode_delete_produces_delete_op() {
-        let rel = test_relation();
-        let id = Uuid::new_v4().to_string();
-        let old = vec![id_col(&id), email_col("gone@b.com"), name_col("Gone")];
-
-        let change = decode_delete(&rel, test_tenant(), &old).expect("decode_delete failed");
-
-        assert_eq!(change.op, ChangeOp::Delete);
-        assert_eq!(change.data, Value::Null);
-        assert_eq!(change.previous.as_ref().unwrap()["email"], "gone@b.com");
-    }
-
-    #[test]
-    fn null_pk_returns_error() {
-        let rel = test_relation();
-        let row = vec![
-            Column {
-                name: "id".to_owned(),
-                value: None,
-            },
-            email_col("x@y.com"),
-            name_col("X"),
-        ];
-
-        let result = decode_insert(&rel, test_tenant(), &row);
-        assert!(
-            matches!(result, Err(DecodeError::NullPrimaryKey(_))),
-            "expected NullPrimaryKey"
-        );
-    }
-
-    #[test]
-    fn invalid_uuid_pk_returns_error() {
-        let rel = test_relation();
-        let row = vec![
-            Column {
-                name: "id".to_owned(),
-                value: Some("not-a-uuid".to_owned()),
-            },
-            email_col("x@y.com"),
-            name_col("X"),
-        ];
-
-        let result = decode_insert(&rel, test_tenant(), &row);
-        assert!(
-            matches!(result, Err(DecodeError::InvalidEntityId { .. })),
-            "expected InvalidEntityId"
-        );
-    }
+    Ok((record, unchanged_toast))
 }

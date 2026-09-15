@@ -1,0 +1,45 @@
+services:
+  iggy:
+    environment:
+      IGGY_DATA_MAINTENANCE_MESSAGES_CLEANER_ENABLED: "true"
+      IGGY_DATA_MAINTENANCE_MESSAGES_INTERVAL: "1 s"
+      IGGY_MESSAGE_SAVER_ENABLED: "true"
+      IGGY_MESSAGE_SAVER_ENFORCE_FSYNC: "true"
+      IGGY_MESSAGE_SAVER_INTERVAL: "1 s"
+      IGGY_SYSTEM_PARTITION_ENFORCE_FSYNC: "true"
+      IGGY_SYSTEM_PARTITION_MESSAGES_REQUIRED_TO_SAVE: "1"
+      IGGY_SYSTEM_STATE_ENFORCE_FSYNC: "true"
+      IGGY_SYSTEM_MESSAGE_DEDUPLICATION_ENABLED: "true"
+      IGGY_SYSTEM_MESSAGE_DEDUPLICATION_MAX_ENTRIES: "10000"
+      IGGY_SYSTEM_MESSAGE_DEDUPLICATION_EXPIRY: "24 h"
+
+  postgres:
+    image: ${FRF_POSTGRES_IMAGE:-postgres@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73}
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_replication_slots=16
+      - -c
+      - max_wal_senders=16
+    ports:
+      - target: 5432
+        host_ip: 127.0.0.1
+        protocol: tcp
+    environment:
+      POSTGRES_DB: ${FRF_CDC_POSTGRES_DB:?FRF_CDC_POSTGRES_DB is required}
+      POSTGRES_USER: ${FRF_CDC_POSTGRES_USER:?FRF_CDC_POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${FRF_CDC_POSTGRES_PASSWORD:?FRF_CDC_POSTGRES_PASSWORD is required}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - cdc-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  cdc-postgres-data:

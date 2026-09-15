@@ -1,18 +1,20 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use frf_domain::ids::EventId;
 use frf_domain::{Channel, ChannelId, EventEnvelope, EventKind, Offset};
 use frf_ports::{LogBroker, PortError};
 use pg_walstream::{
-    EventType, LogicalReplicationStream, ReplicationSlotOptions, ReplicationStreamConfig,
-    RetryConfig, SlotType, StreamingMode,
+    LogicalReplicationStream, ReplicationSlotOptions, ReplicationStreamConfig, RetryConfig,
+    SlotType, StreamingMode,
 };
 use tokio::sync::watch;
 use tracing::instrument;
 
 use crate::{
+    catalog::{Catalog, CatalogError},
     config::CdcConfig,
-    decode::{Column, DecodeError, Relation, decode_delete, decode_insert, decode_update},
+    transaction::{CommittedTransaction, TransactionAssembler, TransactionError},
 };
 
 #[non_exhaustive]
@@ -22,15 +24,17 @@ pub enum CdcError {
     Connection(String),
     #[error("replication stream error: {0}")]
     Stream(String),
-    #[error("decode error: {0}")]
-    Decode(#[from] DecodeError),
+    #[error("CDC enrollment error: {0}")]
+    Enrollment(#[from] CatalogError),
+    #[error("CDC transaction is poisoned: {0}")]
+    Transaction(#[from] TransactionError),
     #[error("broker publish error: {0}")]
     Broker(#[from] PortError),
 }
 
 impl From<pg_walstream::ReplicationError> for CdcError {
-    fn from(e: pg_walstream::ReplicationError) -> Self {
-        Self::Stream(e.to_string())
+    fn from(error: pg_walstream::ReplicationError) -> Self {
+        Self::Stream(error.to_string())
     }
 }
 
@@ -47,20 +51,15 @@ impl<L: LogBroker + Send + Sync + 'static> PostgresCdcConsumer<L> {
 
     /// Run the CDC loop until the `shutdown` watch channel signals `true`.
     ///
-    /// Opens a logical replication connection to Postgres, ensures the slot
-    /// exists, starts the `pgoutput` stream, and publishes each decoded row
-    /// change to the event spine via the injected `LogBroker`.
-    ///
-    /// LSN feedback is sent automatically by `pg_walstream` at the configured
-    /// `feedback_interval`; this loop calls `update_applied_lsn` after each
-    /// successful publish to advance the acknowledged position.
+    /// Enrollment is validated against the live PostgreSQL catalog before the
+    /// replication stream starts. Row changes are buffered until COMMIT, then
+    /// durably published in transaction order. Applied-LSN feedback advances
+    /// only after every mutation in that commit was accepted by the broker.
     ///
     /// # Errors
     ///
-    /// Returns [`CdcError::Connection`] if the replication connection fails.
-    /// Returns [`CdcError::Stream`] if the WAL stream is interrupted.
-    /// Returns [`CdcError::Decode`] if a WAL message cannot be decoded.
-    /// Returns [`CdcError::Broker`] if `LogBroker::publish` fails.
+    /// Returns [`CdcError`] when enrollment, replication, decoding or durable
+    /// publication fails. A poison transaction stops without advancing its LSN.
     #[instrument(name = "cdc::run", skip(self, shutdown))]
     pub async fn run_until_shutdown(
         &self,
@@ -71,13 +70,9 @@ impl<L: LogBroker + Send + Sync + 'static> PostgresCdcConsumer<L> {
 
     /// Run the CDC loop and publish whether logical replication is active.
     ///
-    /// The readiness value becomes `true` only after the replication slot and
-    /// `pgoutput` stream have started. It returns to `false` on every exit path.
-    ///
     /// # Errors
     ///
-    /// Returns the same connection, stream, decode, or broker failures as
-    /// [`Self::run_until_shutdown`].
+    /// Returns the same failures as [`Self::run_until_shutdown`].
     pub async fn run_until_shutdown_with_readiness(
         &self,
         shutdown: watch::Receiver<bool>,
@@ -92,173 +87,134 @@ impl<L: LogBroker + Send + Sync + 'static> PostgresCdcConsumer<L> {
         readiness: Option<watch::Sender<bool>>,
     ) -> Result<(), CdcError> {
         let readiness = ReadinessGuard::new(readiness);
-        let stream_config = ReplicationStreamConfig {
-            slot_name: self.config.slot_name.clone(),
-            publication_name: self.config.publication_name.clone(),
-            protocol_version: 2,
-            streaming_mode: StreamingMode::Off,
-            messages: false,
-            binary: false,
-            two_phase: false,
-            origin: None,
-            feedback_interval: Duration::from_secs(10),
-            connection_timeout: Duration::from_secs(30),
-            health_check_interval: Duration::from_secs(30),
-            retry_config: RetryConfig::default(),
-            slot_options: ReplicationSlotOptions::default(),
-            slot_type: SlotType::Logical,
-        };
-
-        let mut stream =
-            LogicalReplicationStream::new(&self.config.replication_url(), stream_config)
-                .await
-                .map_err(|e| CdcError::Connection(e.to_string()))?;
-
+        let catalog = Catalog::load(&self.config).await?;
+        let epoch = self
+            .config
+            .source_epoch
+            .as_deref()
+            .ok_or(CatalogError::InvalidEpoch)?;
+        let mut stream = LogicalReplicationStream::new(
+            &self.config.replication_url(),
+            replication_config(&self.config),
+        )
+        .await
+        .map_err(|error| CdcError::Connection(error.to_string()))?;
         stream
             .ensure_replication_slot()
             .await
-            .map_err(|e| CdcError::Connection(e.to_string()))?;
-
+            .map_err(|error| CdcError::Connection(error.to_string()))?;
         stream
             .start(None)
             .await
-            .map_err(|e| CdcError::Stream(e.to_string()))?;
-        readiness.mark_ready();
+            .map_err(|error| CdcError::Stream(error.to_string()))?;
 
         let cancel_token = pg_walstream::CancellationToken::new();
-        let cancel_token_shutdown = cancel_token.clone();
+        let shutdown_token = cancel_token.clone();
         let mut event_stream = stream.into_stream(cancel_token);
-
-        // The Iggy stream name derives from the channel id alone, so a per-run
-        // `ChannelId::new()` publishes every event to `channel-<random-uuid>` that no
-        // subscriber can address. Use the well-known id the E2E clients subscribe to.
         let channel = Channel {
             id: ChannelId::WELL_KNOWN_ENTITIES,
             tenant_id: self.config.tenant_id,
             path: self.config.channel_path.clone(),
         };
-
-        // Log the channel id so an operator can subscribe to it. Never log the tenant
-        // id (CLAUDE.md: never log JWT payloads, relation tuples, or tenant identifiers).
+        let mut transactions = TransactionAssembler::from_catalog(&catalog);
+        let mut messages_since_feedback = 0_u64;
+        readiness.mark_ready();
         tracing::info!(
             channel_id = %channel.id,
             path = %channel.path,
-            "cdc consumer publishing to channel",
+            "CDC transaction consumer is ready",
         );
-
-        let mut offset = Offset::BEGINNING;
 
         loop {
             tokio::select! {
                 biased;
-                _ = shutdown.changed() => {
-                    if *shutdown.borrow() {
-                        tracing::info!("cdc consumer received shutdown signal");
-                        cancel_token_shutdown.cancel();
-                        let _ = event_stream.shutdown().await;
+                changed = shutdown.changed() => {
+                    if changed.is_err() || *shutdown.borrow() {
+                        tracing::info!("CDC consumer received shutdown signal");
+                        shutdown_token.cancel();
+                        event_stream.shutdown().await?;
                         break;
                     }
                 }
                 event_result = event_stream.next_event() => {
                     match event_result {
                         Ok(event) => {
-                            let lsn = event.lsn.0;
-                            if let Some(change) = self.translate_event(event.event_type) {
-                                match change {
-                                    Ok(envelope_change) => {
-                                        let payload = serde_json::to_value(&envelope_change)
-                                            .map_err(|e| CdcError::Stream(e.to_string()))?;
-                                        let envelope = EventEnvelope::new(
-                                            channel.clone(),
-                                            offset,
-                                            EventKind::EntityChange,
-                                            payload,
-                                        );
-                                        self.broker.publish(envelope).await?;
-                                        event_stream.update_applied_lsn(lsn);
-                                        offset = offset.next();
-                                    }
-                                    Err(e) => {
-                                        tracing::warn!(error = %e, "skipping undecoded WAL row");
-                                    }
-                                }
+                            if let Some(commit) = transactions.accept(
+                                event.event_type,
+                                &catalog,
+                                self.config.tenant_id,
+                                epoch,
+                            )? {
+                                catalog.revalidate(&self.config).await?;
+                                self.publish_commit(&channel, &commit).await?;
+                                event_stream.update_applied_lsn(commit.end_lsn);
+                            }
+                            messages_since_feedback = messages_since_feedback.saturating_add(1);
+                            if messages_since_feedback >= self.config.lsn_checkpoint_interval {
+                                event_stream.inner_mut().send_feedback().await?;
+                                messages_since_feedback = 0;
                             }
                         }
                         Err(pg_walstream::ReplicationError::Cancelled(_)) => {
-                            tracing::info!("cdc stream cancelled");
+                            tracing::info!("CDC stream cancelled");
                             break;
                         }
-                        Err(e) => {
-                            return Err(CdcError::Stream(e.to_string()));
-                        }
+                        Err(error) => return Err(CdcError::Stream(error.to_string())),
                     }
                 }
             }
         }
-
         Ok(())
     }
 
-    fn translate_event(
+    async fn publish_commit(
         &self,
-        event_type: EventType,
-    ) -> Option<Result<frf_domain::EntityChange, DecodeError>> {
-        match event_type {
-            EventType::Insert {
-                schema,
-                table,
-                data,
-                ..
-            } => {
-                let relation = relation_from_row_data(&schema, &table, &data);
-                let cols = columns_from_row_data(&data);
-                Some(decode_insert(&relation, self.config.tenant_id, &cols))
-            }
-            EventType::Update {
-                schema,
-                table,
-                old_data,
-                new_data,
-                ..
-            } => {
-                let relation = relation_from_row_data(&schema, &table, &new_data);
-                let new_cols = columns_from_row_data(&new_data);
-                let old_cols: Option<Vec<Column>> = old_data.as_ref().map(columns_from_row_data);
-                Some(decode_update(
-                    &relation,
-                    self.config.tenant_id,
-                    old_cols.as_deref(),
-                    &new_cols,
-                ))
-            }
-            EventType::Delete {
-                schema,
-                table,
-                old_data,
-                ..
-            } => {
-                let relation = relation_from_row_data(&schema, &table, &old_data);
-                let cols = columns_from_row_data(&old_data);
-                Some(decode_delete(&relation, self.config.tenant_id, &cols))
-            }
-            // Begin / Commit / Relation / Type are protocol overhead — not row changes.
-            EventType::Begin { .. }
-            | EventType::Commit { .. }
-            | EventType::Relation { .. }
-            | EventType::Type { .. }
-            | EventType::Origin { .. }
-            | EventType::Truncate(_)
-            | EventType::Message { .. }
-            | EventType::StreamStart { .. }
-            | EventType::StreamStop
-            | EventType::StreamCommit { .. }
-            | EventType::StreamAbort { .. }
-            | EventType::BeginPrepare { .. }
-            | EventType::Prepare { .. }
-            | EventType::CommitPrepared { .. }
-            | EventType::RollbackPrepared { .. }
-            | EventType::StreamPrepare { .. } => None,
+        channel: &Channel,
+        commit: &CommittedTransaction,
+    ) -> Result<(), CdcError> {
+        for (mutation, envelope_uuid) in &commit.mutations {
+            let payload = serde_json::to_value(mutation)
+                .map_err(|error| CdcError::Stream(error.to_string()))?;
+            let mut event_channel = channel.clone();
+            event_channel.tenant_id = mutation.tenant_id;
+            self.broker.ensure_channel(event_channel.clone()).await?;
+            let envelope = EventEnvelope {
+                id: EventId::from_uuid(*envelope_uuid),
+                channel: event_channel,
+                // The LogBroker assigns the durable partition position. The
+                // complete source position remains in `mutation.source`.
+                offset: Offset::BEGINNING,
+                kind: EventKind::EntityChange,
+                payload,
+                timestamp: mutation.committed_at,
+                correlation_id: Some(mutation.event_id.clone()),
+            };
+            let broker_offset = self.broker.publish(envelope).await?;
+            tracing::debug!(
+                broker_offset = broker_offset.0,
+                "published committed CDC mutation",
+            );
         }
+        Ok(())
+    }
+}
+
+fn replication_config(config: &CdcConfig) -> ReplicationStreamConfig {
+    ReplicationStreamConfig {
+        slot_name: config.slot_name.clone(),
+        publication_name: config.publication_name.clone(),
+        protocol_version: 2,
+        streaming_mode: StreamingMode::Off,
+        messages: false,
+        binary: false,
+        two_phase: false,
+        origin: None,
+        feedback_interval: Duration::from_secs(1),
+        connection_timeout: Duration::from_secs(30),
+        health_check_interval: Duration::from_secs(30),
+        retry_config: RetryConfig::default(),
+        slot_options: ReplicationSlotOptions::default(),
+        slot_type: SlotType::Logical,
     }
 }
 
@@ -287,28 +243,8 @@ impl Drop for ReadinessGuard {
     }
 }
 
-fn relation_from_row_data(schema: &str, table: &str, data: &pg_walstream::RowData) -> Relation {
-    let columns: Vec<String> = data.iter().map(|(name, _)| name.to_string()).collect();
-    Relation {
-        oid: 0,
-        namespace: schema.to_owned(),
-        name: table.to_owned(),
-        columns,
-        pk_index: 0,
-    }
-}
-
-fn columns_from_row_data(data: &pg_walstream::RowData) -> Vec<Column> {
-    data.iter()
-        .map(|(name, value)| Column {
-            name: name.to_string(),
-            value: value.as_str().map(ToOwned::to_owned),
-        })
-        .collect()
-}
-
 #[cfg(test)]
-mod readiness_tests {
+mod tests {
     use super::ReadinessGuard;
 
     #[test]
