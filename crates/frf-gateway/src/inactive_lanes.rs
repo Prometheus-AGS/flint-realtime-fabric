@@ -50,8 +50,8 @@ impl AgentEventBus for InactiveAgentBus {
 }
 
 pub(crate) fn build_media_signaler(config: &GatewayConfig) -> DynMediaSignaler {
-    if config.profile == GatewayProfile::ShapeOnly {
-        tracing::info!("media signaling lane disabled for shape-only profile");
+    if config.profile == GatewayProfile::ShapeOnly || !config.lanes.media {
+        tracing::info!("media signaling lane disabled by deployment profile");
         return DynMediaSignaler::new(Arc::new(InactiveMediaSignaler));
     }
 

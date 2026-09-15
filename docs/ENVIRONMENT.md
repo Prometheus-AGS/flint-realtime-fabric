@@ -14,7 +14,7 @@ manager · **Dev-only** = must NOT be set in production.
 | `BIND_ADDR` | | | `0.0.0.0:8080` | HTTP (Axum) listen address. |
 | `GATEWAY_PROFILE` | | | `full` | `full` mounts the normal FRF surfaces; `shape-only` mounts only health, readiness, and the authorized Electric facade and requires the `shape-facade` build feature, `GRPC_PORT=0`, CDC off, and federation off. |
 | `GRPC_PORT` | | | `9090` | gRPC / gRPC-web port. `0` disables the gRPC server. |
-| `IGGY_CONNECTION_STRING` | ✅ | ✅ | — | Iggy broker DSN `iggy://user:pass@host:port` (contains credentials). |
+| `IGGY_CONNECTION_STRING` | ⚠️ | ✅ | — | Iggy broker DSN `iggy://user:pass@host:port`. Required by `full`; rejected by `shape-only`. |
 | `RUST_LOG` | | | `info` | `tracing` log filter. |
 
 ## Identity & authorization (security-critical)
@@ -29,9 +29,9 @@ manager · **Dev-only** = must NOT be set in production.
 | `POLICY_ENGINE` | | | `none` | Action policy engine: `none` (allow-all, logged) or `cedar`. |
 | `DEV_NO_AUTH` | | | `false` | **DEV-ONLY BYPASS.** When `true` AND the binary is built with the `dev-endpoints` feature, JWT verification is skipped for publish/subscribe. **Never set in production** — the release image is built without `dev-endpoints`, so this has no effect there (p16-c001). |
 
-> `FLINT_GATE_JWT_SECRET` is consumed by the **flint-gate** service (not the gateway)
-> to sign minted JWTs. It is **secret** and required for the flint-gate container —
-> see [`.env.example`](../.env.example) and `deploy/flint-gate`.
+> The production profiles require a matching asymmetric Gate signing-key pair.
+> `flint-gate-db-init` seeds its public half into Gate's database before Gate
+> starts, so the public JWKS endpoint cannot report ready with an empty key set.
 
 ## Security middleware (p16-c005)
 
@@ -47,12 +47,23 @@ manager · **Dev-only** = must NOT be set in production.
 | Variable | Req | Secret | Default | Purpose |
 |----------|:---:|:------:|---------|---------|
 | `SFU_MODE` | | | `hosted` | `hosted` (LiveKit — supported v1 path) or `sovereign` (str0m — DEFERRED, no media flows). |
+| `MEDIA_ENABLED` | | | `false` | Explicit media-lane opt-in. The selected `full` data and `shape-only` release profiles set this false; LiveKit requirements apply only when true. |
+| `AGENT_ENABLED` | | | `false` | Explicit agent lane opt-in. The selected data profiles leave it disabled. |
+| `ADMIN_ENABLED` | | | `false` | Explicit embedded admin UI opt-in. The selected data profiles leave it disabled. |
 | `LIVEKIT_API_KEY` | ⚠️ | ✅ | — | Required when `SFU_MODE=hosted` (validated at boot). |
 | `LIVEKIT_API_SECRET` | ⚠️ | ✅ | — | Required when `SFU_MODE=hosted`. |
 | `LIVEKIT_SERVER_URL` | ⚠️ | | — | Required when `SFU_MODE=hosted`. |
 | `LIVEKIT_ROOM_PREFIX` | | | `frf/` | Prefix for tenant-namespaced LiveKit rooms. |
 
 ⚠️ = required only in the applicable mode; `config.validate()` fails boot if missing.
+
+## Restricted shape facade
+
+| Variable | Req | Secret | Default | Purpose |
+|----------|:---:|:------:|---------|---------|
+| `SHAPE_ELECTRIC_URL` | ⚠️ | | — | Electric origin. Required by and exclusive to `shape-only`. Readiness performs a real `/v1/health` request. |
+| `SHAPE_CATALOG_PATH` | ⚠️ | | — | Read-only JSON catalog path. Required with `SHAPE_ELECTRIC_URL` and exclusive to `shape-only`. |
+| `SHAPE_TIMEOUT_SECS` | | | `30` | Upstream Electric request timeout. |
 
 ## CDC (Postgres logical replication) (p16-c020)
 
@@ -100,9 +111,34 @@ The `/metrics` endpoint (Prometheus) is always available and needs no env config
 
 ---
 
+## Deployment renderer and TLS boundary
+
+Run `scripts/render-deployment-profile.sh full` or
+`scripts/render-deployment-profile.sh shape-only` after supplying the variables
+in `.env.example`. The renderer verifies every image is an immutable digest,
+validates the certificate/key/CA chain and Gate signing-key pair, requires HTTPS
+issuer and public origins, and rejects anonymous or symmetric Gate configurations.
+The one-shot Gate database initializer must seed the public key successfully
+before the Gate runtime starts.
+
+`k8s/overlays/ssr/render-profile.sh` also requires the TLS files and
+`FRF_TLS_SECRET_NAME`. It emits the bound `kubernetes.io/tls` Secret with the
+rendered SSR resources after checking trust and key correspondence. Treat the
+rendered output as secret material and store or transmit it accordingly.
+
+Both Compose profiles publish only the TLS edge. The full profile exposes HTTPS
+on `FRF_HTTPS_PORT` and TLS gRPC on `FRF_GRPC_HTTPS_PORT`; its edge admits only
+Spine, Sync, and Entity gRPC services. Gateway, Gate, Iggy, Keto,
+Electric and Postgres ports use internal Compose networks and cannot be reached
+through a host-published backend port. The full edge forwards all supported data
+routes. The shape-only edge forwards only `/healthz`, `/readyz`, and `/v1/shape`;
+all other paths return `404` at the TLS boundary.
+
 ## Minimum required to boot (production)
 
-`IGGY_CONNECTION_STRING`, `KETO_BASE_URL`, `GATEWAY_JWKS_URL`, `JWT_AUDIENCE`, and
-`JWT_ISSUER` (a production build refuses to boot without it — p17-c002). Also required in
-the default topology: `LIVEKIT_*` (since `SFU_MODE` defaults to `hosted`).
-`config.validate()` fails fast at boot on all of these mode-specific gaps (p16-c020).
+The `full` profile requires `IGGY_CONNECTION_STRING`, `KETO_BASE_URL`,
+`GATEWAY_JWKS_URL`, `JWT_AUDIENCE`, and `JWT_ISSUER`. The `shape-only` profile
+requires the identity inputs plus both shape inputs and rejects Iggy, gRPC, CDC,
+federation and media. `LIVEKIT_*` is required only when `MEDIA_ENABLED=true` and
+`SFU_MODE=hosted`. `config.validate()` fails before binding a public socket when
+these profile rules are violated.

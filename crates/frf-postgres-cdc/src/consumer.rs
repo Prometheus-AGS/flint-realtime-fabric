@@ -64,8 +64,34 @@ impl<L: LogBroker + Send + Sync + 'static> PostgresCdcConsumer<L> {
     #[instrument(name = "cdc::run", skip(self, shutdown))]
     pub async fn run_until_shutdown(
         &self,
-        mut shutdown: watch::Receiver<bool>,
+        shutdown: watch::Receiver<bool>,
     ) -> Result<(), CdcError> {
+        self.run(shutdown, None).await
+    }
+
+    /// Run the CDC loop and publish whether logical replication is active.
+    ///
+    /// The readiness value becomes `true` only after the replication slot and
+    /// `pgoutput` stream have started. It returns to `false` on every exit path.
+    ///
+    /// # Errors
+    ///
+    /// Returns the same connection, stream, decode, or broker failures as
+    /// [`Self::run_until_shutdown`].
+    pub async fn run_until_shutdown_with_readiness(
+        &self,
+        shutdown: watch::Receiver<bool>,
+        readiness: watch::Sender<bool>,
+    ) -> Result<(), CdcError> {
+        self.run(shutdown, Some(readiness)).await
+    }
+
+    async fn run(
+        &self,
+        mut shutdown: watch::Receiver<bool>,
+        readiness: Option<watch::Sender<bool>>,
+    ) -> Result<(), CdcError> {
+        let readiness = ReadinessGuard::new(readiness);
         let stream_config = ReplicationStreamConfig {
             slot_name: self.config.slot_name.clone(),
             publication_name: self.config.publication_name.clone(),
@@ -97,6 +123,7 @@ impl<L: LogBroker + Send + Sync + 'static> PostgresCdcConsumer<L> {
             .start(None)
             .await
             .map_err(|e| CdcError::Stream(e.to_string()))?;
+        readiness.mark_ready();
 
         let cancel_token = pg_walstream::CancellationToken::new();
         let cancel_token_shutdown = cancel_token.clone();
@@ -235,6 +262,31 @@ impl<L: LogBroker + Send + Sync + 'static> PostgresCdcConsumer<L> {
     }
 }
 
+struct ReadinessGuard(Option<watch::Sender<bool>>);
+
+impl ReadinessGuard {
+    fn new(sender: Option<watch::Sender<bool>>) -> Self {
+        if let Some(sender) = &sender {
+            sender.send_replace(false);
+        }
+        Self(sender)
+    }
+
+    fn mark_ready(&self) {
+        if let Some(sender) = &self.0 {
+            sender.send_replace(true);
+        }
+    }
+}
+
+impl Drop for ReadinessGuard {
+    fn drop(&mut self) {
+        if let Some(sender) = &self.0 {
+            sender.send_replace(false);
+        }
+    }
+}
+
 fn relation_from_row_data(schema: &str, table: &str, data: &pg_walstream::RowData) -> Relation {
     let columns: Vec<String> = data.iter().map(|(name, _)| name.to_string()).collect();
     Relation {
@@ -253,4 +305,21 @@ fn columns_from_row_data(data: &pg_walstream::RowData) -> Vec<Column> {
             value: value.as_str().map(ToOwned::to_owned),
         })
         .collect()
+}
+
+#[cfg(test)]
+mod readiness_tests {
+    use super::ReadinessGuard;
+
+    #[test]
+    fn readiness_guard_is_false_before_start_and_after_exit() {
+        let (sender, receiver) = tokio::sync::watch::channel(true);
+        {
+            let guard = ReadinessGuard::new(Some(sender));
+            assert!(!*receiver.borrow());
+            guard.mark_ready();
+            assert!(*receiver.borrow());
+        }
+        assert!(!*receiver.borrow());
+    }
 }

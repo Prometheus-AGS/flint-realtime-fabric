@@ -187,6 +187,7 @@ fn mounted_server(
         federation_bridges: Vec::new(),
         media_bridge: None,
         shape_usecase: Some(usecase),
+        cdc_readiness: tokio::sync::watch::channel(true).1,
         config: Arc::new(GatewayConfig::test_default()),
     });
 

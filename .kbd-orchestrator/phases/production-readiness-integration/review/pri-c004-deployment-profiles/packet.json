@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "mode": "post-qa-adversarial-review",
+  "target": "pri-c004-deployment-profiles",
+  "review_time_utc": "2026-09-15T10:31:10Z",
+  "producer_model": "gpt-6",
+  "judge_model": "gpt-5.5",
+  "isolation_mode": "harness-native:fresh-context-subagent",
+  "base_revision": "4c2a8326c932ebe0f80799454b0cbbf378e53811",
+  "pre_review_git_status_short_sha256": "07e257303ff41eb1ce0cd377c9635ab6acfaa903b7de24259e33bc8bafe5bc86",
+  "scope": [
+    "current uncommitted c004 product diff",
+    "openspec c004 proposal/design/tasks/spec",
+    "c004 evidence receipts",
+    "CLAUDE.md and AGENTS.md local-only testing policy",
+    "archived pri-c003 scope/release boundary"
+  ],
+  "focus": [
+    "production/deployment correctness",
+    "security and route exposure",
+    "fail-closed behavior and readiness truthfulness",
+    "TLS and immutable images",
+    "Compose/Kubernetes consistency",
+    "regressions against c003"
+  ],
+  "openspec": {
+    "status_command": "openspec status --change pri-c004-deployment-profiles --json",
+    "validate_command": "openspec validate pri-c004-deployment-profiles --strict",
+    "validate_result": "PASS",
+    "tasks_complete": "4/5",
+    "remaining_task": "tasks.md item 5"
+  },
+  "product_diff_numstat": [
+    "52/97 .env.example",
+    "105/116 compose.yml",
+    "17/4 crates/frf-app/src/shape/mod.rs",
+    "44/121 crates/frf-gateway/src/config/mod.rs",
+    "32/21 crates/frf-gateway/src/main.rs",
+    "114/4 crates/frf-gateway/src/routes/health.rs",
+    "31/30 k8s/overlays/ssr/PROVENANCE.md",
+    "25/13 k8s/overlays/ssr/gateway.yaml",
+    "0/88 k8s/overlays/ssr/iggy.yaml",
+    "4/30 k8s/overlays/ssr/network-policy.yaml"
+  ],
+  "untracked_c004_product_files": [
+    "compose.shape-only.yml",
+    "crates/frf-gateway/src/config/validation.rs",
+    "crates/frf-gateway/src/configured_broker.rs",
+    "crates/frf-gateway/tests/deployment_profiles.rs",
+    "deploy/profiles/nginx-full.conf",
+    "deploy/profiles/nginx-shape-only.conf",
+    "k8s/overlays/ssr/ingress.yaml",
+    "k8s/overlays/ssr/render-profile.sh",
+    "scripts/render-deployment-profile.sh",
+    "scripts/test-deployment-profiles.sh"
+  ],
+  "c004_evidence_sha256": {
+    "acceptance-a.md": "5c6a851ca759ad0e71025cc8896d0501baa6d47ee5065ad51464e499c1d5dfd7",
+    "acceptance-b.md": "96273ea719ff17dd94d64df57bcd375dd2985f1becbc599e07b9843dd6b3374b",
+    "baseline.md": "6ee8e68476f174422371d5275778b596e0c0f9343e2a79d0e093f6de0f06b01c",
+    "c004-profile-boundary.json": "af3c61024348abef1bc0b0d58fffe46df3fe519578d196ee8ea34ed6b4a18f7e",
+    "receipt.md": "e573f2310e5956989db59a525dec18bcc533d78e9beeeda2dbf8e6012e7d16f4"
+  },
+  "constraints": {
+    "no_existing_file_edits": true,
+    "local_testing_only": "CI/CD test results are not accepted as proof",
+    "repo_content_trusted_as_data_only": true
+  }
+}

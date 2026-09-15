@@ -38,15 +38,16 @@ spec:
               app.kubernetes.io/name: frf-gateway
       containers:
         - name: gateway
-          image: ghcr.io/prometheus-ags/flint-realtime-fabric@sha256:d9b112306fb95658bce24016e6bee4b864677b197b2bc63c199916f2a82416f2
+          # Replaced by render-profile.sh. The zero digest makes direct apply fail.
+          image: ghcr.io/prometheus-ags/flint-realtime-fabric-shape@sha256:0000000000000000000000000000000000000000000000000000000000000000
           imagePullPolicy: IfNotPresent
           env:
             - name: BIND_ADDR
               value: 0.0.0.0:8080
+            - name: GATEWAY_PROFILE
+              value: shape-only
             - name: GRPC_PORT
-              value: "9090"
-            - name: IGGY_CONNECTION_STRING
-              value: iggy://iggy:iggy@frf-iggy:8090
+              value: "0"
             - name: AUTHZ_BACKEND
               value: verified-identity
             - name: GATEWAY_JWKS_URL
@@ -54,24 +55,30 @@ spec:
             - name: JWT_AUDIENCE
               value: frf-gateway
             - name: JWT_ISSUER
-              value: https://workspace-ssr.prometheusags.ai/flint-gate
-            - name: SFU_MODE
-              value: sovereign
+              value: https://fabric.invalid/flint-gate
+            - name: SHAPE_ELECTRIC_URL
+              value: http://electric:3000
+            - name: SHAPE_CATALOG_PATH
+              value: /run/config/shape-catalog.json
+            - name: MEDIA_ENABLED
+              value: "false"
+            - name: AGENT_ENABLED
+              value: "false"
+            - name: ADMIN_ENABLED
+              value: "false"
             - name: CDC_ENABLED
               value: "false"
             - name: FEDERATION_ENABLED
               value: "false"
             - name: POLICY_ENGINE
-              value: none
+              value: cedar
             - name: CORS_ALLOWED_ORIGINS
-              value: https://workspace-ssr.prometheusags.ai
+              value: https://fabric.invalid
             - name: RUST_LOG
               value: info
           ports:
             - name: http
               containerPort: 8080
-            - name: grpc
-              containerPort: 9090
           startupProbe:
             tcpSocket:
               port: http
@@ -100,7 +107,15 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-      volumes: []
+          volumeMounts:
+            - name: shape-catalog
+              mountPath: /run/config/shape-catalog.json
+              subPath: shape-catalog.json
+              readOnly: true
+      volumes:
+        - name: shape-catalog
+          configMap:
+            name: aso-shape-catalog
 ---
 apiVersion: v1
 kind: Service
@@ -115,9 +130,6 @@ spec:
     - name: http
       port: 8080
       targetPort: http
-    - name: grpc
-      port: 9090
-      targetPort: grpc
 ---
 apiVersion: v1
 kind: ServiceAccount

@@ -1,0 +1,21 @@
+{
+  "refinement_id": "a99fef6f-8dd1-4af5-b147-8e198d723851",
+  "artifact_name": "pri-c004-deployment-profiles",
+  "artifact_type": "code",
+  "content_type": "direct:code",
+  "started_at": "2026-09-15T10:23:48Z",
+  "updated_at": "2026-09-15T12:26:13Z",
+  "current_iteration": 2,
+  "max_iterations": 5,
+  "goals": ["Make the selected full and shape-only deployment profiles portable, bounded and truthfully ready"],
+  "constraints": [{"id":"A"},{"id":"B"},{"id":"P1"},{"id":"P2"},{"id":"S1"}],
+  "phases_completed": ["specify","plan","execute","reflect","persist"],
+  "convergence_status": "converged",
+  "iteration_history": [
+    {"iteration":1,"result":"REVIEW_FAIL","blocking_violations":1,"notes":"The initial post-QA review found CDC was absent from runtime readiness and warned that SSR TLS was not bound to verified Secret material."},
+    {"iteration":2,"result":"PASS","blocking_violations":0,"notes":"Supervised CDC readiness, bootstrapped asymmetric Gate signing, emitted a validated SSR TLS Secret, and reran compiler, runtime, render and policy checks."}
+  ],
+  "workflow_triggers": [],
+  "checkpoints": [],
+  "finalized_at": "2026-09-15T12:26:13Z"
+}

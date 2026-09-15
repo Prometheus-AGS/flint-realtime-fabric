@@ -1,16 +1,14 @@
-name: flint-realtime-fabric-full
+name: flint-realtime-fabric-shape-only
 
-# Production-shaped full data profile. Render it through
-# scripts/render-deployment-profile.sh so immutable image, TLS, identity and
-# secret inputs are validated before Compose sees them.
+# Restricted ASO shape facade. Only the TLS edge is published to the host;
+# Gate, Electric, Postgres and the gateway remain on internal networks.
 services:
   edge:
     image: "${FRF_TLS_PROXY_IMAGE:?FRF_TLS_PROXY_IMAGE must be an image digest}"
     ports:
       - "${FRF_HTTPS_BIND_IP:-127.0.0.1}:${FRF_HTTPS_PORT:-8443}:8443"
-      - "${FRF_HTTPS_BIND_IP:-127.0.0.1}:${FRF_GRPC_HTTPS_PORT:-9443}:9443"
     volumes:
-      - ./deploy/profiles/nginx-full.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/profiles/nginx-shape-only.conf:/etc/nginx/nginx.conf:ro
       - "${FRF_TLS_CERT_FILE:?FRF_TLS_CERT_FILE is required}:/run/tls/tls.crt:ro"
       - "${FRF_TLS_KEY_FILE:?FRF_TLS_KEY_FILE is required}:/run/tls/tls.key:ro"
       - "${FRF_TLS_CA_FILE:?FRF_TLS_CA_FILE is required}:/run/tls/ca.crt:ro"
@@ -18,49 +16,39 @@ services:
       gateway:
         condition: service_healthy
     read_only: true
-    tmpfs:
-      - /var/cache/nginx
-      - /var/run
-    security_opt:
-      - no-new-privileges:true
+    tmpfs: [/var/cache/nginx, /var/run]
+    security_opt: [no-new-privileges:true]
     networks: [edge]
 
   gateway:
-    image: "${FRF_FULL_GATEWAY_IMAGE:?FRF_FULL_GATEWAY_IMAGE must be an image digest}"
-    expose: ["8080", "9090"]
+    image: "${FRF_SHAPE_GATEWAY_IMAGE:?FRF_SHAPE_GATEWAY_IMAGE must be an image digest}"
+    expose: ["8080"]
     environment:
-      GATEWAY_PROFILE: full
+      GATEWAY_PROFILE: shape-only
       BIND_ADDR: 0.0.0.0:8080
-      GRPC_PORT: "9090"
-      IGGY_CONNECTION_STRING: "iggy://${FRF_IGGY_USERNAME:?FRF_IGGY_USERNAME is required}:${FRF_IGGY_PASSWORD:?FRF_IGGY_PASSWORD is required}@iggy:8090"
-      AUTHZ_BACKEND: keto
-      KETO_BASE_URL: http://keto:4466
-      KETO_NAMESPACE: "${FRF_KETO_NAMESPACE:-default}"
+      GRPC_PORT: "0"
+      AUTHZ_BACKEND: verified-identity
       GATEWAY_JWKS_URL: http://flint-gate:4456/.well-known/jwks.json
       JWT_AUDIENCE: "${FRF_JWT_AUDIENCE:?FRF_JWT_AUDIENCE is required}"
       JWT_ISSUER: "${FRF_JWT_ISSUER:?FRF_JWT_ISSUER is required}"
+      SHAPE_ELECTRIC_URL: http://electric:3000
+      SHAPE_CATALOG_PATH: /run/config/shape-catalog.json
+      SHAPE_TIMEOUT_SECS: "${FRF_SHAPE_TIMEOUT_SECS:-30}"
       MEDIA_ENABLED: "false"
       AGENT_ENABLED: "false"
       ADMIN_ENABLED: "false"
-      CDC_ENABLED: "true"
-      CDC_REPLICATION_URL: "postgres://${FRF_POSTGRES_USER:?FRF_POSTGRES_USER is required}:${FRF_POSTGRES_PASSWORD:?FRF_POSTGRES_PASSWORD is required}@postgres:5432/${FRF_POSTGRES_DB:?FRF_POSTGRES_DB is required}?replication=database"
-      CDC_SLOT_NAME: "${FRF_CDC_SLOT_NAME:-frf_slot}"
-      CDC_PUBLICATION_NAME: "${FRF_CDC_PUBLICATION_NAME:-frf_pub}"
-      CDC_TENANT_ID: "${FRF_CDC_TENANT_ID:?FRF_CDC_TENANT_ID is required}"
-      CDC_CHANNEL_PATH: "${FRF_CDC_CHANNEL_PATH:-entities}"
+      CDC_ENABLED: "false"
       FEDERATION_ENABLED: "false"
       POLICY_ENGINE: cedar
       CORS_ALLOWED_ORIGINS: "${FRF_PUBLIC_ORIGIN:?FRF_PUBLIC_ORIGIN is required}"
       RUST_LOG: "${RUST_LOG:-info}"
+    volumes:
+      - "${FRF_SHAPE_CATALOG_FILE:?FRF_SHAPE_CATALOG_FILE is required}:/run/config/shape-catalog.json:ro"
     depends_on:
+      electric:
+        condition: service_started
       flint-gate:
         condition: service_started
-      iggy:
-        condition: service_healthy
-      keto:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8080/readyz"]
       interval: 5s
@@ -69,53 +57,11 @@ services:
       start_period: 20s
     networks: [edge, control, data]
 
-  iggy:
-    image: "${FRF_IGGY_IMAGE:?FRF_IGGY_IMAGE must be an image digest}"
-    expose: ["8090"]
-    environment:
-      IGGY_SYSTEM_PATH: /data
-      IGGY_ROOT_USERNAME: "${FRF_IGGY_USERNAME}"
-      IGGY_ROOT_PASSWORD: "${FRF_IGGY_PASSWORD}"
-    volumes:
-      - iggy-data:/data
-    healthcheck:
-      test: ["CMD-SHELL", "iggy --transport tcp --server-address 127.0.0.1:8090 me >/dev/null 2>&1"]
-      interval: 5s
-      timeout: 3s
-      retries: 12
-      start_period: 10s
-    networks: [data]
-
-  keto-migrate:
-    image: "${FRF_KETO_IMAGE:?FRF_KETO_IMAGE must be an image digest}"
-    command: migrate up -c /etc/config/keto/keto.yml -y
-    volumes:
-      - ./deploy/keto:/etc/config/keto:ro
-    restart: "no"
-    networks: [control]
-
-  keto:
-    image: "${FRF_KETO_IMAGE}"
-    command: serve -c /etc/config/keto/keto.yml
-    expose: ["4466", "4467"]
-    volumes:
-      - ./deploy/keto:/etc/config/keto:ro
-    depends_on:
-      keto-migrate:
-        condition: service_completed_successfully
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:4466/health/ready >/dev/null"]
-      interval: 5s
-      timeout: 3s
-      retries: 12
-      start_period: 10s
-    networks: [control]
-
   flint-gate:
     image: "${FLINT_GATE_IMAGE:?FLINT_GATE_IMAGE must be an image digest}"
     expose: ["4456", "4457"]
     environment:
-      DATABASE_URL: "postgres://${FRF_POSTGRES_USER}:${FRF_POSTGRES_PASSWORD}@postgres:5432/${FRF_POSTGRES_DB}"
+      DATABASE_URL: "postgres://${FRF_POSTGRES_USER:?FRF_POSTGRES_USER is required}:${FRF_POSTGRES_PASSWORD:?FRF_POSTGRES_PASSWORD is required}@postgres:5432/${FRF_POSTGRES_DB:?FRF_POSTGRES_DB is required}"
       FLINT_GATE_CONFIG: /run/config/flint-gate.yaml
       FLINT_GATE_REQUIRE_DATABASE: "true"
       FLINT_GATE_JWT_KEY_PATH: /run/secrets/flint-gate/private.pem
@@ -146,6 +92,17 @@ services:
     restart: "no"
     networks: [data]
 
+  electric:
+    image: "${FRF_ELECTRIC_IMAGE:?FRF_ELECTRIC_IMAGE must be an image digest}"
+    expose: ["3000"]
+    environment:
+      DATABASE_URL: "postgresql://${FRF_POSTGRES_USER}:${FRF_POSTGRES_PASSWORD}@postgres:5432/${FRF_POSTGRES_DB}?sslmode=disable"
+      ELECTRIC_PORT: "3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [data]
+
   postgres:
     image: "${FRF_POSTGRES_IMAGE:?FRF_POSTGRES_IMAGE must be an image digest}"
     expose: ["5432"]
@@ -153,10 +110,8 @@ services:
       POSTGRES_USER: "${FRF_POSTGRES_USER}"
       POSTGRES_PASSWORD: "${FRF_POSTGRES_PASSWORD}"
       POSTGRES_DB: "${FRF_POSTGRES_DB}"
-    command: postgres -c wal_level=logical -c max_replication_slots=5 -c max_wal_senders=5
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./deploy/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
@@ -173,5 +128,4 @@ networks:
     internal: true
 
 volumes:
-  iggy-data: {}
   postgres-data: {}

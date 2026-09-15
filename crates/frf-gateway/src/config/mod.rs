@@ -4,14 +4,24 @@ use anyhow::Context;
 use uuid::Uuid;
 
 mod modes;
+mod validation;
 
 pub use modes::{AuthzBackend, GatewayProfile, PolicyEngineMode, SfuMode};
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct GatewayLanes {
+    pub media: bool,
+    pub agent: bool,
+    pub admin: bool,
+}
 
 pub struct GatewayConfig {
     pub bind_addr: SocketAddr,
     pub profile: GatewayProfile,
     /// gRPC server port (default 9090). Set `GRPC_PORT=0` to disable.
     pub grpc_port: Option<u16>,
+    /// Durable event-spine DSN. Required by `full`; intentionally empty for
+    /// `shape-only`, whose public surface never composes an event broker.
     pub iggy_connection_string: String,
     pub authz_backend: AuthzBackend,
     pub keto_base_url: String,
@@ -22,6 +32,10 @@ pub struct GatewayConfig {
     /// missing/mismatched issuer are rejected. Optional for backward compatibility,
     /// but SHOULD be set in production.
     pub jwt_issuer: Option<String>,
+    /// Electric origin and catalog are an all-or-none pair owned exclusively by
+    /// the restricted `shape-only` profile.
+    pub shape_electric_url: Option<String>,
+    pub shape_catalog_path: Option<String>,
     // CDC configuration — all optional (enabled via CDC_ENABLED=true)
     pub cdc_enabled: bool,
     pub cdc_replication_url: Option<String>,
@@ -31,6 +45,8 @@ pub struct GatewayConfig {
     pub cdc_channel_path: Option<String>,
     /// SFU mode: "sovereign" → `str0m`, "hosted" → `LiveKit` (default: "hosted").
     pub sfu_mode: SfuMode,
+    /// Optional endpoint lanes, each requiring an explicit deployment opt-in.
+    pub lanes: GatewayLanes,
     /// How long a tenant actor may be idle before eviction (default 300s).
     /// Env: `REGISTRY_IDLE_SECS`.
     pub registry_idle_secs: u64,
@@ -93,6 +109,10 @@ pub fn dev_no_auth() -> bool {
     std::env::var("DEV_NO_AUTH").is_ok_and(|v| v.eq_ignore_ascii_case("true"))
 }
 
+fn env_enabled(name: &str) -> bool {
+    std::env::var(name).is_ok_and(|value| value.eq_ignore_ascii_case("true") || value == "1")
+}
+
 impl GatewayConfig {
     /// Construct a minimal `GatewayConfig` suitable for unit and integration tests.
     ///
@@ -114,6 +134,8 @@ impl GatewayConfig {
             // Set so `test_default` models a valid *production* config: validate()
             // requires JWT_ISSUER in non-`dev-endpoints` builds (tests build that way).
             jwt_issuer: Some("https://issuer.test".to_owned()),
+            shape_electric_url: None,
+            shape_catalog_path: None,
             cdc_enabled: false,
             cdc_replication_url: None,
             cdc_slot_name: None,
@@ -125,6 +147,7 @@ impl GatewayConfig {
             // don't need `LIVEKIT_*` set. This intentional divergence is why the two
             // defaults differ; production always goes through `from_env` (Hosted).
             sfu_mode: SfuMode::Sovereign,
+            lanes: GatewayLanes::default(),
             registry_idle_secs: 300,
             registry_sweep_interval_secs: 60,
             federation_enabled: false,
@@ -145,125 +168,6 @@ impl GatewayConfig {
             max_body_bytes: 1024 * 1024,
             cors_allowed_origins: vec![],
         }
-    }
-
-    /// Validate SEMANTIC validity of the config beyond mere env-var presence, so
-    /// a misconfigured deployment fails fast at boot rather than starting into a
-    /// silently-broken state.
-    ///
-    /// Checks:
-    /// - Hosted SFU (`SFU_MODE=hosted`) requires non-empty `LIVEKIT_API_KEY`,
-    ///   `LIVEKIT_API_SECRET`, and `LIVEKIT_SERVER_URL` — otherwise signaling
-    ///   would silently do nothing.
-    /// - CDC (`CDC_ENABLED=true`) requires `CDC_REPLICATION_URL`, `CDC_SLOT_NAME`,
-    ///   and `CDC_PUBLICATION_NAME`.
-    /// - Federation (`FEDERATION_ENABLED=true`) requires `FEDERATION_TENANT_ID`
-    ///   (otherwise ingested events land under a random tenant no one matches).
-    ///
-    /// # Errors
-    ///
-    /// Returns an error describing the first semantic violation found.
-    pub fn validate(&self) -> anyhow::Result<()> {
-        if self.profile == GatewayProfile::ShapeOnly {
-            anyhow::ensure!(
-                cfg!(feature = "shape-facade"),
-                "GATEWAY_PROFILE=shape-only requires the shape-facade build feature"
-            );
-            anyhow::ensure!(
-                self.grpc_port.is_none(),
-                "GATEWAY_PROFILE=shape-only requires GRPC_PORT=0"
-            );
-            anyhow::ensure!(
-                !self.cdc_enabled && !self.federation_enabled,
-                "GATEWAY_PROFILE=shape-only requires CDC_ENABLED=false and FEDERATION_ENABLED=false"
-            );
-        }
-
-        if self.sfu_mode == SfuMode::Hosted {
-            for var in [
-                "LIVEKIT_API_KEY",
-                "LIVEKIT_API_SECRET",
-                "LIVEKIT_SERVER_URL",
-            ] {
-                let present = std::env::var(var).is_ok_and(|v| !v.trim().is_empty());
-                anyhow::ensure!(
-                    present,
-                    "SFU_MODE=hosted requires {var} to be set to a non-empty value \
-                     (LiveKit signaling would otherwise be silently disabled)"
-                );
-            }
-        }
-
-        if self.cdc_enabled {
-            anyhow::ensure!(
-                self.cdc_replication_url.is_some(),
-                "CDC_ENABLED=true requires CDC_REPLICATION_URL"
-            );
-            anyhow::ensure!(
-                self.cdc_slot_name.is_some(),
-                "CDC_ENABLED=true requires CDC_SLOT_NAME"
-            );
-            anyhow::ensure!(
-                self.cdc_publication_name.is_some(),
-                "CDC_ENABLED=true requires CDC_PUBLICATION_NAME"
-            );
-        }
-
-        if self.federation_enabled {
-            anyhow::ensure!(
-                self.federation_tenant_id.is_some(),
-                "FEDERATION_ENABLED=true requires FEDERATION_TENANT_ID \
-                 (ingested events would otherwise land under a random per-boot tenant)"
-            );
-            anyhow::ensure!(
-                self.federation_channel_id.is_some(),
-                "FEDERATION_ENABLED=true requires FEDERATION_CHANNEL_ID \
-                 (ingested events would otherwise land on a random per-boot channel, \
-                 where no subscriber's JWT-matched channel would receive them)"
-            );
-        }
-
-        // ATProto outbound writer is all-or-none: a half-configured writer (e.g. URL set
-        // but no app-password) would silently never authenticate, so fail fast naming the
-        // missing var. When none are set, the bridge is inbound-only (no requirement).
-        {
-            let pds = [
-                ("ATPROTO_PDS_URL", self.atproto_pds_url.as_ref()),
-                (
-                    "ATPROTO_PDS_IDENTIFIER",
-                    self.atproto_pds_identifier.as_ref(),
-                ),
-                (
-                    "ATPROTO_PDS_APP_PASSWORD",
-                    self.atproto_pds_app_password.as_ref(),
-                ),
-            ];
-            let any_set = pds.iter().any(|(_, v)| v.is_some());
-            if any_set {
-                for (var, value) in pds {
-                    anyhow::ensure!(
-                        value.is_some(),
-                        "ATProto outbound writer is partially configured: {var} must also \
-                         be set (all of ATPROTO_PDS_URL, ATPROTO_PDS_IDENTIFIER, \
-                         ATPROTO_PDS_APP_PASSWORD are required together, or none)"
-                    );
-                }
-            }
-        }
-
-        // In a production (non-`dev-endpoints`) build, JWT_ISSUER is mandatory: without
-        // it the `iss` claim is unvalidated, so any JWKS-valid token — including one from
-        // a different issuer — would be accepted. Dev builds keep the softer warning path
-        // (see `main.rs`) so local work without a configured IdP still runs.
-        #[cfg(not(feature = "dev-endpoints"))]
-        anyhow::ensure!(
-            self.jwt_issuer.is_some(),
-            "JWT_ISSUER must be set in production so the token issuer (iss) is validated \
-             and only your IdP's tokens are accepted. (This check is relaxed to a warning \
-             only in `dev-endpoints` builds.)"
-        );
-
-        Ok(())
     }
 
     /// Load gateway configuration from environment variables.
@@ -291,8 +195,13 @@ impl GatewayConfig {
             }
         };
 
-        let iggy_connection_string = std::env::var("IGGY_CONNECTION_STRING")
-            .context("IGGY_CONNECTION_STRING must be set")?;
+        let iggy_connection_string = match std::env::var("IGGY_CONNECTION_STRING") {
+            Ok(value) => value,
+            Err(_) if profile == GatewayProfile::ShapeOnly => String::new(),
+            Err(error) => {
+                return Err(error).context("IGGY_CONNECTION_STRING must be set for full profile");
+            }
+        };
 
         let authz_backend = match std::env::var("AUTHZ_BACKEND")
             .unwrap_or_else(|_| "keto".to_owned())
@@ -323,6 +232,12 @@ impl GatewayConfig {
         // Optional but recommended in production. When unset, issuer is not
         // validated and a warning is logged at startup (see main.rs).
         let jwt_issuer = std::env::var("JWT_ISSUER").ok().filter(|s| !s.is_empty());
+        let shape_electric_url = std::env::var("SHAPE_ELECTRIC_URL")
+            .ok()
+            .filter(|s| !s.trim().is_empty());
+        let shape_catalog_path = std::env::var("SHAPE_CATALOG_PATH")
+            .ok()
+            .filter(|s| !s.trim().is_empty());
 
         let cdc_enabled =
             std::env::var("CDC_ENABLED").is_ok_and(|v| v.eq_ignore_ascii_case("true") || v == "1");
@@ -359,6 +274,11 @@ impl GatewayConfig {
             "sovereign" => SfuMode::Sovereign,
             _ => SfuMode::Hosted,
         };
+        let lanes = GatewayLanes {
+            media: env_enabled("MEDIA_ENABLED"),
+            agent: env_enabled("AGENT_ENABLED"),
+            admin: env_enabled("ADMIN_ENABLED"),
+        };
 
         let (rate_limit_per_sec, rate_limit_burst, max_body_bytes, cors_allowed_origins) =
             Self::middleware_config_from_env();
@@ -381,6 +301,8 @@ impl GatewayConfig {
             gateway_jwks_url,
             jwt_audience,
             jwt_issuer,
+            shape_electric_url,
+            shape_catalog_path,
             cdc_enabled,
             cdc_replication_url: std::env::var("CDC_REPLICATION_URL").ok(),
             cdc_slot_name: std::env::var("CDC_SLOT_NAME").ok(),
@@ -388,6 +310,7 @@ impl GatewayConfig {
             cdc_tenant_id,
             cdc_channel_path: std::env::var("CDC_CHANNEL_PATH").ok(),
             sfu_mode,
+            lanes,
             registry_idle_secs: std::env::var("REGISTRY_IDLE_SECS")
                 .ok()
                 .and_then(|v| v.parse().ok())

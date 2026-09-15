@@ -1,32 +1,39 @@
-# SSR candidate provenance
+# SSR restricted-shape profile provenance
 
-- Source repository:
-  `git@github.com:Prometheus-AGS/flint-realtime-fabric.git`
-- Baseline source SHA: `edbb21556b0b37e2d7431e3969bcdb0c62fd6b9c`
-- License: MIT
-- Build input: repository `Dockerfile`, no `CARGO_FEATURES`, `linux/amd64`;
-  `node:24-slim@sha256:6f7b03f7c2c8e2e784dcf9295400527b9b1270fd37b7e9a7285cf83b6951452d`,
-  `rust:1.94-bookworm@sha256:6ae102bdbf528294bc79ad6e1fae682f6f7c2a6e6621506ba959f9685b308a55`,
-  and
-  `debian:trixie-slim@sha256:020c0d20b9880058cbe785a9db107156c3c75c2ac944a6aa7ab59f2add76a7bd`
-- Candidate image: `ghcr.io/prometheus-ags/flint-realtime-fabric`
-- Candidate source SHA:
-  `26e4dfc02fae11906d8da3985296553cb5e92935`
-- Candidate OCI index digest:
-  `sha256:d9b112306fb95658bce24016e6bee4b864677b197b2bc63c199916f2a82416f2`
-- Candidate build:
-  <https://github.com/Prometheus-AGS/flint-realtime-fabric/actions/runs/30561940578>
-- Iggy: `iggyrs/iggy@sha256:68a314c1380be5a792a134f3bd346ded42bd49d9f7114c86f70b48fc85bc5272`
-  (the immutable resolution of the repository's prior `latest` input on
-  2026-07-30).
-- AKS storage class: `managed-csi` (`disk.csi.azure.com`, expansion enabled),
-  verified against the `ssr` context on 2026-07-30.
+This overlay is a render template for the accepted `shape-only` deployment
+boundary. Direct application intentionally fails because `gateway.yaml` carries
+the zero image digest and `ingress.yaml` carries the reserved `fabric.invalid`
+host. Render with:
 
-The minimum overlay contains only the FRF gateway and Iggy. It selects
-`AUTHZ_BACKEND=verified-identity`: Gate JWT verification and in-process tenant
-equality protect transport operations, while durable Sansaba data authorization
-stays in the existing PostgreSQL RLS boundary. Keto remains an optional generic
-platform adapter but is not deployed for Sansaba.
-The overlay does not render Keto, LiveKit, a media service, CDC, federation
-bridges, SurrealDB, or an admin-UI workload.
-Private GHCR pulls reference the pre-created `ghcr-pull` image pull Secret.
+```bash
+FRF_SHAPE_GATEWAY_IMAGE='registry.example/frf-shape@sha256:<digest>' \
+FRF_PUBLIC_HOST='fabric.example.com' \
+FRF_TLS_SECRET_NAME='frf-shape-tls' \
+FRF_TLS_CERT_FILE='/run/secrets/tls.crt' \
+FRF_TLS_KEY_FILE='/run/secrets/tls.key' \
+FRF_TLS_CA_FILE='/run/secrets/ca.crt' \
+k8s/overlays/ssr/render-profile.sh > rendered.yaml
+```
+
+The renderer accepts only an immutable nonzero image digest, a real DNS host,
+and a valid trusted certificate with its matching key. It emits the named TLS
+Secret, so the rendered output contains secret material and must be protected.
+The image must be built from the repository `Dockerfile` with
+`CARGO_FEATURES=shape-facade`; the gateway validates that feature at startup.
+
+## Authority and network boundary
+
+- The public Ingress terminates TLS from the rendered Secret and forces HTTPS.
+- Ingress sends public traffic to `flint-gate-proxy`; it does not expose the Fabric
+  Service as a backend route.
+- The NetworkPolicy admits gateway HTTP only from Gate.
+- The gateway reaches Gate JWKS and Electric on their internal Services.
+- The shape catalog comes from ConfigMap `aso-shape-catalog` and is mounted
+  read-only.
+- gRPC, Iggy, CDC, federation, media and the general event surface are absent.
+- Gateway readiness performs real Gate JWKS and Electric health requests.
+
+Gate, Electric, Postgres, shape-catalog ConfigMap and ingress
+controller are deployment-owned prerequisites. Their exact revisions and
+configuration digests belong in the environment's release receipt; this source
+template does not invent them.

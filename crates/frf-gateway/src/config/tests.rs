@@ -52,6 +52,14 @@ fn cdc_enabled_without_replication_url_fails_fast() {
 }
 
 #[test]
+fn full_profile_without_broker_fails_fast() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.iggy_connection_string.clear();
+    let error = cfg.validate().expect_err("full profile requires a broker");
+    assert!(error.to_string().contains("IGGY_CONNECTION_STRING"));
+}
+
+#[test]
 fn cdc_enabled_with_all_fields_passes() {
     let mut cfg = GatewayConfig::test_default();
     cfg.cdc_enabled = true;
@@ -133,6 +141,48 @@ fn hosted_sfu_without_livekit_creds_fails_fast() {
     }
     let mut cfg = GatewayConfig::test_default();
     cfg.sfu_mode = SfuMode::Hosted;
+    cfg.lanes.media = true;
     let err = cfg.validate().expect_err("expected validation to fail");
     assert!(err.to_string().contains("LIVEKIT_"));
+}
+
+#[test]
+#[cfg(feature = "shape-facade")]
+fn shape_only_rejects_event_spine_and_media_authority() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.profile = GatewayProfile::ShapeOnly;
+    cfg.shape_electric_url = Some("http://electric:3000".to_owned());
+    cfg.shape_catalog_path = Some("/run/config/shape-catalog.json".to_owned());
+    cfg.iggy_connection_string = "iggy://user:pass@iggy:8090".to_owned();
+    let error = cfg.validate().expect_err("shape-only must reject Iggy");
+    assert!(error.to_string().contains("IGGY_CONNECTION_STRING"));
+
+    cfg.iggy_connection_string.clear();
+    cfg.lanes.media = true;
+    let error = cfg.validate().expect_err("shape-only must reject media");
+    assert!(error.to_string().contains("MEDIA_ENABLED"));
+}
+
+#[test]
+#[cfg(feature = "shape-facade")]
+fn shape_only_requires_complete_shape_authority() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.profile = GatewayProfile::ShapeOnly;
+    cfg.iggy_connection_string.clear();
+    cfg.shape_electric_url = Some("http://electric:3000".to_owned());
+    let error = cfg
+        .validate()
+        .expect_err("shape-only must require a catalog with Electric");
+    assert!(error.to_string().contains("must be set together"));
+}
+
+#[test]
+fn full_profile_rejects_shape_only_endpoints() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.shape_electric_url = Some("http://electric:3000".to_owned());
+    cfg.shape_catalog_path = Some("/run/config/shape-catalog.json".to_owned());
+    let error = cfg
+        .validate()
+        .expect_err("full profile must reject the Electric facade");
+    assert!(error.to_string().contains("use the shape-only profile"));
 }

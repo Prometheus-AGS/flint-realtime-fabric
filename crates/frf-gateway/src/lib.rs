@@ -59,6 +59,9 @@ pub struct AppState<L, A, I, M, B, P> {
     /// `shape-facade` feature is enabled and the lane is configured.
     #[cfg(feature = "shape-facade")]
     pub shape_usecase: Option<Arc<frf_app::ShapeUseCase<A>>>,
+    /// Live state of the required CDC stream. `false` removes the full profile
+    /// from rotation until logical replication has actually started.
+    pub cdc_readiness: tokio::sync::watch::Receiver<bool>,
     pub config: Arc<GatewayConfig>,
 }
 
@@ -107,15 +110,20 @@ where
         .route(
             "/v1/publish",
             post(routes::publish::publish_event::<L, A, I, M, B, P>),
-        )
-        .route(
+        );
+
+    if state.config.lanes.agent {
+        router = router.route(
             "/ws/v1/agents",
             get(routes::agents::ws_agent_stream::<L, A, I, M, B, P>),
-        )
-        .route(
+        );
+    }
+    if state.config.lanes.media {
+        router = router.route(
             "/ws/v1/signal",
             get(routes::signal::ws_signal::<L, A, I, M, B, P>),
         );
+    }
 
     #[cfg(feature = "shape-facade")]
     {
@@ -138,9 +146,10 @@ where
             );
     }
 
-    // Serve the embedded admin UI for any route not matched above (SPA fallback).
-    // API routes take precedence; unmatched GETs return the UI / its assets.
-    let router = router.fallback(routes::admin_ui::serve_admin_ui);
+    if state.config.lanes.admin {
+        // API routes take precedence; unmatched GETs return the UI / its assets.
+        router = router.fallback(routes::admin_ui::serve_admin_ui);
+    }
 
     apply_security_layers(router, &state.config).with_state(state)
 }

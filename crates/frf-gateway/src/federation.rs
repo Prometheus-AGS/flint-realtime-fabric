@@ -9,7 +9,6 @@ use std::sync::Arc;
 use frf_bridge_atproto::{AtProtoBridge, PdsConfig};
 use frf_bridge_matrix::MatrixBridge;
 use frf_bridge_matrix::client::ReqwestMatrixClient;
-use frf_broker_iggy::IggyBroker;
 use frf_domain::{TenantId, ids::ChannelId};
 use frf_gateway::{AppState, GatewayConfig, authz_backend::ConfiguredAuthzProvider};
 use frf_identity_ory::OryIdentityVerifier;
@@ -19,10 +18,12 @@ use frf_ports::{
 };
 use futures_util::StreamExt as _;
 
+use crate::configured_broker::ConfiguredLogBroker;
+
 /// The concrete `AppState` the gateway binary composes. Aliased so the ingest-task
 /// signature stays readable.
 type GatewayAppState = AppState<
-    IggyBroker,
+    ConfiguredLogBroker,
     ConfiguredAuthzProvider,
     OryIdentityVerifier,
     DynMediaSignaler,

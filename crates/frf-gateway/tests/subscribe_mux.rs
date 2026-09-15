@@ -181,6 +181,9 @@ async fn integration_router(iggy_url: &str, jwks_url: String, channel: &Channel)
         action_policy: Arc::new(NoOpPolicyProvider),
         federation_bridges: vec![],
         media_bridge: None,
+        #[cfg(feature = "shape-facade")]
+        shape_usecase: None,
+        cdc_readiness: tokio::sync::watch::channel(true).1,
         config: Arc::new(GatewayConfig::test_default()),
     }))
 }
