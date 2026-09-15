@@ -150,7 +150,7 @@ loro = { version = "1.13.1" }
 str0m = { version = "0.21" }
 
 # Phase 8: Cedar policy engine
-cedar-policy = { version = "4" }
+cedar-policy = { version = "=4.11.2" }
 loro-ffi = { version = "1.13.1" }
 redb = { version = "4.1.0" }
 surrealdb = { version = "3.1.5" }

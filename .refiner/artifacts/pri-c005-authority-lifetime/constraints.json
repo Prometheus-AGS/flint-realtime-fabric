@@ -1,0 +1,20 @@
+{
+  "artifact_type": "content",
+  "constraints": [
+    {"id":"A","description":"Real Gate credentials enforce issuer, audience, tenant, subject, channel and object authorization against the selected Keto build.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"owned Gate/Keto/Fabric authority runner"}},
+    {"id":"B","description":"Token expiry, authority loss and protected shape cancellation stop server-produced output inside the accepted 5000 ms lifetime.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"subscription, shape revocation and lease timing tests"}},
+    {"id":"C","description":"Key and tuple cache rotation cannot restore stale authority after an invalidation or bounded age.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"Ory verifier rotation and Keto generation-fence tests"}},
+    {"id":"P1","description":"Cedar uses the c003-selected fixed exact patch and policy parity tests pass.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"Cargo lock inspection and frf-policy-cedar tests"}},
+    {"id":"P2","description":"Rust, shell, fixture and OpenSpec quality gates pass locally with touched files no larger than 500 lines.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"format, strict Clippy, tests, Shellcheck, size, diff and OpenSpec checks"}}
+  ],
+  "global_rules": [
+    "Runtime tests execute locally; CI results are not evidence.",
+    "Authority failure is fail closed.",
+    "The ASO clock ends at the last server-produced frame or cancellation preventing the next frame.",
+    "Ephemeral credentials and owned runtime resources are removed after each integration run."
+  ],
+  "termination_conditions": [
+    "All blocking c005 constraints pass.",
+    "Independent review has no unresolved critical or warning finding."
+  ]
+}

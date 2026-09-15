@@ -34,13 +34,46 @@ async fn check_returns_false_on_denied_response() {
     let server = MockServer::start();
     server.mock(|when, then| {
         when.method(POST).path("/relation-tuples/check");
-        then.status(200)
+        then.status(403)
             .json_body(serde_json::json!({"allowed": false}));
     });
 
     let provider = KetoAuthzProvider::new(server.base_url(), "test-ns");
     let result = provider.check(&test_tuple()).await.expect("check failed");
     assert!(!result);
+}
+
+#[tokio::test]
+async fn malformed_forbidden_response_is_an_authority_failure() {
+    let server = MockServer::start();
+    server.mock(|when, then| {
+        when.method(POST).path("/relation-tuples/check");
+        then.status(403).body("upstream policy failure");
+    });
+
+    let provider = KetoAuthzProvider::new(server.base_url(), "test-ns");
+    let error = provider
+        .check(&test_tuple())
+        .await
+        .expect_err("malformed 403 must fail closed");
+    assert!(matches!(error, frf_ports::PortError::Serialization(_)));
+}
+
+#[tokio::test]
+async fn contradictory_forbidden_response_is_an_authority_failure() {
+    let server = MockServer::start();
+    server.mock(|when, then| {
+        when.method(POST).path("/relation-tuples/check");
+        then.status(403)
+            .json_body(serde_json::json!({"allowed": true}));
+    });
+
+    let provider = KetoAuthzProvider::new(server.base_url(), "test-ns");
+    let error = provider
+        .check(&test_tuple())
+        .await
+        .expect_err("contradictory 403 must fail closed");
+    assert!(matches!(error, frf_ports::PortError::Transport(_)));
 }
 
 #[tokio::test]
@@ -62,10 +95,30 @@ async fn cache_hit_skips_http_call() {
 }
 
 #[tokio::test]
+async fn identical_tuples_in_different_tenants_do_not_share_a_cached_decision() {
+    let server = MockServer::start();
+    let mock = server.mock(|when, then| {
+        when.method(POST).path("/relation-tuples/check");
+        then.status(200)
+            .json_body(serde_json::json!({"allowed": true}));
+    });
+
+    let provider = KetoAuthzProvider::new(server.base_url(), "test-ns");
+    let first = test_tuple();
+    let mut second = first.clone();
+    second.tenant_id = TenantId::from_uuid(Uuid::from_u128(1));
+
+    provider.check(&first).await.expect("first check failed");
+    provider.check(&second).await.expect("second check failed");
+
+    mock.assert_hits(2);
+}
+
+#[tokio::test]
 async fn write_calls_put_endpoint() {
     let server = MockServer::start();
     let mock = server.mock(|when, then| {
-        when.method(PUT).path("/relation-tuples");
+        when.method(PUT).path("/admin/relation-tuples");
         then.status(201);
     });
 
@@ -85,12 +138,20 @@ async fn delete_calls_delete_endpoint_and_invalidates_cache() {
     });
 
     let delete_mock = server.mock(|when, then| {
-        when.method(DELETE).path_contains("/relation-tuples");
+        when.method(DELETE)
+            .path("/admin/relation-tuples")
+            .query_param("namespace", "test-ns")
+            .query_param("object", "channel/a b")
+            .query_param("relation", "view+share")
+            .query_param("subject_id", "user+1@example.test");
         then.status(204);
     });
 
     let provider = KetoAuthzProvider::new(server.base_url(), "test-ns");
-    let tuple = test_tuple();
+    let mut tuple = test_tuple();
+    tuple.object = "channel/a b".to_owned();
+    tuple.relation = "view+share".to_owned();
+    tuple.subject = "user+1@example.test".to_owned();
 
     // Warm the cache
     provider.check(&tuple).await.expect("check failed");

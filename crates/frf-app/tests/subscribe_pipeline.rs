@@ -1,6 +1,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)] // test/bench crate — see clippy.toml + rules/rust/testing.md
 
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use frf_app::{AppError, SubscribePipeline, SubscribeRequest};
 use frf_domain::{Channel, ChannelId, EventEnvelope, EventKind, Offset, TenantId};
@@ -78,6 +80,16 @@ fn test_claims() -> VerifiedClaims {
         projection_ids: vec![],
         expires_at: 9_999_999_999,
     }
+}
+
+fn expiring_claims(seconds_from_now: u64) -> VerifiedClaims {
+    let mut claims = test_claims();
+    claims.expires_at = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("system clock")
+        .as_secs()
+        .saturating_add(seconds_from_now);
+    claims
 }
 
 fn test_envelope(channel_id: ChannelId) -> EventEnvelope {
@@ -289,4 +301,125 @@ async fn filters_events_from_a_different_tenant_before_authz() {
         stream.next().await.is_none(),
         "cross-tenant event must be filtered before a view check"
     );
+}
+
+#[tokio::test(start_paused = true)]
+async fn token_expiry_terminates_an_idle_stream_without_an_event() {
+    use futures_util::StreamExt;
+
+    let channel_id = ChannelId::new();
+    let mut broker = MockBroker::new();
+    broker.expect_subscribe().once().returning(|_, _, _| {
+        Ok(Box::pin(
+            stream::pending::<Result<EventEnvelope, PortError>>(),
+        ))
+    });
+
+    let mut authz = MockAuthz::new();
+    authz.expect_check().once().returning(|_| Ok(true));
+    let mut identity = MockIdentity::new();
+    identity
+        .expect_verify()
+        .once()
+        .returning(|_| Ok(expiring_claims(2)));
+
+    let pipeline = SubscribePipeline::new(Arc::new(broker), Arc::new(authz), Arc::new(identity));
+    let mut stream = pipeline
+        .execute(SubscribeRequest {
+            channel_id,
+            bearer_token: "short-lived".to_owned(),
+            from: Offset::BEGINNING,
+        })
+        .await
+        .expect("initial authority");
+
+    tokio::time::advance(std::time::Duration::from_secs(3)).await;
+    assert!(stream.next().await.is_none());
+}
+
+#[tokio::test]
+async fn revoked_channel_grant_terminates_before_the_next_event() {
+    use futures_util::StreamExt;
+
+    let channel_id = ChannelId::new();
+    let envelope = test_envelope(channel_id);
+    let mut broker = MockBroker::new();
+    broker
+        .expect_subscribe()
+        .once()
+        .returning(move |_, _, _| Ok(Box::pin(stream::iter(vec![Ok(envelope.clone())]))));
+
+    let calls = Arc::new(AtomicUsize::new(0));
+    let observed = Arc::clone(&calls);
+    let mut authz = MockAuthz::new();
+    authz.expect_check().returning(move |tuple| {
+        if tuple.relation == "subscribe" {
+            return Ok(observed.fetch_add(1, Ordering::AcqRel) == 0);
+        }
+        Ok(true)
+    });
+    let mut identity = MockIdentity::new();
+    identity
+        .expect_verify()
+        .once()
+        .returning(|_| Ok(test_claims()));
+
+    let pipeline = SubscribePipeline::new(Arc::new(broker), Arc::new(authz), Arc::new(identity));
+    let mut stream = pipeline
+        .execute(SubscribeRequest {
+            channel_id,
+            bearer_token: "tok".to_owned(),
+            from: Offset::BEGINNING,
+        })
+        .await
+        .expect("initial authority");
+
+    assert!(matches!(
+        stream.next().await,
+        Some(Err(PortError::PermissionDenied(message)))
+            if message == "subscription authority ended"
+    ));
+    assert!(stream.next().await.is_none());
+}
+
+#[tokio::test]
+async fn authority_loss_terminates_without_emitting_the_protected_event() {
+    use futures_util::StreamExt;
+
+    let channel_id = ChannelId::new();
+    let envelope = test_envelope(channel_id);
+    let mut broker = MockBroker::new();
+    broker
+        .expect_subscribe()
+        .once()
+        .returning(move |_, _, _| Ok(Box::pin(stream::iter(vec![Ok(envelope.clone())]))));
+    let mut authz = MockAuthz::new();
+    authz.expect_check().returning(|tuple| {
+        if tuple.relation == "view" {
+            Err(PortError::Transport("authority unavailable".to_owned()))
+        } else {
+            Ok(true)
+        }
+    });
+    let mut identity = MockIdentity::new();
+    identity
+        .expect_verify()
+        .once()
+        .returning(|_| Ok(test_claims()));
+
+    let pipeline = SubscribePipeline::new(Arc::new(broker), Arc::new(authz), Arc::new(identity));
+    let mut stream = pipeline
+        .execute(SubscribeRequest {
+            channel_id,
+            bearer_token: "tok".to_owned(),
+            from: Offset::BEGINNING,
+        })
+        .await
+        .expect("initial authority");
+
+    assert!(matches!(
+        stream.next().await,
+        Some(Err(PortError::Transport(message))) if message == "authority unavailable"
+    ));
+    assert!(stream.next().await.is_none());
 }

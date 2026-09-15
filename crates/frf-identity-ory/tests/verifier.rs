@@ -5,6 +5,7 @@ use frf_ports::IdentityVerifier;
 use httpmock::prelude::*;
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use serde_json::json;
+use std::time::Duration;
 use uuid::Uuid;
 
 // RSA modulus (base64url) for the test key in tests/fixtures/test_private_rsa.pem
@@ -211,6 +212,40 @@ async fn verify_unknown_kid_refreshes_jwks_and_retries() {
 
     // JWKS was fetched twice (initial + refresh)
     mock.assert_hits(2);
+}
+
+#[tokio::test]
+async fn removed_cached_key_is_rejected_after_the_bounded_cache_age() {
+    let server = MockServer::start();
+    let mut initial = server.mock(|when, then| {
+        when.method(GET).path("/.well-known/jwks.json");
+        then.status(200).json_body(test_jwks_json());
+    });
+    let jwks_url = format!("{}/.well-known/jwks.json", server.base_url());
+    let verifier = OryIdentityVerifier::with_issuer_and_cache_ttl(
+        jwks_url,
+        "frf-gateway",
+        TEST_ISSUER,
+        Duration::from_millis(20),
+    );
+    let old_token = make_jwt_with_iss(TEST_ISSUER, 300);
+
+    verifier.verify(&old_token).await.expect("initial key");
+    initial.delete();
+    let mut rotated = test_jwks_json();
+    rotated["keys"][0]["n"] = json!(format!("x{}", &TEST_RSA_N[1..]));
+    let replacement = server.mock(|when, then| {
+        when.method(GET).path("/.well-known/jwks.json");
+        then.status(200).json_body(rotated);
+    });
+
+    tokio::time::sleep(Duration::from_millis(30)).await;
+
+    assert!(
+        verifier.verify(&old_token).await.is_err(),
+        "a token signed by a removed key must stop verifying after cache expiry"
+    );
+    assert!(replacement.hits() >= 1, "rotated JWKS was not fetched");
 }
 
 #[tokio::test]

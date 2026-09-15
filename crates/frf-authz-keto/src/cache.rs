@@ -1,8 +1,13 @@
 use dashmap::DashMap;
 use std::sync::Arc;
+use std::sync::RwLock;
 use std::time::{Duration, Instant};
 
-/// Composite key: `(subject, relation, object)`.
+/// Composite key: `(authority scope, relation, object)`.
+///
+/// The provider's authority scope binds the effective Keto namespace, tenant
+/// and subject. Keeping the tuple shape preserves the pre-existing public cache
+/// API while preventing decisions from crossing tenant or namespace boundaries.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CacheKey(pub String, pub String, pub String);
 
@@ -17,6 +22,7 @@ pub struct CacheEntry {
 #[derive(Debug, Default)]
 pub struct CheckCache {
     entries: DashMap<CacheKey, CacheEntry>,
+    generation: RwLock<u64>,
 }
 
 impl CheckCache {
@@ -38,8 +44,40 @@ impl CheckCache {
         }
     }
 
+    /// Capture the invalidation generation before starting a remote check.
+    #[must_use]
+    pub fn generation(&self) -> u64 {
+        *self
+            .generation
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+
     /// Insert a result with a TTL.
     pub fn insert(&self, key: CacheKey, allowed: bool, ttl_secs: u64) {
+        let generation = self.generation();
+        let _ = self.insert_if_current(key, allowed, ttl_secs, generation);
+    }
+
+    /// Insert only when no revocation raced the remote check that produced this value.
+    ///
+    /// The generation read lock remains held through insertion. An invalidation
+    /// therefore either removes this entry afterwards or advances the generation
+    /// first and prevents this stale result from being cached.
+    pub fn insert_if_current(
+        &self,
+        key: CacheKey,
+        allowed: bool,
+        ttl_secs: u64,
+        expected_generation: u64,
+    ) -> bool {
+        let generation = self
+            .generation
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if *generation != expected_generation {
+            return false;
+        }
         self.entries.insert(
             key,
             CacheEntry {
@@ -47,10 +85,16 @@ impl CheckCache {
                 expires_at: Instant::now() + Duration::from_secs(ttl_secs),
             },
         );
+        true
     }
 
     /// Remove all entries where `(relation, object)` match the given values.
     pub fn invalidate_object(&self, relation: &str, object: &str) {
+        let mut generation = self
+            .generation
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        *generation = generation.saturating_add(1);
         self.entries.retain(|k, _| k.1 != relation || k.2 != object);
     }
 }
@@ -101,5 +145,17 @@ mod tests {
             Some(true),
             "k3 different relation, should survive"
         );
+    }
+
+    #[test]
+    fn invalidation_prevents_an_older_check_from_refilling_the_cache() {
+        let cache = CheckCache::new();
+        let key = CacheKey("u1".to_owned(), "view".to_owned(), "doc".to_owned());
+        let before_remote_check = cache.generation();
+
+        cache.invalidate_object("view", "doc");
+
+        assert!(!cache.insert_if_current(key.clone(), true, 60, before_remote_check));
+        assert_eq!(cache.get(&key), None);
     }
 }

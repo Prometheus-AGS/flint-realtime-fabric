@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "crates/frf-authz-keto/src/provider.rs",
+      "line": 86,
+      "claim": "All HTTP 403 responses from Keto checks are treated and cached as authorization denials, which can silently mask service/authentication misconfiguration as a normal object denial.",
+      "evidence": "The check path now returns `Ok(false)` and caches `false` whenever `resp.status() == reqwest::StatusCode::FORBIDDEN` without parsing or validating the expected `{\"allowed\": false}` denial body; the acceptance/global rule requires authority failure to fail closed, and the constraints call out silent failure as a review target.",
+      "suggested_fix": "For 403, parse the response body as the expected Keto denial shape and only return `Ok(false)` when it is a valid denied check; otherwise return `PortError::Transport` or `PortError::Serialization` so authority-service failures terminate rather than look like ordinary denials."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}
