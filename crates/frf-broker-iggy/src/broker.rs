@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::{future::Future, pin::Pin};
 
 use async_trait::async_trait;
 use bytes::Bytes;
@@ -7,11 +8,13 @@ use frf_ports::{EventStream, LogBroker, PortError};
 use futures_util::StreamExt;
 use iggy::client::{Client, ConsumerOffsetClient, StreamClient, TopicClient};
 use iggy::clients::client::IggyClient;
+use iggy::clients::consumer::AutoCommit;
 use iggy::compression::compression_algorithm::CompressionAlgorithm;
 use iggy::consumer::Consumer;
 use iggy::error::IggyError;
 use iggy::messages::poll_messages::PollingStrategy;
 use iggy::messages::send_messages::Message as IggyMessage;
+use iggy::utils::duration::IggyDuration;
 use iggy::utils::expiry::IggyExpiry;
 use iggy::utils::topic_size::MaxTopicSize;
 use tokio::sync::mpsc;
@@ -20,11 +23,67 @@ use tracing::instrument;
 
 use crate::channel::partition_id;
 use crate::error::IggyBrokerError;
+use crate::position::{
+    locate_message, new_message_range, partition_snapshot, validate_first_delivery,
+};
 
 const CHANNEL_BUF: usize = 256;
+const REPLAY_RETENTION_SECONDS: u64 = 86_400;
+
+fn replay_retention() -> IggyExpiry {
+    IggyExpiry::ExpireDuration(IggyDuration::new_from_secs(REPLAY_RETENTION_SECONDS))
+}
+
+const fn consumer_commit_policy() -> AutoCommit {
+    AutoCommit::Disabled
+}
+
+fn polling_strategy(from: Offset) -> PollingStrategy {
+    if from == Offset::BEGINNING {
+        PollingStrategy::first()
+    } else {
+        // Iggy's explicit offset strategy is inclusive. Callers that persist the
+        // last processed position resume with `last.next()`.
+        PollingStrategy::offset(from.0)
+    }
+}
+
+fn encode_message(envelope: &EventEnvelope) -> Result<IggyMessage, PortError> {
+    let payload =
+        serde_json::to_vec(envelope).map_err(|e| PortError::Serialization(e.to_string()))?;
+    // The domain event ID survives producer retry and restart. Supplying it to
+    // Iggy activates the broker's persisted message-ID deduplicator.
+    let message_id = envelope.id.as_uuid().as_u128();
+    Ok(IggyMessage::new(
+        Some(message_id),
+        Bytes::from(payload),
+        None,
+    ))
+}
+
+fn decode_message(payload: &[u8], broker_offset: u64) -> Result<EventEnvelope, PortError> {
+    let mut envelope: EventEnvelope =
+        serde_json::from_slice(payload).map_err(|e| PortError::Serialization(e.to_string()))?;
+    // The serialized value is a producer-local source hint. Replay and client
+    // checkpoints must use the position assigned by the broker partition.
+    envelope.offset = Offset(broker_offset);
+    Ok(envelope)
+}
+
+async fn next_while_open<T>(
+    tx: &mpsc::Sender<Result<EventEnvelope, PortError>>,
+    next: Pin<&mut (dyn Future<Output = T> + Send)>,
+) -> Option<T> {
+    tokio::select! {
+        biased;
+        () = tx.closed() => None,
+        result = next => Some(result),
+    }
+}
 
 pub struct IggyBroker {
     client: Arc<IggyClient>,
+    connection_string: Arc<str>,
 }
 
 impl IggyBroker {
@@ -39,6 +98,7 @@ impl IggyBroker {
         client.connect().await?;
         Ok(Self {
             client: Arc::new(client),
+            connection_string: Arc::from(connection_string),
         })
     }
 
@@ -109,13 +169,69 @@ impl IggyBroker {
                 CompressionAlgorithm::None,
                 None,
                 None,
-                IggyExpiry::NeverExpire,
+                replay_retention(),
                 MaxTopicSize::ServerDefault,
             )
             .await
         {
-            Ok(_) | Err(IggyError::TopicNameAlreadyExists(_, _)) => {}
+            Ok(_) => {}
+            Err(IggyError::TopicNameAlreadyExists(_, _)) => {
+                // Existing deployments may have the former unbounded topic.
+                // Preserve all other settings while converging retention to the
+                // production replay contract.
+                let topic_id = topic
+                    .try_into()
+                    .map_err(|e: IggyError| IggyBrokerError::Transport(e))?;
+                let current = self
+                    .client
+                    .get_topic(&stream_id, &topic_id)
+                    .await
+                    .map_err(IggyBrokerError::Transport)?
+                    .ok_or_else(|| {
+                        IggyBrokerError::NotFound(format!(
+                            "topic {stream}/{topic} disappeared while applying replay retention"
+                        ))
+                    })?;
+
+                if current.message_expiry != replay_retention() {
+                    self.client
+                        .update_topic(
+                            &stream_id,
+                            &topic_id,
+                            &current.name,
+                            current.compression_algorithm,
+                            Some(current.replication_factor),
+                            replay_retention(),
+                            current.max_topic_size,
+                        )
+                        .await
+                        .map_err(IggyBrokerError::Transport)?;
+                }
+            }
             Err(e) => return Err(IggyBrokerError::Transport(e).into()),
+        }
+
+        Ok(())
+    }
+
+    async fn reject_expired_cursor(
+        &self,
+        stream: &str,
+        topic: &str,
+        partition: u32,
+        from: Offset,
+    ) -> Result<(), PortError> {
+        if from == Offset::BEGINNING {
+            return Ok(());
+        }
+
+        let details = partition_snapshot(&self.client, stream, topic, partition).await?;
+        let floor = details.retained_floor();
+        if from < floor {
+            return Err(PortError::NotFound(format!(
+                "resnapshot_required: requested broker offset {} precedes retained floor {}",
+                from.0, floor.0
+            )));
         }
 
         Ok(())
@@ -124,7 +240,7 @@ impl IggyBroker {
 
 #[async_trait]
 impl LogBroker for IggyBroker {
-    /// Publish an event to a channel. Returns the assigned `Offset`.
+    /// Publish an event to a channel. Returns its authoritative broker `Offset`.
     ///
     /// # Errors
     ///
@@ -140,11 +256,11 @@ impl LogBroker for IggyBroker {
         // on boot ordering. The stream name derives from the channel id alone, so no
         // tenant or path is needed here — the same reason `subscribe` can address it.
         self.create_stream_and_topic(&stream, topic).await?;
+        let partition = partition_id("publish-confirmation");
+        let before = partition_snapshot(&self.client, &stream, topic, partition).await?;
 
-        let payload =
-            serde_json::to_vec(&envelope).map_err(|e| PortError::Serialization(e.to_string()))?;
-
-        let msg = IggyMessage::new(None, Bytes::from(payload), None);
+        let msg = encode_message(&envelope)?;
+        let message_id = msg.id;
 
         let mut producer = self
             .client
@@ -159,7 +275,29 @@ impl LogBroker for IggyBroker {
             .await
             .map_err(IggyBrokerError::Transport)?;
 
-        Ok(envelope.offset)
+        let after = partition_snapshot(&self.client, &stream, topic, partition).await?;
+        if let Some(range) = new_message_range(before, after)
+            && let Some(offset) =
+                locate_message(&self.client, &stream, topic, partition, message_id, range).await?
+        {
+            return Ok(offset);
+        }
+
+        let retained = (after.retained_floor(), Offset(after.current_offset));
+        locate_message(
+            &self.client,
+            &stream,
+            topic,
+            partition,
+            message_id,
+            retained,
+        )
+        .await?
+        .ok_or_else(|| {
+            PortError::Transport(format!(
+                "broker accepted message {message_id} but its retained position was not found"
+            ))
+        })
     }
 
     /// Open a streaming subscription starting from `from`.
@@ -178,17 +316,28 @@ impl LogBroker for IggyBroker {
         let topic = "events".to_owned();
         let partition = partition_id(&consumer_id);
 
-        let strategy = if from == Offset::BEGINNING {
-            PollingStrategy::first()
-        } else {
-            PollingStrategy::offset(from.0)
-        };
+        self.reject_expired_cursor(&stream, &topic, partition, from)
+            .await?;
+        let strategy = polling_strategy(from);
 
-        let mut consumer = self
-            .client
+        // Long polling owns a dedicated transport connection. Cancelling an
+        // in-flight poll on the shared command connection leaves its eventual
+        // response queued for the next command in the pinned TCP client, which
+        // can corrupt that response. Closing this dedicated client on receiver
+        // drop cancels the server request without poisoning publish/admin calls.
+        let subscription_client = IggyClient::from_connection_string(&self.connection_string)
+            .map_err(IggyBrokerError::Transport)?;
+        subscription_client
+            .connect()
+            .await
+            .map_err(IggyBrokerError::Transport)?;
+        let mut consumer = subscription_client
             .consumer(&consumer_id, &stream, &topic, partition)
             .map_err(IggyBrokerError::Transport)?
             .polling_strategy(strategy)
+            // Delivery is acknowledged only through `LogBroker::ack`; polling
+            // must never advance the durable consumer checkpoint.
+            .auto_commit(consumer_commit_policy())
             .build();
 
         consumer.init().await.map_err(IggyBrokerError::Transport)?;
@@ -196,21 +345,37 @@ impl LogBroker for IggyBroker {
         let (tx, rx) = mpsc::channel(CHANNEL_BUF);
 
         tokio::spawn(async move {
-            while let Some(result) = consumer.next().await {
+            let mut first_delivery = true;
+            loop {
+                let mut next = Box::pin(consumer.next());
+                let Some(result) = next_while_open(&tx, next.as_mut()).await else {
+                    break;
+                };
                 match result {
-                    Ok(msg) => {
-                        let decoded: Result<EventEnvelope, _> =
-                            serde_json::from_slice(&msg.message.payload);
-                        let item = decoded.map_err(|e| PortError::Serialization(e.to_string()));
+                    Some(Ok(msg)) => {
+                        if first_delivery {
+                            first_delivery = false;
+                            if let Err(error) =
+                                validate_first_delivery(from, Offset(msg.message.offset))
+                            {
+                                let _ = tx.send(Err(error)).await;
+                                break;
+                            }
+                        }
+                        let item = decode_message(&msg.message.payload, msg.message.offset);
                         if tx.send(item).await.is_err() {
                             break;
                         }
                     }
-                    Err(e) => {
+                    Some(Err(e)) => {
                         let _ = tx.send(Err(PortError::Transport(e.to_string()))).await;
                         break;
                     }
+                    None => break,
                 }
+            }
+            if let Err(error) = subscription_client.disconnect().await {
+                tracing::warn!(%error, "failed to close Iggy subscription connection");
             }
         });
 
@@ -314,3 +479,7 @@ impl LogBroker for IggyBroker {
         self.create_stream_and_topic(&stream, "events").await
     }
 }
+
+#[cfg(test)]
+#[path = "broker_tests.rs"]
+mod tests;

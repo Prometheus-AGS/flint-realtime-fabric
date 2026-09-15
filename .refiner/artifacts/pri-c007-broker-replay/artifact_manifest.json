@@ -1,0 +1,28 @@
+{
+  "artifact_type": "code",
+  "variants": [
+    {
+      "name": "durable-broker-replay",
+      "files": [
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-broker-iggy/src/broker.rs",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-broker-iggy/src/broker_tests.rs",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-broker-iggy/src/lib.rs",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-broker-iggy/src/position.rs",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-broker-iggy/tests/replay_contract.rs",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-ports/src/log_broker.rs",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/compose.broker-replay.yml",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/scripts/run-broker-replay-integration.sh"
+      ],
+      "format": "mixed-source",
+      "description": "Commit-controlled Iggy replay adapter plus an owned, source-bound crash/restart/expiry integration fixture."
+    }
+  ],
+  "preview": {"required": false, "runs": []},
+  "validation": {
+    "preview_status": "pass",
+    "has_console_errors": false,
+    "has_request_failures": false,
+    "notes": ["Owned live replay through the public acknowledgement path, server restart, persisted deduplication, physical expiry/resnapshot, workspace compile/lint, format, shell, file-size, strict OpenSpec and fresh-context cross-model review all pass."]
+  },
+  "generated_at": "2026-09-15T17:33:00Z"
+}

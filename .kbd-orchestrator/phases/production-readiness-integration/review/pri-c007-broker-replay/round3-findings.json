@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-broker-iggy/tests/replay_contract.rs",
+      "line": 415,
+      "claim": "The restart durability scenario persists the checkpoint with `seek` instead of proving restart after `ack`, so acceptance A's acknowledgement path is not actually tested.",
+      "evidence": "Acceptance criterion 3 requires \"restart after acknowledgement respects defined cursor inclusivity and duplicate rules\", but `seed_broker_restart_state` builds a cursor fixture and calls `broker.seek(cursor).await.expect(\"persist restart checkpoint\")` before restart rather than `broker.ack(...)`.",
+      "suggested_fix": "Change the restart seed scenario to persist the second event via `broker.ack(channel.id, \"restart-consumer\", checkpointed.offset).await` and verify the post-restart checkpoint from that ack path."
+    },
+    {
+      "severity": "WARNING",
+      "file": ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c007-broker-replay/implementation.md",
+      "line": 5,
+      "claim": "The implementation evidence file still says acceptance evidence is pending even though the change claims local acceptance is complete.",
+      "evidence": "`implementation.md` line 5 says `Status: **IMPLEMENTED; ACCEPTANCE EVIDENCE PENDING**`, while acceptance criteria task 5 and `receipt.md` claim acceptance evidence and local gates are complete.",
+      "suggested_fix": "Update the implementation evidence status to match the completed acceptance/receipt state, or remove the stale pending status."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

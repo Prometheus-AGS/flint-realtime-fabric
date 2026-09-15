@@ -16,12 +16,17 @@ pub type EventStream =
 /// `#[tracing::instrument(name = "port::LogBroker::<method>")]`.
 #[async_trait]
 pub trait LogBroker: Send + Sync + 'static {
-    /// Publish an event to a channel. Returns the assigned `Offset`.
+    /// Publish an event to a channel and return its authoritative broker offset.
+    /// The returned position and subscriber [`EventEnvelope::offset`] values share
+    /// the same partition-local coordinate system.
     async fn publish(&self, envelope: EventEnvelope) -> Result<Offset, PortError>;
 
     /// Open a streaming subscription starting from `from`.
     ///
-    /// Pass `Offset::BEGINNING` to replay from the start.
+    /// Pass `Offset::BEGINNING` to replay from the start. Other offsets are
+    /// inclusive; resume after a processed event with `last_offset.next()`.
+    /// An explicit position older than retained history returns a
+    /// `PortError::NotFound` whose message starts with `resnapshot_required:`.
     async fn subscribe(
         &self,
         channel_id: ChannelId,
@@ -29,7 +34,8 @@ pub trait LogBroker: Send + Sync + 'static {
         from: Offset,
     ) -> Result<EventStream, PortError>;
 
-    /// Seek a named cursor to an explicit offset without consuming events.
+    /// Store an inclusive last-processed offset for a named cursor without
+    /// consuming events.
     async fn seek(&self, cursor: Cursor) -> Result<(), PortError>;
 
     /// Acknowledge delivery up to and including `offset` for a consumer.

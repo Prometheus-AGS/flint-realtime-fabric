@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-broker-iggy/src/broker.rs",
+      "line": 197,
+      "claim": "An explicit cursor can still silently resume from the retained floor if retention advances after the one-time preflight check.",
+      "evidence": "Acceptance criterion 4/global rule requires expiry/resnapshot to fail closed with `resnapshot_required`; `reject_expired_cursor` only snapshots and checks `from < floor` before subscription, while the spawned poll loop decodes and forwards messages without validating that the first delivered broker offset is not greater than the requested explicit offset.",
+      "suggested_fix": "For non-BEGINNING subscriptions, validate the first polled message: if its broker offset is greater than the requested `from`, emit `PortError::NotFound(\"resnapshot_required: ...\")` instead of forwarding it; keep the preflight check as an optimization."
+    },
+    {
+      "severity": "WARNING",
+      "file": "openspec/changes/pri-c007-broker-replay/proposal.md",
+      "line": 14,
+      "claim": "The proposal document is stale because it says the change is proposal-only with unchecked implementation tasks while the same diff marks all tasks complete and ships implementation files.",
+      "evidence": "`proposal.md` adds `Status: proposal only; all implementation tasks are unchecked.`, but `openspec/changes/pri-c007-broker-replay/tasks.md` marks tasks 1 through 5 as `[x]` and the diff adds product code under `crates/frf-broker-iggy/`; constraint T2 requires docs match code.",
+      "suggested_fix": "Update the proposal status to reflect that implementation and local acceptance are complete, or remove the stale unchecked-task statement."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

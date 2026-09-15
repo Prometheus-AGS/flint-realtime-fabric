@@ -1,0 +1,45 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c007-broker-replay/",
+      "claim": "The required source-bound receipt and validation evidence for pri-c007 are absent from the diff.",
+      "evidence": "Acceptance criterion 5 requires: \"Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c007-broker-replay/`; run applicable local quality checks and `openspec validate pri-c007-broker-replay --strict --no-interactive`.\" The diff adds no files under that evidence path and criterion 5 remains unchecked.",
+      "suggested_fix": "Add the required evidence artifact under the specified directory, including the exact local commands run and the openspec validation result."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-ports/src/log_broker.rs",
+      "line": 19,
+      "claim": "The port contract still exposes producer-local publish offsets instead of the accepted broker position mapping required by pri-c007.",
+      "evidence": "Acceptance criterion 2 requires: \"Replace producer-local replay counters with the accepted broker position mapping.\" The changed trait documentation states: \"The current compatibility return value is the envelope's provisional source offset because the pinned Iggy send acknowledgement does not carry its assigned append position.\"",
+      "suggested_fix": "Do not present the publish result as a replay position; either return the broker-assigned position from publish or change the port/API so callers cannot persist a producer-local offset as a replay cursor, with the semver impact documented."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": ".",
+      "claim": "The diff includes unrelated shape, identity, and gateway changes outside the accepted pri-c007 affected paths and non-goals.",
+      "evidence": "The pri-c007 proposal lists affected paths only as `crates/frf-broker-iggy/src/`, `crates/frf-broker-iggy/tests/`, and `crates/frf-ports/src/log_broker.rs`, and states \"Unrelated refactoring ... [is] outside this proposal.\" The diff also modifies `crates/frf-app/src/shape/mod.rs`, `crates/frf-app/src/shape/tests.rs`, `crates/frf-app/tests/shape_lease_timing.rs`, `crates/frf-app/tests/shape_revocation.rs`, `crates/frf-gateway/src/routes/shape.rs`, `crates/frf-gateway/tests/shape_projection_grant.rs`, `crates/frf-identity-ory/src/claims.rs`, and `crates/frf-ports/src/identity.rs`.",
+      "suggested_fix": "Remove the unrelated files from this change or split them into a separate scoped change with its own acceptance criteria."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": ".kbd-orchestrator/current-waypoint.json",
+      "line": 1,
+      "claim": "The change performs KBD runtime/state projection edits despite the pri-c007 non-goal excluding KBD migration.",
+      "evidence": "Acceptance notes state: \"No CI test invocation, production deployment or KBD migration is part of these tasks.\" The diff rewrites KBD state/projection files including `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/position.json`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/project.json`, and a previous phase `progress.json` schema shape.",
+      "suggested_fix": "Keep pri-c007 limited to broker replay implementation and required evidence, or move KBD runtime/projection changes into a separate KBD migration change."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}
