@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "openspec/changes/pri-c002-local-fixtures/proposal.md",
+      "line": 17,
+      "claim": "The proposal documents the implemented change as still proposal-only with unchecked tasks, contradicting the checked task list and shipped implementation.",
+      "evidence": "`proposal.md` says `Status: proposal only; all implementation tasks are unchecked.` while `openspec/changes/pri-c002-local-fixtures/tasks.md` marks tasks 1-5 as `[x]`; constraint T2 requires honest surface/no doc drift.",
+      "suggested_fix": "Update the proposal status to reflect that the slice has been implemented and verified, or remove the stale unchecked-task statement."
+    },
+    {
+      "severity": "WARNING",
+      "file": "scripts/run-local-integration.sh",
+      "line": 63,
+      "claim": "The runner allocates a free port and releases it before Docker binds it, making the fixture vulnerable to a port-allocation race.",
+      "evidence": "`allocate_port()` opens a Node server on port 0, prints the selected port, then closes it; later `docker compose up -d` binds `FRF_IGGY_PORT=\"$IGGY_PORT\"`, leaving a window where another process can claim the port.",
+      "suggested_fix": "Let Docker publish to an ephemeral host port and inspect the mapped port with `docker compose port`, or keep a reserved socket until Compose is ready."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

@@ -1,0 +1,17 @@
+Makefile
+README.md
+compose.integration.yml
+crates/frf-gateway/tests/subscribe_mux.rs
+crates/frf-postgres-cdc/tests/cdc_integration.rs
+docs/DEVELOPMENT.md
+scripts/run-local-integration.sh
+.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c002-local-fixtures/baseline.md
+.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c002-local-fixtures/acceptance-a.md
+.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c002-local-fixtures/acceptance-b.md
+.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c002-local-fixtures/20260915084331-29908.json
+.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c002-local-fixtures/receipt.md
+openspec/changes/pri-c002-local-fixtures/files.txt
+openspec/changes/pri-c002-local-fixtures/proposal.md
+openspec/changes/pri-c002-local-fixtures/design.md
+openspec/changes/pri-c002-local-fixtures/tasks.md
+openspec/changes/pri-c002-local-fixtures/specs/production-readiness-integration/spec.md

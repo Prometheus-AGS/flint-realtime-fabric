@@ -214,6 +214,9 @@ dagger run ts-node dagger/codegen.ts
 # Layer 3 E2E (local Docker Compose stack)
 make layer3-e2e
 
+# Required authenticated publish/subscription proof (isolated local fixture)
+make local-integration
+
 # CDC smoke test (requires running compose stack)
 bash scripts/smoke-cdc.sh
 ```

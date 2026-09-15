@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "scripts/run-local-integration.sh",
+      "line": 4,
+      "claim": "The runner uses `dirname` before its prerequisite check, so a missing declared prerequisite can fail before the controlled `missing required command` diagnostic path.",
+      "evidence": "Line 4 computes `ROOT_DIR=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/..\" && pwd)\"` before `require_prerequisites()` runs; line 28 later lists `dirname` in `for command_name in ... dirname ...` and acceptance B requires missing prerequisites to exit nonzero with fail-closed diagnostics.",
+      "suggested_fix": "Avoid depending on external `dirname` before `require_prerequisites`, e.g. compute `ROOT_DIR` with shell parameter expansion or perform prerequisite checks before any use of checked commands."
+    },
+    {
+      "severity": "WARNING",
+      "file": "compose.integration.yml",
+      "line": 3,
+      "claim": "The integration fixture defaults to `iggyrs/iggy:latest`, making future local proofs exercise a mutable image rather than the source-bound image digest recorded in the receipt.",
+      "evidence": "The compose hunk sets `image: ${FRF_IGGY_IMAGE:-iggyrs/iggy:latest}` while the acceptance criteria require a source-bound receipt and the committed receipt records a specific `imageDigest`.",
+      "suggested_fix": "Default `FRF_IGGY_IMAGE` to a pinned digest, or require callers to provide a digest-pinned `FRF_IGGY_IMAGE` and fail otherwise."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

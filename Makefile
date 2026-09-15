@@ -1,4 +1,4 @@
-.PHONY: help baseline-wasm cdc-smoke build test clippy fmt check-file-size compose-up compose-down layer3-e2e
+.PHONY: help baseline-wasm cdc-smoke build test clippy fmt check-file-size compose-up compose-down layer3-e2e local-integration
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -39,3 +39,6 @@ compose-down: ## Tear down the compose stack
 
 layer3-e2e: ## Run Layer 3 E2E locally against a local Docker Compose stack
 	bash scripts/run-layer3-e2e.sh
+
+local-integration: ## Prove authenticated gateway publish/subscribe against an owned Iggy fixture
+	bash scripts/run-local-integration.sh

@@ -144,6 +144,20 @@ causes Stage 6 to fail with `FAIL: WASM size N > 150% of baseline B`.
 
 ## Layer 3 E2E
 
+The required authenticated gateway publish/subscription proof uses a disposable,
+project-namespaced Iggy fixture and writes a source-bound JSON receipt:
+
+```bash
+make local-integration
+```
+
+The runner rejects missing prerequisites and empty or skipped required scenarios.
+It mints a short-lived RS256 credential under a temporary directory, applies fixed
+deadlines, proves that disabling delivery fails the assertion, and removes only its
+own Compose project and volume.
+
+The broader browser suite remains available separately:
+
 Run the integration suite on a local host with Docker Compose:
 
 ```bash
