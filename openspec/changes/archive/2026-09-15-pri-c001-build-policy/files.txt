@@ -1,0 +1,14 @@
+.github/workflows/ci.yml
+.github/workflows/decode-proof.yml
+Cargo.toml
+Makefile
+README.md
+compose.ci.yml
+crates/frf-gateway/src/routes/dev.rs
+dagger/README.md
+dagger/codegen.ts
+dagger/tsconfig.json
+docs/DEVELOPMENT.md
+scripts/run-layer3-e2e.sh
+openspec/changes/pri-c001-build-policy
+.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c001-build-policy

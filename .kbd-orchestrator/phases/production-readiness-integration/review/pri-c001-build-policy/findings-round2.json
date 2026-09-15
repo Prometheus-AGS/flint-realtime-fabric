@@ -1,0 +1,29 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c001-build-policy/",
+      "claim": "The required source-bound acceptance receipt was not added.",
+      "evidence": "Acceptance criterion 5 requires saving a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c001-build-policy/` and running applicable checks plus `openspec validate pri-c001-build-policy --strict --no-interactive`, but the diff contains no added or modified files under that evidence path.",
+      "suggested_fix": "Add the required evidence receipt under the specified directory with the source hashes and exact local quality-check/OpenSpec validation results."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": ".github/workflows/ci.yml",
+      "claim": "The MSRV was changed in CI without reconciling the repository's declared MSRV source.",
+      "evidence": "Acceptance criterion 2 requires reconciling MSRV, and the Impact section lists `Cargo.toml` as an affected path; the diff only changes `.github/workflows/ci.yml` from `MSRV check (Rust 1.85)` / `toolchain: \"1.85\"` to `MSRV check (Rust 1.94)` / `toolchain: \"1.94\"` and does not modify `Cargo.toml` or `rust-toolchain.toml`.",
+      "suggested_fix": "Update the canonical MSRV declaration in the workspace manifest/toolchain files to match CI, or keep CI aligned with the existing declared MSRV."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

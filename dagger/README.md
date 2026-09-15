@@ -13,32 +13,39 @@ Ensures generated SDK bindings stay in sync with the Rust source.
 | `rust-build` | `cargo build -p frf-ffi --release` | Must compile |
 | `uniffi-swift` | `uniffi-bindgen generate --language swift` | Diff must be empty |
 | `uniffi-kotlin` | `uniffi-bindgen generate --language kotlin` | Diff must be empty |
-| `frb-dart` | `flutter_rust_bridge_codegen generate` | **BROKEN — see note below** |
 | `buf-generate` | `buf generate` | Must succeed |
+| `wasm-build` | `wasm-pack build` | Must compile and meet the size limit |
 | `pnpm-build` | `pnpm -r build` | Must succeed |
 
 Stages `uniffi-swift` and `uniffi-kotlin` are fast when `crates/frf-ffi/` is
 unchanged (Dagger caches by input hash).
 
-> **`frb-dart` cannot succeed** (flagged 2026-09-14, p38-c005; not fixed there).
-> It runs `flutter_rust_bridge_codegen` against `crates/frf-ffi/src/lib.rs`, a
-> UniFFI crate — [ADR-003](../docs/decisions/adr-003-ffi-codegen-versions.md)
-> records that FRB's parser panics on `#[uniffi::export]` and that FRB and UniFFI
-> cannot co-own the FFI crate. It then diffs against
-> `sdks/dart/lib/src/rust/frb_generated.dart`, which does not exist and is
-> gitignored. Dart bindings come from `uniffi-bindgen-dart`. Fixing this means
-> replacing the stage or deleting it.
+The pipeline does not regenerate Dart. [ADR-003](../docs/decisions/adr-003-ffi-codegen-versions.md)
+requires `uniffi-bindgen-dart`, and its current 0.1.3 output needs the manual,
+documented compatibility patches in [`sdks/dart/GENERATED.md`](../sdks/dart/GENERATED.md).
+Run `./sdks/dart/build_dart.sh` locally when changing the FFI surface and review
+the regenerated output before restoring those patches.
 
 ```sh
 # Run codegen pipeline locally (requires Dagger CLI + Docker)
 cd dagger && pnpm install && pnpm codegen
 ```
 
-## Cargo gates (enforced in CI via GitHub Actions)
+## Remote quality gates
 
 | Gate | Command |
 |------|---------|
 | Format | `cargo fmt --all --check` |
 | Lint (pedantic) | `cargo clippy --all-targets --all-features -- -D warnings -W clippy::pedantic` |
-| Test | `cargo test --all` |
-| MSRV | `cargo check --all` on Rust 1.85 |
+| MSRV | `cargo check --workspace --locked` on Rust 1.94 |
+
+GitHub Actions and Dagger run build, lint, typecheck, format, code generation,
+and packaging only. Runtime checks remain direct local commands:
+
+| Local gate | Command | Owning readiness change |
+|------------|---------|-------------------------|
+| Rust tests | `cargo test --workspace --locked` | `pri-c023-release-signoff` |
+| Browser smoke | `pnpm --dir admin-ui exec playwright test e2e/ --reporter=list` | `pri-c021-admin-auth` / `pri-c022-platform-parity` |
+| Layer 3 stack | `make layer3-e2e` | `pri-c022-platform-parity` |
+| Sovereign decode | `./scripts/run-media-decode.sh` | `pri-c020-sovereign-decode` |
+| CRDT benchmark | `cargo bench -p frf-crdt --bench crdt_merge -- --baseline main && bash scripts/bench-regression-check.sh` | `pri-c023-release-signoff` |

@@ -95,7 +95,7 @@ flint-realtime-fabric/
 │   ├── smoke-cdc.sh         # CDC replication slot smoke test
 │   └── bench-regression-check.sh
 ├── dagger/
-│   └── codegen.ts           # 10-stage CI pipeline
+│   └── codegen.ts           # build/lint/codegen/package pipeline
 ├── docs/
 │   ├── IMPLEMENTATION-PLAN.md        # RFC-FRF-002 (authoritative build plan)
 │   ├── PROMETHEUS-BASE-RULES.md      # Rules 1–40 for all agents
@@ -211,8 +211,8 @@ cd admin-ui && pnpm install && pnpm dev
 # Dagger CI pipeline
 dagger run ts-node dagger/codegen.ts
 
-# Layer 3 E2E (requires Docker host with DinD)
-ENABLE_INTEGRATION_STAGE=true dagger run ts-node dagger/codegen.ts
+# Layer 3 E2E (local Docker Compose stack)
+make layer3-e2e
 
 # CDC smoke test (requires running compose stack)
 bash scripts/smoke-cdc.sh
@@ -238,7 +238,7 @@ bash scripts/smoke-cdc.sh
 | Federation | Tuwunel (Matrix), Tranquil (ATProto) |
 | FFI bindings | UniFFI (Swift, Kotlin, Dart via `uniffi-bindgen-dart`) — ADR-003 |
 | Browser transport | Connect-ES + WS mux |
-| CI | Dagger (10-stage pipeline) |
+| CI | GitHub Actions + Dagger build/lint/typecheck/format/package gates |
 | Admin UI | React 19 + Vite 7 + shadcn-ui + Base UI (latest) |
 
 ---

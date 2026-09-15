@@ -1,10 +1,9 @@
-# CI-mode compose: no bind-mounts, no local builds.
-# Used by Stage 10 (Dagger DinD) where the Docker daemon runs on the host
-# but compose executes inside a container — host-path bind mounts are denied.
+# Disposable integration compose: no bind mounts or external identity service.
+# Used only by the local scripts/run-layer3-e2e.sh runner.
 #
 # Differences from compose.yml:
 #   - keto: config injected via env vars (dsn=memory, no volume mount)
-#   - postgres: init.sql omitted; CDC slot is not pre-created in CI
+#   - postgres: init.sql omitted; CDC slot is not pre-created in this fixture
 #   - gateway: built from the Dockerfile (no local build context issues)
 #   - flint-gate, surrealdb: excluded (not needed for /healthz smoke test)
 #   - All named volumes use tmpfs so nothing persists across runs

@@ -126,7 +126,7 @@ apt-get install binaryen
 
 ### Establish or update the WASM size baseline
 
-The WASM size gate in Dagger Stage 6 compares the binary size against
+The WASM size gate in Dagger Stage 5 compares the binary size against
 `.wasm-size-baseline` (a single integer: byte count). Run this after any
 intentional WASM size increase:
 
@@ -134,7 +134,7 @@ intentional WASM size increase:
 make baseline-wasm
 ```
 
-This runs the full Dagger pipeline through Stage 6, measures the binary,
+This runs the Dagger build pipeline, measures the binary,
 writes `.wasm-size-baseline`, and creates a git commit. Requires Docker + Dagger.
 
 The gate uses a 150% threshold: a binary more than 50% larger than the baseline
@@ -142,17 +142,15 @@ causes Stage 6 to fail with `FAIL: WASM size N > 150% of baseline B`.
 
 ---
 
-## Layer 3 E2E (Stage 10)
+## Layer 3 E2E
 
-Stage 10 requires a Docker host with DinD (`/var/run/docker.sock` mounted into
-the Dagger runner, or a `--privileged` CI runner):
+Run the integration suite on a local host with Docker Compose:
 
 ```bash
 make layer3-e2e
-# or: ENABLE_INTEGRATION_STAGE=true dagger run ts-node dagger/codegen.ts
 ```
 
-The pipeline:
+The local runner:
 
 1. Builds the gateway image with `CARGO_FEATURES=dev-endpoints` (enables `/dev/*` routes).
 2. Starts `docker compose up -d`.
