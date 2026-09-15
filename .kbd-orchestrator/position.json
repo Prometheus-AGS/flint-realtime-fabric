@@ -2,7 +2,7 @@
   "schemaVersion": "1",
   "generatedBy": "legacy-position-projection",
   "sourceRevision": 4,
-  "updatedAt": "2026-09-14T18:42:41Z",
+  "updatedAt": "2026-09-15T06:16:32Z",
   "cursor": [
     "phase-36-sovereign-sfu-ice-linux-fix",
     "adr-009-replication-materializer-and-pem-publication"
@@ -12,14 +12,14 @@
     "id": "phase-36-sovereign-sfu-ice-linux-fix",
     "status": "active-parent",
     "progress": {
-      "done": 5,
+      "done": 6,
       "total": 6
     },
     "children": [
       {
         "type": "phase",
         "id": "adr-009-replication-materializer-and-pem-publication",
-        "status": "execute_ready",
+        "status": "reflected",
         "progress": {
           "done": 0,
           "total": 0

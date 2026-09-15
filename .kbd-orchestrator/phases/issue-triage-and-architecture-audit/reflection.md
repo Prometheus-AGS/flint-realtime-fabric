@@ -104,8 +104,8 @@ with no independent reviewer is a self-assessment, not a certification.
 As written on 2026-09-14, `progress.json` read `completed: 5, total: 6`; `current-waypoint.json` read
 `implementationCompleted: 0` with `exactNextCommand: /kbd-apply p38-c001`. Both contradicted
 git, which showed six commits on `origin/main`, zero active openspec changes, and six
-archived `tasks.md` with **zero open boxes**. (`progress.json` has since been repaired; the
-waypoint has not — see the end of this section.)
+archived `tasks.md` with **zero open boxes**. (Both have since been repaired — see
+"Resolution, 2026-09-15" and "Waypoint resolution, 2026-09-15" below.)
 
 The root cause was not a stale number. `progress.json` declared `schemaVersion: "2"`, whose
 invariant is **array-of-objects only** — every `.changes[]` must be an object with `.id`,
@@ -151,12 +151,54 @@ reconciles `.status`**, so the restored row read `IN_PROGRESS/COMPLETE`. The v2 
 does not catch this — a row may carry `PENDING`/`COMPLETE` and still validate. The live
 file is consistent only because the conversion wrote `DONE` explicitly.
 
-**Still not done, deliberately:** `current-waypoint.json` remains at
-`implementationCompleted: 0` with `exactNextCommand: /kbd-apply p38-c001`. `waypoint.sh`
-only *reads* that field to render a display string (`:61`); the sole writers are
-`kbd-new-phase.sh` and `kbd-next-phase.sh`, i.e. advancing to a next phase. There is no
-sanctioned in-place refresh, and hand-editing the waypoint would repeat the exact error
-this section is about.
+**The waypoint was left stale on 2026-09-15 and repaired later the same day.** It had
+`implementationCompleted: 0` with `exactNextCommand: /kbd-apply p38-c001`; `waypoint.sh`
+only *reads* that field to render a display string (`:61`), and the sole writers are
+`kbd-new-phase.sh` and `kbd-next-phase.sh`, i.e. advancing to a next phase. Since there is
+no sanctioned in-place refresh, the repair was a deliberate hand-edit — justified only
+because it was validated against `current-waypoint.schema.json` before installation, which
+`progress.json` had no equivalent for.
+
+### Waypoint resolution, 2026-09-15
+
+Corrected: `status` `execute_ready` → **`reflected`** (in the enum;
+`kbd-next-phase.sh:54` names it the terminal state and `:74` accepts it),
+`exactNextCommand` → `/kbd-new-phase`, `currentTask` rewritten,
+`implementationCompleted` 0 → 6, `nextPendingChange` → null, `lastCompletedChange` added.
+`project.json.status` set to `reflected` — `kbd-next-phase.sh:71` reads it as the
+authoritative fallback. Simulating that script's exact case statement now yields **no
+warning**.
+
+`revision` was deliberately **not** bumped. `kbd-status` renders from `position.json` only
+when its `sourceRevision` equals the waypoint `revision`; both stay at 4, and
+`kbd_position_sync` was re-run (it genuinely rewrote the file: `done` 5 → 6, child status
+`execute_ready` → `reflected`, verified by diff rather than assumed from its exit code).
+
+Extra fields (`activeChange`, `next`, `planComplete`, `executeComplete`, `reflectComplete`)
+were left untouched: the schema sets `additionalProperties: true`, and undeclared-but-present
+fields are exactly what readers like `rollup.sh` depend on. Tidying them would be the same
+class of error as renaming `reflect_complete`.
+
+**New defect found while doing it — `/kbd-new-phase` updates `phase` but not `path[]`.**
+The waypoint's `path[]` is
+`["phase-36-sovereign-sfu-ice-linux-fix", "adr-009-replication-materializer-and-pem-publication"]`
+and does **not** contain `issue-triage-and-architecture-audit`. `position.json` derives its
+tree from `path[]`, so the sync stamped this phase's 6/6 progress and `reflected` status
+onto nodes named after the *previous* phase — `kbd-status` renders an accurate-looking tree
+under the wrong phase names.
+
+Git history localises the bug precisely, and it is not "drift":
+
+| Commit | `phase` | `path[]` |
+|---|---|---|
+| `0597524` and earlier | `phase-36-sovereign-sfu-ice-linux-fix` | matches `phase` ✓ |
+| `4aa9663` onward | `issue-triage-and-architecture-audit` | **unchanged** ✗ |
+
+So `path[]` was correct until the phase flipped, and the phase-creation path changed
+`phase` while leaving `path[]` behind. Not corrected here: `path[]` carries the
+SELECTED-VS-ENTERED invariant that governs child nesting, so rewriting it is a change to
+phase *topology*, not a label fix — and it would silently alter where `/kbd-new-child`
+nests.
 
 ## Technical debt
 
@@ -167,11 +209,19 @@ this section is about.
    sabotage-testing the helper, not by reading it. The v2 invariant does **not** catch the
    contradiction: a `PENDING`/`COMPLETE` row validates cleanly. Any future caller must set
    `.status` itself, as the 2026-09-15 conversion did.
-1b. **`current-waypoint.json` has no sanctioned in-place refresh** — it still reads
-   `implementationCompleted: 0` and points at c001 while `progress.json` reads 6/6.
-   `waypoint.sh:61` only *reads* the field; the only writers are `kbd-new-phase.sh` and
-   `kbd-next-phase.sh`. A projection that can go stale with no way to re-derive it is the
-   root of this phase's nine position-reminder staleness events.
+1b. ~~**`current-waypoint.json` has no sanctioned in-place refresh**~~ — **RESOLVED
+   2026-09-15** by a schema-validated hand-edit (status `reflected`, counter 6/6,
+   `exactNextCommand` `/kbd-new-phase`), plus `project.json.status`. The underlying gap
+   stands: there is still no *function* that re-derives the waypoint from `progress.json`,
+   which is the root of this phase's nine position-reminder staleness events.
+1d. **`/kbd-new-phase` updates `phase` but not `path[]`** — the waypoint still names
+   `phase-36-sovereign-sfu-ice-linux-fix` and `adr-009-…`. `position.json` builds its tree
+   from `path[]`, so this phase's progress and status render under the previous phase's
+   names. Git localises it: at `0597524` `phase` and `path[]` agreed; at `4aa9663` `phase`
+   flipped to `issue-triage-and-architecture-audit` and `path[]` did not move. So the bug
+   is in the phase-creation path, not drift. Not fixed here: `path[]` governs the
+   SELECTED-VS-ENTERED invariant that decides where `/kbd-new-child` nests, so rewriting it
+   changes phase topology rather than a label. **Fix the script, then re-derive `path[]`.**
 1c. **`reflect_complete` vs `reflection_complete`** — the orchestrator disagrees with
    itself. Live code reads `reflect_complete` (`rollup.sh:58`, `kbd-child-exit.sh:100`,
    both phase-creation scripts); `progress.schema.json:47` and
