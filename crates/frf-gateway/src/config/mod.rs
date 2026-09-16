@@ -50,6 +50,11 @@ pub struct GatewayConfig {
     pub entity_projection_password: Option<String>,
     pub entity_projection_namespace: Option<String>,
     pub entity_projection_database: Option<String>,
+    /// Encryption key for opaque v2 entity-watch checkpoints. Required with CDC.
+    pub entity_watch_checkpoint_key: Option<String>,
+    pub entity_watch_checkpoint_generation: u64,
+    pub entity_watch_retention_seconds: u64,
+    pub entity_watch_buffer_capacity: usize,
     /// SFU mode: "sovereign" → `str0m`, "hosted" → `LiveKit` (default: "hosted").
     pub sfu_mode: SfuMode,
     /// Optional endpoint lanes, each requiring an explicit deployment opt-in.
@@ -165,6 +170,10 @@ impl GatewayConfig {
             entity_projection_password: None,
             entity_projection_namespace: None,
             entity_projection_database: None,
+            entity_watch_checkpoint_key: None,
+            entity_watch_checkpoint_generation: 1,
+            entity_watch_retention_seconds: 86_400,
+            entity_watch_buffer_capacity: 256,
             // `test_default` uses Sovereign deliberately — unlike the production `from_env`
             // default (Hosted), it avoids the LiveKit-credentials requirement so unit tests
             // don't need `LIVEKIT_*` set. This intentional divergence is why the two
@@ -337,6 +346,22 @@ impl GatewayConfig {
             entity_projection_password: optional_env("ENTITY_PROJECTION_PASSWORD"),
             entity_projection_namespace: optional_env("ENTITY_PROJECTION_NAMESPACE"),
             entity_projection_database: optional_env("ENTITY_PROJECTION_DATABASE"),
+            entity_watch_checkpoint_key: optional_env("ENTITY_WATCH_CHECKPOINT_KEY"),
+            entity_watch_checkpoint_generation: validation::parse_env_number(
+                "ENTITY_WATCH_CHECKPOINT_GENERATION",
+                std::env::var("ENTITY_WATCH_CHECKPOINT_GENERATION").ok(),
+                1,
+            )?,
+            entity_watch_retention_seconds: validation::parse_env_number(
+                "ENTITY_WATCH_RETENTION_SECONDS",
+                std::env::var("ENTITY_WATCH_RETENTION_SECONDS").ok(),
+                86_400,
+            )?,
+            entity_watch_buffer_capacity: validation::parse_env_number(
+                "ENTITY_WATCH_BUFFER_CAPACITY",
+                std::env::var("ENTITY_WATCH_BUFFER_CAPACITY").ok(),
+                256,
+            )?,
             sfu_mode,
             lanes,
             registry_idle_secs: std::env::var("REGISTRY_IDLE_SECS")

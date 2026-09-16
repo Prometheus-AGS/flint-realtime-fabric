@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity_type_watch/stream.rs",
+      "line": 87,
+      "claim": "The token expiry deadline is not enforced while a delivery is being authorized or enqueued, so a protected mutation can be emitted after the verified token has expired.",
+      "evidence": "In `run_producer`, `sleep_until(producer.deadline)` is only one branch of the `tokio::select!` that waits for the next raw item; after an item is received the code awaits `delivery_frame(&producer, delivery).await` and then `tx.try_send(frame)` without rechecking `producer.deadline` (lines 87-141). The acceptance criteria require authority lifetime/revocation boundaries to meet the watch contract and per-event authority enforcement.",
+      "suggested_fix": "Race the entire per-delivery authorization/build/enqueue path against `producer.deadline`, or explicitly check `Instant::now() >= producer.deadline` immediately before issuing checkpoints and before `try_send`; apply the same deadline check in initial snapshot enqueue."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

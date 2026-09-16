@@ -1,6 +1,10 @@
 use super::*;
+use crate::broker_config::DEFAULT_REPLAY_RETENTION_SECONDS;
 use frf_domain::{EventKind, TenantId};
+use iggy::clients::consumer::AutoCommit;
 use iggy::messages::poll_messages::PollingKind;
+use iggy::utils::duration::IggyDuration;
+use iggy::utils::expiry::IggyExpiry;
 use std::future;
 use uuid::Uuid;
 
@@ -51,9 +55,21 @@ fn polling_never_commits_before_application_ack() {
 #[test]
 fn replay_history_is_bounded_to_the_contract_minimum() {
     assert_eq!(
-        replay_retention(),
+        replay_retention(DEFAULT_REPLAY_RETENTION_SECONDS),
         IggyExpiry::ExpireDuration(IggyDuration::new_from_secs(86_400))
     );
+    assert_eq!(
+        replay_retention(172_800),
+        IggyExpiry::ExpireDuration(IggyDuration::new_from_secs(172_800))
+    );
+}
+
+#[tokio::test]
+async fn configured_replay_retention_rejects_zero() {
+    let Err(error) = IggyBroker::with_replay_retention("iggy://unused", 0).await else {
+        panic!("zero retention must fail before connecting");
+    };
+    assert!(error.to_string().contains("retention"));
 }
 
 #[tokio::test]

@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/pri-c010-type-watch/tasks.md",
+      "line": 9,
+      "claim": "The change marks the source-bound receipt task complete without adding the required receipt under the specified evidence path.",
+      "evidence": "Acceptance criterion 5 requires: \"Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c010-type-watch/`; run applicable local quality checks...\" The diff contains no added or modified file under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c010-type-watch/`, while `tasks.md` checks item 5 as complete.",
+      "suggested_fix": "Add the current source-bound receipt file(s) under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c010-type-watch/` or leave task 5 unchecked until the receipt is committed/included in the packet."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "scripts/test-deployment-profiles.sh",
+      "line": 110,
+      "claim": "The deployment profile test script commits a hardcoded entity watch checkpoint signing key.",
+      "evidence": "Constraint S1 says: \"No hardcoded secrets (API keys, tokens, signing secrets) in any committed file. Secrets come from env / a secret manager; validated present at startup.\" The diff adds `export FRF_ENTITY_WATCH_CHECKPOINT_KEY=0123456789abcdef0123456789abcdef`, and the new environment/docs describe this value as the HMAC key used to authenticate opaque v2 resume checkpoints.",
+      "suggested_fix": "Generate a temporary random key inside the test script at runtime, or require the caller to provide `FRF_ENTITY_WATCH_CHECKPOINT_KEY` from the environment without committing a fixed signing key value."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

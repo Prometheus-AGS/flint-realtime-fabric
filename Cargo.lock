@@ -2893,15 +2893,20 @@ dependencies = [
 name = "frf-app"
 version = "0.1.0"
 dependencies = [
+ "aes-gcm",
+ "async-stream",
  "async-trait",
  "bytes",
  "chrono",
  "frf-domain",
  "frf-ports",
  "futures-util",
+ "getrandom 0.3.4",
  "mockall",
  "serde",
  "serde_json",
+ "serde_json_canonicalizer",
+ "sha2 0.10.9",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -2967,7 +2972,6 @@ dependencies = [
 name = "frf-broker-iggy"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "async-stream",
  "async-trait",
  "bytes",
@@ -3092,6 +3096,7 @@ dependencies = [
  "frf-shape-electric",
  "frf-store-redb",
  "frf-store-surreal",
+ "frf-watch-broker",
  "futures-util",
  "metrics",
  "metrics-exporter-prometheus",
@@ -3284,6 +3289,7 @@ version = "0.1.0"
 dependencies = [
  "prost 0.14.4",
  "prost-types 0.14.4",
+ "tokio",
  "tonic 0.14.6",
  "tonic-prost",
  "tonic-prost-build",
@@ -3386,6 +3392,18 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+]
+
+[[package]]
+name = "frf-watch-broker"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "frf-domain",
+ "frf-ports",
+ "futures-util",
+ "serde_json",
+ "tracing",
 ]
 
 [[package]]

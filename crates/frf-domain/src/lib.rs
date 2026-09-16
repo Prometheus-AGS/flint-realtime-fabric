@@ -4,6 +4,7 @@
 
 pub mod agent;
 pub mod entity;
+pub mod entity_watch;
 pub mod envelope;
 pub mod ids;
 pub mod presence;
@@ -12,6 +13,10 @@ pub mod sync;
 
 pub use agent::{AgentEvent, AgentEventKind, AgentProtocol};
 pub use entity::{ChangeOp, EntityChange};
+pub use entity_watch::{
+    CanonicalValue, CommittedEntityMutation, EntityField, EntityKey, EntityTypeDelivery,
+    EntityTypeSelector, KeyPart, SourcePosition,
+};
 pub use envelope::{Channel, Cursor, EventEnvelope, EventKind, Offset};
 pub use ids::{AgentId, ChannelId, CursorId, EntityId, SessionId, TenantId};
 pub use presence::{Presence, PresenceStatus};

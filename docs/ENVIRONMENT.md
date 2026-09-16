@@ -94,6 +94,10 @@ inputs while CDC remains disabled.
 | `ENTITY_PROJECTION_PASSWORD` | ⚠️ | ✅ | — | Password for the projection account. |
 | `ENTITY_PROJECTION_NAMESPACE` | ⚠️ | | — | SurrealDB namespace containing the entity projection. |
 | `ENTITY_PROJECTION_DATABASE` | ⚠️ | | — | SurrealDB database containing projected entities and the CDC cursor. |
+| `ENTITY_WATCH_CHECKPOINT_KEY` | ⚠️ | ✅ | — | At least 32 random bytes used to encrypt and authenticate opaque v2 resume checkpoints. Rotate only with an explicit resnapshot rollout. |
+| `ENTITY_WATCH_CHECKPOINT_GENERATION` | | | `1` | Retention/key generation bound into checkpoints; increasing it invalidates prior cursors explicitly. |
+| `ENTITY_WATCH_RETENTION_SECONDS` | | | `86400` | Iggy replay retention advertised to watch clients; full-profile startup always rejects values below 24 hours because broker construction consumes this setting even when CDC is disabled. |
+| `ENTITY_WATCH_BUFFER_CAPACITY` | | | `256` | Per-subscriber bounded frame buffer; overflow emits terminal `Lagged`. |
 
 The configured publication must exist, must not use `FOR ALL TABLES`, and must
 already contain every enrolled table. Add tables through reviewed database

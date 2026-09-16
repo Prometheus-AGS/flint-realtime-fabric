@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "crates/frf-gateway/src/grpc_runtime.rs",
+      "line": 77,
+      "claim": "The v2 WatchEntityType service can be registered when CDC is disabled, producing an exposed endpoint with empty enrollments and a dummy source epoch rather than a functional or explicitly disabled surface.",
+      "evidence": "grpc_runtime registers `entity_v2_svc` solely on `if let Some(checkpoint_key) = state.config.entity_watch_checkpoint_key.clone()` and then uses `watch_enrollments ... unwrap_or_default()` plus `cdc_source_epoch ... unwrap_or_else(|| \"disabled\".to_owned())`; config validation only requires the key inside `if self.cdc_enabled` in crates/frf-gateway/src/config/validation.rs, while constraint T2 says no \"healthy but does nothing\" surfaces.",
+      "suggested_fix": "Register the v2 entity-type watch service only when CDC is enabled and validated, or fail startup when a checkpoint key is set without CDC instead of serving an inert endpoint."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

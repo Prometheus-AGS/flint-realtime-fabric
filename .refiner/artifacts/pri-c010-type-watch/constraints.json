@@ -1,0 +1,21 @@
+{
+  "artifact_type": "code",
+  "constraints": [
+    {"id":"A","description":"Two authorized generated v2 clients receive committed mutations through PostgreSQL, Iggy, the durable typed projection, and tonic while out-of-scope or denied payloads do not cross the application boundary.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"owned real-adapter tonic scenario plus cross-scope application regression"}},
+    {"id":"B","description":"Snapshot/live races, signed resume, expired history, lag, cancellation, token or authority revocation, and teardown follow ADR-010.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"deterministic race and recovery tests plus live resume scenario"}},
+    {"id":"C","description":"Snapshot rows come from current durable typed projection state at an inclusive source/broker cursor and live replay starts strictly after it.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"SurrealDB typed snapshot and race scenario"}},
+    {"id":"D","description":"The frozen v1 proto remains unchanged; generated v2 tonic client and server compile and interoperate.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"v1 hash evidence, generated client compile, real tonic call"}},
+    {"id":"P1","description":"Formatting, diff hygiene, file size, focused tests, deployment profiles, all-target checks, strict Clippy, strict OpenSpec validation, and independent adversarial review pass locally.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"recorded quality and review matrix"}}
+  ],
+  "global_rules": [
+    "Runtime tests execute locally; CI results are not evidence.",
+    "Every adapter implements exactly one port and composition remains in the gateway.",
+    "Every protected payload is authorized at admission and object delivery time.",
+    "Every hand-authored file remains at most 500 lines.",
+    "The fixture owns and removes every external resource it creates."
+  ],
+  "termination_conditions": [
+    "All blocking c010 constraints pass.",
+    "Independent adversarial review has no unresolved critical or warning finding."
+  ]
+}

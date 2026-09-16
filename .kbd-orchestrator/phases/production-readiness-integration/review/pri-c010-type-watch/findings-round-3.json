@@ -1,0 +1,39 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/watch_checkpoint.rs",
+      "line": 50,
+      "claim": "Watch checkpoints are not opaque because the token is plaintext JSON with subject, tenant, entity type, source epoch, generation, and last offset followed only by an HMAC.",
+      "evidence": "The checkpoint payload struct contains `subject`, `tenant_id`, `entity_type`, `source_epoch`, and `last_offset` (`crates/frf-app/src/watch_checkpoint.rs` lines 10-20), and `CheckpointCodec::issue` serializes it with `serde_json::to_vec(&payload)` then appends `mac.finalize().into_bytes()` without encryption or server-side indirection; acceptance/evidence describes \u201copaque checkpoint messages\u201d and says denied/out-of-scope events expose only an opaque client checkpoint.",
+      "suggested_fix": "Use an actually opaque construction: encrypt-then-MAC the payload with an AEAD, or store cursor state server-side and return a random authenticated handle; do not expose scope/source/offset fields in checkpoint bytes."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity_type_watch/stream.rs",
+      "line": 205,
+      "claim": "Permission revocation can still be delivered after a queued protected frame because the output select is biased toward `rx.recv()` over terminal changes.",
+      "evidence": "`next_output` checks the current terminal once, then if no frame is immediately read enters `tokio::select! { biased; frame = state.rx.recv() => ..., changed = state.terminal_rx.changed() => ... }`; if a permission terminal is published after the initial borrow/try_recv but while a buffered frame is ready, the biased `rx.recv()` branch wins and emits the frame before the revocation, contradicting acceptance B/review resolution that permission terminals preempt buffered protected data.",
+      "suggested_fix": "Prioritize `terminal_rx.changed()` over `rx.recv()` for preempting terminals, and re-check the terminal state after receiving a frame but before yielding it so a concurrently observed permission terminal discards buffered data."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-gateway/src/entity_type_grpc_service.rs",
+      "line": 293,
+      "claim": "`TimestampWithoutZone` canonical values are encoded as proto `TimeValue`, losing their source type and violating the lossless typed watch contract.",
+      "evidence": "`canonical_to_proto` maps `CanonicalValue::Time(value) | CanonicalValue::TimestampWithoutZone(value) => Kind::TimeValue(value)`, while the domain model defines distinct `Time` and `TimestampWithoutZone` variants for canonical source values and acceptance requires committed typed records to retain canonical type/record semantics.",
+      "suggested_fix": "Map `TimestampWithoutZone` to its dedicated v2 proto field if present; if the frozen proto lacks one, fail with `DATA_LOSS` instead of silently encoding it as `TimeValue`."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

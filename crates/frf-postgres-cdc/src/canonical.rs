@@ -326,6 +326,7 @@ fn kind_name(value: &CanonicalValue) -> &'static str {
         CanonicalValue::Time(_) => "time",
         CanonicalValue::TimestampWithoutZone(_) => "timestamp_without_zone",
         CanonicalValue::Json(_) => "json",
+        _ => unreachable!("future canonical values require an explicit source mapping"),
     }
 }
 
@@ -351,6 +352,7 @@ fn canonical_text(value: &CanonicalValue) -> String {
                     |value| value.to_rfc3339_opts(SecondsFormat::AutoSi, true),
                 )
         }
+        _ => unreachable!("future canonical values require an explicit text mapping"),
     }
 }
 

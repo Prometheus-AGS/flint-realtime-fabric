@@ -8,46 +8,25 @@ use frf_ports::{EventStream, LogBroker, PortError};
 use futures_util::StreamExt;
 use iggy::client::{Client, ConsumerOffsetClient, StreamClient, TopicClient};
 use iggy::clients::client::IggyClient;
-use iggy::clients::consumer::AutoCommit;
 use iggy::compression::compression_algorithm::CompressionAlgorithm;
 use iggy::consumer::Consumer;
 use iggy::error::IggyError;
-use iggy::messages::poll_messages::PollingStrategy;
 use iggy::messages::send_messages::Message as IggyMessage;
-use iggy::utils::duration::IggyDuration;
-use iggy::utils::expiry::IggyExpiry;
 use iggy::utils::topic_size::MaxTopicSize;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 use tracing::instrument;
 
+use crate::broker_config::{
+    CHANNEL_BUF, consumer_commit_policy, polling_strategy, replay_retention,
+};
 use crate::channel::partition_id;
 use crate::error::IggyBrokerError;
 use crate::position::{
     locate_message, new_message_range, partition_snapshot, validate_first_delivery,
 };
 
-const CHANNEL_BUF: usize = 256;
-const REPLAY_RETENTION_SECONDS: u64 = 86_400;
 const CONSUMER_HEAD_READER: &str = "head-offset";
-
-fn replay_retention() -> IggyExpiry {
-    IggyExpiry::ExpireDuration(IggyDuration::new_from_secs(REPLAY_RETENTION_SECONDS))
-}
-
-const fn consumer_commit_policy() -> AutoCommit {
-    AutoCommit::Disabled
-}
-
-fn polling_strategy(from: Offset) -> PollingStrategy {
-    if from == Offset::BEGINNING {
-        PollingStrategy::first()
-    } else {
-        // Iggy's explicit offset strategy is inclusive. Callers that persist the
-        // last processed position resume with `last.next()`.
-        PollingStrategy::offset(from.0)
-    }
-}
 
 fn encode_message(envelope: &EventEnvelope) -> Result<IggyMessage, PortError> {
     let payload =
@@ -83,26 +62,12 @@ async fn next_while_open<T>(
 }
 
 pub struct IggyBroker {
-    client: Arc<IggyClient>,
-    connection_string: Arc<str>,
+    pub(crate) client: Arc<IggyClient>,
+    pub(crate) connection_string: Arc<str>,
+    pub(crate) replay_retention_seconds: u64,
 }
 
 impl IggyBroker {
-    /// Connect to an Iggy server via a connection string.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the connection string is invalid or the connection
-    /// cannot be established.
-    pub async fn new(connection_string: &str) -> anyhow::Result<Self> {
-        let client = IggyClient::from_connection_string(connection_string)?;
-        client.connect().await?;
-        Ok(Self {
-            client: Arc::new(client),
-            connection_string: Arc::from(connection_string),
-        })
-    }
-
     /// Return the inclusive current offset for a channel, or `None` when its
     /// single partition has no messages.
     ///
@@ -189,7 +154,7 @@ impl IggyBroker {
                 CompressionAlgorithm::None,
                 None,
                 None,
-                replay_retention(),
+                replay_retention(self.replay_retention_seconds),
                 MaxTopicSize::ServerDefault,
             )
             .await
@@ -213,7 +178,7 @@ impl IggyBroker {
                         ))
                     })?;
 
-                if current.message_expiry != replay_retention() {
+                if current.message_expiry != replay_retention(self.replay_retention_seconds) {
                     self.client
                         .update_topic(
                             &stream_id,
@@ -221,7 +186,7 @@ impl IggyBroker {
                             &current.name,
                             current.compression_algorithm,
                             Some(current.replication_factor),
-                            replay_retention(),
+                            replay_retention(self.replay_retention_seconds),
                             current.max_topic_size,
                         )
                         .await

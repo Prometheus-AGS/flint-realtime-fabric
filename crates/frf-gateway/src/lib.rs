@@ -8,6 +8,7 @@ pub mod config;
 pub mod entity_grpc_service;
 pub mod entity_projector;
 pub mod entity_store_mem;
+pub mod entity_type_grpc_service;
 pub mod error;
 pub mod grpc_service;
 pub mod media_bridge;

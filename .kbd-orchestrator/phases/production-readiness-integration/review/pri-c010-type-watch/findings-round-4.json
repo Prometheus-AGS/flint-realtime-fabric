@@ -1,0 +1,39 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-projection-surreal/src/store.rs",
+      "line": 118,
+      "claim": "The Surreal projection implementation returns `Ok(false)` from a function whose signature returns `Result<ProjectionApply, PortError>`, so the workspace will not compile.",
+      "evidence": "In the added `async fn apply(...) -> Result<ProjectionApply, PortError>` hunk, the cursor check branch contains `if !cursor_advances(checkpoint, &cursor)? { return Ok(false); }`; constraint R1 requires `cargo check --workspace` to be clean.",
+      "suggested_fix": "Return `Ok(ProjectionApply::Duplicate)` or the appropriate `ProjectionApply` variant instead of `Ok(false)`."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity_type_watch/stream.rs",
+      "line": 102,
+      "claim": "A slow snapshot consumer can block forever without receiving terminal `Lagged`, violating the bounded-buffer/slow-client lag acceptance requirement.",
+      "evidence": "Acceptance task 4 requires slow-client lag to meet the contract; `run_producer` sends all `initial` snapshot frames with `tx.send(frame).await` before entering the live loop, while `Lagged` is emitted only later on `tx.try_send(frame)` failure in the live-delivery path.",
+      "suggested_fix": "Use the same non-blocking bounded send policy for initial frames, emitting terminal `Lagged { checkpoint_resumable: false, ... }` when the initial queue fills."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity_type_watch/stream.rs",
+      "line": 144,
+      "claim": "Subscribe permission revocation can still race a queued protected mutation because delivery does not recheck subscription authority immediately before enqueueing or before output.",
+      "evidence": "The producer checks `producer.authz.check(&producer.subscribe_tuple)` only on the periodic `interval.tick()` branch, but after `raw.next()` it authorizes only the object tuple and then enqueues `EntityTypeWatchFrame::Mutation` with `tx.try_send(frame)`; `next_output` only consults `terminal_rx` and performs no fresh authority check before returning queued frames. Acceptance task 4 requires revocation to meet the contract.",
+      "suggested_fix": "After receiving and object-authorizing a protected delivery, recheck the subscription tuple immediately before enqueueing; also ensure any revocation signal preempts already queued protected frames before client delivery."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

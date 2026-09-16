@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use frf_domain::{ChangeOp, EntityChange, EntityId, TenantId};
+use frf_domain::{ChangeOp, EntityChange, EntityId, EntityTypeDelivery, TenantId};
 use frf_ports::ProjectionCursor;
 use surrealdb::types::SurrealValue;
 use uuid::Uuid;
@@ -17,10 +17,14 @@ pub(crate) struct EntityRow {
     pub previous_json: Option<String>,
     pub timestamp: String,
     pub version: String,
+    pub typed_delivery_json: Option<String>,
 }
 
 impl EntityRow {
-    pub(crate) fn from_change(change: &EntityChange) -> Result<Self, SurrealProjectionError> {
+    pub(crate) fn from_change(
+        change: &EntityChange,
+        delivery: Option<&EntityTypeDelivery>,
+    ) -> Result<Self, SurrealProjectionError> {
         Ok(Self {
             entity_id: change.entity_id.to_string(),
             tenant_id: change.tenant_id.to_string(),
@@ -36,7 +40,21 @@ impl EntityRow {
                 .map_err(|error| SurrealProjectionError::InvalidData(error.to_string()))?,
             timestamp: change.timestamp.to_rfc3339(),
             version: change.version.to_string(),
+            typed_delivery_json: delivery
+                .map(serde_json::to_string)
+                .transpose()
+                .map_err(|error| SurrealProjectionError::InvalidData(error.to_string()))?,
         })
+    }
+
+    pub(crate) fn typed_delivery(
+        &self,
+    ) -> Result<Option<EntityTypeDelivery>, SurrealProjectionError> {
+        self.typed_delivery_json
+            .as_deref()
+            .map(serde_json::from_str)
+            .transpose()
+            .map_err(|error| SurrealProjectionError::InvalidData(error.to_string()))
     }
 
     pub(crate) fn into_change(self) -> Result<EntityChange, SurrealProjectionError> {

@@ -1,5 +1,21 @@
 use super::{GatewayConfig, GatewayProfile, SfuMode};
 
+pub(super) fn parse_env_number<T>(
+    name: &str,
+    value: Option<String>,
+    default: T,
+) -> anyhow::Result<T>
+where
+    T: std::str::FromStr,
+    T::Err: std::fmt::Display,
+{
+    value.map_or(Ok(default), |value| {
+        value
+            .parse()
+            .map_err(|error| anyhow::anyhow!("{name} must be a valid number: {error}"))
+    })
+}
+
 impl GatewayConfig {
     /// Validate semantic configuration and profile authority before binding.
     ///
@@ -91,6 +107,10 @@ impl GatewayConfig {
     }
 
     fn validate_cdc(&self) -> anyhow::Result<()> {
+        anyhow::ensure!(
+            self.entity_watch_retention_seconds >= 86_400,
+            "ENTITY_WATCH_RETENTION_SECONDS must be at least 86400"
+        );
         if self.cdc_enabled {
             anyhow::ensure!(
                 self.cdc_replication_url
@@ -160,6 +180,20 @@ impl GatewayConfig {
                     "CDC_ENABLED=true requires {name}"
                 );
             }
+            anyhow::ensure!(
+                self.entity_watch_checkpoint_key
+                    .as_ref()
+                    .is_some_and(|value| value.len() >= 32),
+                "CDC_ENABLED=true requires ENTITY_WATCH_CHECKPOINT_KEY with at least 32 bytes"
+            );
+            anyhow::ensure!(
+                self.entity_watch_checkpoint_generation > 0,
+                "ENTITY_WATCH_CHECKPOINT_GENERATION must be greater than zero"
+            );
+            anyhow::ensure!(
+                self.entity_watch_buffer_capacity > 0,
+                "ENTITY_WATCH_BUFFER_CAPACITY must be greater than zero"
+            );
         }
         Ok(())
     }

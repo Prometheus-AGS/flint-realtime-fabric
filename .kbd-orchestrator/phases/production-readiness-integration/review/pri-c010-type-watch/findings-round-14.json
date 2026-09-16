@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-broker-iggy/src/broker_config.rs",
+      "line": 22,
+      "claim": "The adapter library exposes new `anyhow::Result` APIs, violating the project rule that `anyhow` is only allowed at binary edges.",
+      "evidence": "Constraint R3 states \"`anyhow` only at binary edges (`frf-gateway`, `frf-cli`)\"; the new `IggyBroker::new` and `IggyBroker::with_replay_retention` in `crates/frf-broker-iggy/src/broker_config.rs` return `anyhow::Result<Self>` and use `anyhow::ensure!`.",
+      "suggested_fix": "Return a crate-specific error type such as `IggyBrokerError` from adapter constructors and convert to `anyhow` only in `frf-gateway` composition code."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity_type_watch.rs",
+      "line": 289,
+      "claim": "Snapshot responses can disclose the source position of out-of-scope or unauthorized rows through the visible snapshot barrier.",
+      "evidence": "`snapshot_frames` derives `barrier` directly from the projection cursor before filtering rows by tenant/type/object authorization, then pushes `SnapshotComplete { barrier, checkpoint, row_count }`; `accepted_frame` also extracts that barrier into `WatchAccepted.snapshot_barrier`. The submitted acceptance evidence says denied and out-of-scope events must not expose \"source position\" across the application boundary, but the test projection deliberately returns a cursor from `history.last()` even when later rows are other-type/other-tenant/denied.",
+      "suggested_fix": "Do not expose the full projection cursor as a visible barrier when it may have advanced due to filtered rows; keep the full offset only inside the opaque checkpoint, or compute a disclosed barrier from the last authorized in-scope delivery."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

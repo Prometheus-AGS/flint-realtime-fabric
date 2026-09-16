@@ -70,6 +70,7 @@ See [`ENVIRONMENT.md`](ENVIRONMENT.md) for the full list. The secrets are:
 | `IGGY_CONNECTION_STRING` | gateway | Contains broker credentials. |
 | `CDC_REPLICATION_URL` | gateway (CDC) | Contains Postgres replication credentials. |
 | `ENTITY_PROJECTION_PASSWORD` | gateway, SurrealDB | Protects the durable entity projection. |
+| `ENTITY_WATCH_CHECKPOINT_KEY` | gateway | Authenticates identity/type/tenant/source-bound v2 resume checkpoints. |
 | `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` | gateway (hosted SFU) | LiveKit server credentials. |
 | `MATRIX_ACCESS_TOKEN` | gateway (federation) | Only if federation is enabled. |
 
@@ -187,6 +188,23 @@ Postgres slot-lag query above. Restore service in this order:
 3. If the projection state or source history is irrecoverable, create a consistent
    source snapshot, install it with the matching source epoch and checkpoint, then
    restart the projector.
+
+### v2 entity-type watch recovery
+
+`flint.v2.EntityService.WatchEntityType` accepts only the server-owned CDC
+enrollments. Its checkpoint is AES-256-GCM encrypted, authenticated and bound to the verified
+subject, tenant, entity type, projection, source epoch, retention generation and
+last delivered broker offset. A scope mismatch, changed epoch, unsupported token
+version, expired retained offset, or increased checkpoint generation returns one
+terminal `ResnapshotRequired` frame. The server never seeks to the oldest event.
+
+Keep `ENTITY_WATCH_CHECKPOINT_KEY` stable across ordinary restarts. Rotate it by
+increasing `ENTITY_WATCH_CHECKPOINT_GENERATION` and coordinating an authorized
+consumer resnapshot; old checkpoints then fail explicitly. Maintain Iggy history
+for at least `ENTITY_WATCH_RETENTION_SECONDS` and at least twice the measured
+restore-plus-catch-up interval. `Lagged` is terminal and currently reports
+`checkpoint_resumable=false`, so consumers resnapshot rather than risk skipping
+a frame buffered when overflow occurred.
 
 Local acceptance for the complete database-to-v1 API path:
 

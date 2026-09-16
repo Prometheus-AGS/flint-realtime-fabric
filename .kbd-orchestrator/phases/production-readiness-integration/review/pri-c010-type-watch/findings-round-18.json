@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity_type_watch.rs",
+      "line": 335,
+      "claim": "Fully filtered snapshots still issue a completion checkpoint at `None`, causing resume to seek `Offset::BEGINNING` instead of the required pre-snapshot position.",
+      "evidence": "The prior resolution states an empty/fully filtered snapshot must keep its completion checkpoint at the pre-snapshot position; however `snapshot_frames` sets `completion_offset = if authorized.is_empty() { None } else { cursor.as_ref().map(|value| value.broker_offset) }`, and the resume path maps `None` to `Offset::BEGINNING` with `let from = offset.map_or(Offset::BEGINNING, |value| Offset(value).next());`.",
+      "suggested_fix": "For a fully filtered snapshot, compute and checkpoint the offset immediately before the earliest in-scope undisclosed row (or another actual pre-snapshot retained boundary), rather than always using `None`; only use `None` when that boundary is truly before broker offset 0."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

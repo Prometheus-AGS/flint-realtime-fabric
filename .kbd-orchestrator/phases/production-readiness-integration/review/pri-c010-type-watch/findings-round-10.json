@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-gateway/src/config/validation.rs",
+      "line": 175,
+      "claim": "The gateway can advertise an entity-watch retention period longer than the broker actually retains, causing clients to trust checkpoints that may already be expired.",
+      "evidence": "`ENTITY_WATCH_RETENTION_SECONDS` is accepted for any value `>= 86_400` in `config/validation.rs`, `accepted_frame` returns `retention_seconds: self.config.retention_seconds` to clients in `crates/frf-app/src/entity_type_watch.rs`, but Iggy replay retention remains hardcoded to `86_400` seconds in `crates/frf-broker-iggy/src/broker_config.rs` (`const REPLAY_RETENTION_SECONDS: u64 = 86_400`). Acceptance B requires reconnect/expired cursor behavior to meet the contract, and the runbook tells operators to maintain Iggy history for at least `ENTITY_WATCH_RETENTION_SECONDS`.",
+      "suggested_fix": "Either make the broker retention configurable from the same `ENTITY_WATCH_RETENTION_SECONDS` value or reject values above the actual configured broker retention and only advertise the effective retention."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

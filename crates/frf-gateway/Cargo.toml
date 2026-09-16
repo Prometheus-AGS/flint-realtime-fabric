@@ -30,6 +30,7 @@ frf-media-livekit = { path = "../frf-media-livekit" }
 frf-media-str0m = { path = "../frf-media-str0m" }
 frf-store-surreal = { path = "../frf-store-surreal" }
 frf-projection-surreal = { path = "../frf-projection-surreal" }
+frf-watch-broker = { path = "../frf-watch-broker" }
 frf-broker-iggy = { path = "../frf-broker-iggy" }
 frf-bridge-matrix = { path = "../frf-bridge-matrix" }
 frf-bridge-atproto = { path = "../frf-bridge-atproto" }

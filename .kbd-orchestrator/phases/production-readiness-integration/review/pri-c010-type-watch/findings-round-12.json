@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity_type_watch/stream.rs",
+      "line": 157,
+      "claim": "Live delivery can continue issuing checkpoints after subscription authority is revoked for out-of-scope or object-denied events because the subscribe relation is only rechecked for object-authorized matching mutations.",
+      "evidence": "Acceptance task 2 requires per-event authority and task 4 requires revocation to meet the contract; in `delivery_frame`, the checkpoint is issued before filtering, tenant/type mismatches return `Ok(EntityTypeWatchFrame::CheckpointAdvanced(checkpoint))` without checking `producer.subscribe_tuple`, object-denied events also return `CheckpointAdvanced`, and the subscribe recheck appears only inside the `Ok(true)` object-view branch before returning `Mutation`.",
+      "suggested_fix": "Check the subscribe tuple after any delivery is read and before issuing or returning any checkpoint/mutation frame, treating false/error as `Terminal::Permission`, not only in the object-authorized mutation branch."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

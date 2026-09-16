@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-projection-surreal/src/store.rs",
+      "line": 118,
+      "claim": "The Surreal projection adapter no longer compiles because `apply` returns `Ok(false)` from a function whose success type is `ProjectionApply`.",
+      "evidence": "In `SurrealEntityProjection::apply`, the hunk shows `) -> Result<ProjectionApply, PortError>` and then `if !cursor_advances(checkpoint, &cursor)? { return Ok(false); }`, while `ProjectionApply` is an enum re-exported from `frf_ports` and other implementations return `ProjectionApply::Duplicate` for this case.",
+      "suggested_fix": "Return `Ok(ProjectionApply::Duplicate)` when the cursor does not advance."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

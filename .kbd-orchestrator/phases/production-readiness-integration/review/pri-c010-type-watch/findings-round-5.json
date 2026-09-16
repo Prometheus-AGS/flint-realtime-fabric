@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity_type_watch.rs",
+      "line": 300,
+      "claim": "Snapshot delivery lacks the app-layer tenant/type equality guard and can emit protected snapshot records returned by the projection even if they are for another tenant or type.",
+      "evidence": "In `snapshot_frames`, the loop over `rows: Vec<EntityTypeDelivery>` only checks `self.authz.check(&object_view_tuple(request.tenant_id, subject, &delivery.mutation.key))` before pushing `SnapshotRow`; unlike live delivery in `entity_type_watch/stream.rs`, it never verifies `delivery.mutation.tenant_id == request.tenant_id` or `request.entity_type.matches(&delivery.mutation)`. This conflicts with acceptance A requiring other tenants/types receive no protected payload and constraint S4 requiring tenant isolation at Keto plus the app-layer tenant-equality guard.",
+      "suggested_fix": "In `snapshot_frames`, before object authorization, fail closed or skip rows whose `delivery.mutation.tenant_id != request.tenant_id` or whose mutation does not match `request.entity_type`; keep the app-layer guard independent of projection correctness."
+    },
+    {
+      "severity": "WARNING",
+      "file": "crates/frf-app/src/entity_type_watch.rs",
+      "line": 27,
+      "claim": "New public enums are missing `#[non_exhaustive]`, contrary to the workspace Rust idiom constraint.",
+      "evidence": "Constraint I1 says `#[non_exhaustive]` on public enums; this file adds public enums `TypeWatchStart`, `ResnapshotReason`, and `EntityTypeWatchFrame` without the attribute.",
+      "suggested_fix": "Add `#[non_exhaustive]` to the new public enums or document why these public APIs are intentionally exhaustive."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

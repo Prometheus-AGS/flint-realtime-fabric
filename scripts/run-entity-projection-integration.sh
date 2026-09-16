@@ -21,6 +21,11 @@ SURREAL_PORT=""
 IGGY_IMAGE_ID=""
 POSTGRES_IMAGE_ID=""
 SURREAL_IMAGE_ID=""
+SOURCE_MANIFEST="$ROOT_DIR/openspec/changes/pri-c009-entity-projection/files.txt"
+if [[ ! -f "$SOURCE_MANIFEST" ]]; then
+  SOURCE_MANIFEST="$(find "$ROOT_DIR/openspec/changes/archive" -maxdepth 2 \
+    -path '*-pri-c009-entity-projection/files.txt' -print | sort | tail -1)"
+fi
 
 compose() {
   docker compose --project-name "$PROJECT" \
@@ -45,6 +50,7 @@ require_prerequisites() {
   command -v cargo >/dev/null || fail "cargo is required"
   command -v node >/dev/null || fail "node is required"
   docker info >/dev/null 2>&1 || fail "docker daemon is unavailable"
+  [[ -f "$SOURCE_MANIFEST" ]] || fail "c009 source manifest is unavailable"
 }
 
 assert_owned_project() {
@@ -99,7 +105,7 @@ write_receipt() {
     esac
     [[ -f "$ROOT_DIR/$path" ]] || continue
     printf '%s  %s\n' "$(sha256_file "$ROOT_DIR/$path")" "$path" >>"$binding_file"
-  done <openspec/changes/pri-c009-entity-projection/files.txt
+  done <"$SOURCE_MANIFEST"
   local binding_hash
   binding_hash="$(sha256_file "$binding_file")"
   RECEIPT_PATH="$RECEIPT" RECEIPT_RUN_ID="$RUN_ID" RECEIPT_STARTED="$STARTED_AT" \

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "runId": "20260916223916-49993",
+  "source": {
+    "commit": "2ccabf50141ded7edc89f418c2719441221d2219",
+    "candidateArtifactSetSha256": "e76a442f83ab1d1a000e9d7125826e1e263bf7baedaf758d365b131d4d674962"
+  },
+  "startedAt": "2026-09-16T22:39:16Z",
+  "finishedAt": "2026-09-16T22:39:30Z",
+  "exitStatus": 0,
+  "topology": {
+    "composeProject": "frf-projection-20260916223916-49993",
+    "endpoints": {
+      "iggy": "127.0.0.1:32906",
+      "postgres": "127.0.0.1:32907",
+      "surreal": "127.0.0.1:32905"
+    },
+    "imageIds": {
+      "iggy": "sha256:5ed1de369f7d563d5da04093e2d04beb980d2ce965efaaa683bf9a3c72aa5c5f",
+      "postgres": "sha256:ff80089083d7365046af7f03d949a2defa14e0b09e14bd5b8f08a242291be8b2",
+      "surreal": "sha256:3ad3fe6160ada702242506d7134744e065052e380b716a00cd98893b61d05bc8"
+    }
+  },
+  "scenarios": {
+    "postgresCommitToTonicWatch": "pass",
+    "twoAuthorizedSubscribers": "pass",
+    "durableTypedSnapshot": "pass",
+    "resumeAfterCheckpoint": "pass",
+    "keyOnlyDelete": "pass",
+    "sameTenantUnauthorizedDenied": "pass"
+  },
+  "cleanup": {
+    "status": "owned-resources-removed",
+    "composeProject": "frf-projection-20260916223916-49993"
+  },
+  "sha256": {
+    "sourceBinding": "e76a442f83ab1d1a000e9d7125826e1e263bf7baedaf758d365b131d4d674962",
+    "testLog": "7baa130212aadca11a97502caff08bc1183ca3705110d98b6e1a426056055b42",
+    "serverLog": "c960d3a8c3aaac3bf76b1fdf2eba920e5e12eed8d9e29274b83a2e894d0f1ed5"
+  },
+  "credentials": "per-run fixture credentials removed with the owned Compose project"
+}

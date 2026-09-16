@@ -20,6 +20,16 @@ fn valid_default_config_passes_validation() {
 }
 
 #[test]
+fn broker_replay_retention_is_validated_when_cdc_is_disabled() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.entity_watch_retention_seconds = 1;
+    let error = cfg
+        .validate()
+        .expect_err("unsafe broker retention must fail");
+    assert!(error.to_string().contains("ENTITY_WATCH_RETENTION_SECONDS"));
+}
+
+#[test]
 fn empty_optional_cdc_tenant_is_unset() {
     assert_eq!(
         parse_optional_uuid("CDC_TENANT_ID", Some(String::new())).unwrap(),
@@ -36,6 +46,40 @@ fn malformed_optional_cdc_tenant_is_rejected() {
     let error = parse_optional_uuid("CDC_TENANT_ID", Some("not-a-uuid".to_owned()))
         .expect_err("non-empty malformed UUID must fail");
     assert!(error.to_string().contains("CDC_TENANT_ID"));
+}
+
+#[test]
+fn malformed_entity_watch_numbers_name_the_environment_variable() {
+    let generation: anyhow::Result<u64> = validation::parse_env_number(
+        "ENTITY_WATCH_CHECKPOINT_GENERATION",
+        Some("later".to_owned()),
+        1,
+    );
+    assert!(
+        generation
+            .unwrap_err()
+            .to_string()
+            .contains("ENTITY_WATCH_CHECKPOINT_GENERATION")
+    );
+    let retention: anyhow::Result<u64> = validation::parse_env_number(
+        "ENTITY_WATCH_RETENTION_SECONDS",
+        Some("one-day".to_owned()),
+        86_400,
+    );
+    assert!(
+        retention
+            .unwrap_err()
+            .to_string()
+            .contains("ENTITY_WATCH_RETENTION_SECONDS")
+    );
+    let capacity: anyhow::Result<usize> =
+        validation::parse_env_number("ENTITY_WATCH_BUFFER_CAPACITY", Some("many".to_owned()), 256);
+    assert!(
+        capacity
+            .unwrap_err()
+            .to_string()
+            .contains("ENTITY_WATCH_BUFFER_CAPACITY")
+    );
 }
 
 // The issuer-mandatory rule only exists in production (non-`dev-endpoints`) builds;
@@ -127,6 +171,25 @@ fn cdc_enabled_without_durable_projection_fails_fast() {
         .validate()
         .expect_err("projection config must be required");
     assert!(error.to_string().contains("ENTITY_PROJECTION_URL"));
+}
+
+#[test]
+fn cdc_enabled_without_watch_checkpoint_key_fails_fast() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.cdc_enabled = true;
+    cfg.cdc_replication_url = Some("postgres://x".to_owned());
+    cfg.cdc_slot_name = Some("frf_slot".to_owned());
+    cfg.cdc_publication_name = Some("frf_pub".to_owned());
+    cfg.cdc_tenant_id = Some(uuid::Uuid::nil());
+    cfg.cdc_channel_path = Some("entities".to_owned());
+    cfg.cdc_source_epoch = Some("epoch".to_owned());
+    cfg.cdc_enrollments_json = Some(
+        r#"[{"schema":"public","table":"items","projection":"default","columns":["id"],"tenant":{"mode":"fixed"}}]"#.to_owned(),
+    );
+    set_projection_config(&mut cfg);
+    cfg.entity_watch_checkpoint_key = None;
+    let error = cfg.validate().expect_err("checkpoint key must be required");
+    assert!(error.to_string().contains("ENTITY_WATCH_CHECKPOINT_KEY"));
 }
 
 #[test]
@@ -266,4 +329,5 @@ fn set_projection_config(cfg: &mut GatewayConfig) {
     cfg.entity_projection_password = Some("secret".to_owned());
     cfg.entity_projection_namespace = Some("frf".to_owned());
     cfg.entity_projection_database = Some("projection".to_owned());
+    cfg.entity_watch_checkpoint_key = Some("c010-test-checkpoint-key-32-bytes-minimum".to_owned());
 }

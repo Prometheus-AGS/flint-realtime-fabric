@@ -14,8 +14,13 @@ pub(crate) enum ConfiguredLogBroker {
 }
 
 impl ConfiguredLogBroker {
-    pub(crate) async fn for_full(connection_string: &str) -> anyhow::Result<Self> {
-        Ok(Self::Iggy(IggyBroker::new(connection_string).await?))
+    pub(crate) async fn for_full(
+        connection_string: &str,
+        replay_retention_seconds: u64,
+    ) -> anyhow::Result<Self> {
+        Ok(Self::Iggy(
+            IggyBroker::with_replay_retention(connection_string, replay_retention_seconds).await?,
+        ))
     }
 
     const fn disabled() -> Self {

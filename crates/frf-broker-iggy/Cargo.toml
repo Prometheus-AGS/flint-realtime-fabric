@@ -13,7 +13,6 @@ frf-ports = { path = "../frf-ports" }
 iggy.workspace = true
 async-trait.workspace = true
 bytes.workspace = true
-anyhow.workspace = true
 async-stream.workspace = true
 futures-util.workspace = true
 tokio = { workspace = true, features = ["sync", "rt"] }

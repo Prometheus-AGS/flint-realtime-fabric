@@ -107,8 +107,13 @@ export FRF_TLS_CA_FILE="$work/ca.crt"
 export FRF_IGGY_USERNAME=frf FRF_IGGY_PASSWORD=secret
 export FRF_SURREAL_USERNAME=frf FRF_SURREAL_PASSWORD=secret
 export FRF_SURREAL_NAMESPACE=flint FRF_SURREAL_DATABASE=entity_projection
+FRF_ENTITY_WATCH_CHECKPOINT_KEY=$(openssl rand -hex 32)
+export FRF_ENTITY_WATCH_CHECKPOINT_KEY
 export FRF_CDC_TENANT_ID=00000000-0000-0000-0000-000000000001
 export FRF_SHAPE_CATALOG_FILE="$work/catalog.json"
+
+env -u FRF_ENTITY_WATCH_CHECKPOINT_KEY docker compose -f compose.yml config >/dev/null
+echo "PASS base compose: entity watch key is optional when CDC is disabled"
 
 scripts/render-deployment-profile.sh full "$work/full.yml"
 scripts/render-deployment-profile.sh shape-only "$work/shape.yml"

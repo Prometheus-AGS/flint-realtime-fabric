@@ -16,5 +16,8 @@ tonic-prost = "0.14"
 [build-dependencies]
 tonic-prost-build = "0.14"
 
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }
+
 [lints]
 workspace = true

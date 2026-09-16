@@ -3,7 +3,7 @@ use std::sync::Arc;
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use chrono::{DateTime, SecondsFormat};
 use frf_domain::{ChannelId, EntityChange, EntityId, EventEnvelope, EventKind, Offset};
-use frf_ports::{EntityStore, LogBroker, ProjectionCursor};
+use frf_ports::{EntityStore, LogBroker, ProjectionCursor, TypedEntityProjection};
 use frf_postgres_cdc::model::{CanonicalValue, CdcMutation};
 use futures_util::StreamExt as _;
 use sha2::{Digest as _, Sha256};
@@ -106,8 +106,15 @@ where
             transaction_index: mutation.source.transaction_index,
             broker_offset: envelope.offset.0,
         };
+        let delivery = frf_domain::EntityTypeDelivery {
+            mutation: mutation.clone(),
+            broker_partition: 0,
+            broker_offset: envelope.offset.0,
+        };
         let change = mutation_to_change(mutation, envelope.offset)?;
-        self.store.apply_projection(change, cursor).await?;
+        self.store
+            .apply_typed_projection(TypedEntityProjection { change, delivery }, cursor)
+            .await?;
         self.broker
             .ack(ChannelId::WELL_KNOWN_ENTITIES, CONSUMER_ID, envelope.offset)
             .await?;

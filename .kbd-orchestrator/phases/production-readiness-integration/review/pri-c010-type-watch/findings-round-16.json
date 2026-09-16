@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-gateway/src/main.rs",
+      "line": 170,
+      "claim": "The gateway no longer compiles because `ConfiguredLogBroker::for_full` is called with a new second argument but the diff does not update that function's signature or implementation.",
+      "evidence": "The main.rs hunk changes the call from `ConfiguredLogBroker::for_full(&config.iggy_connection_string).await?` to `ConfiguredLogBroker::for_full(&config.iggy_connection_string, config.entity_watch_retention_seconds).await?`, while the packet contains no hunk for `crates/frf-gateway/src/configured_broker.rs` changing `for_full`; this violates R1 (`cargo check --workspace` is clean).",
+      "suggested_fix": "Update `ConfiguredLogBroker::for_full` in `crates/frf-gateway/src/configured_broker.rs` to accept the retention seconds and pass them to `IggyBroker::with_replay_retention`, or keep the original one-argument call."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

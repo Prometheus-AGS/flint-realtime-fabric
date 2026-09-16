@@ -4,6 +4,9 @@ use iggy::error::IggyError;
 #[non_exhaustive]
 #[derive(Debug, thiserror::Error)]
 pub enum IggyBrokerError {
+    #[error("invalid configuration: {0}")]
+    Configuration(String),
+
     #[error("iggy transport: {0}")]
     Transport(#[from] IggyError),
 
@@ -17,6 +20,7 @@ pub enum IggyBrokerError {
 impl From<IggyBrokerError> for PortError {
     fn from(err: IggyBrokerError) -> Self {
         match err {
+            IggyBrokerError::Configuration(msg) => PortError::Transport(msg),
             IggyBrokerError::NotFound(msg) => PortError::NotFound(msg),
             IggyBrokerError::Serialization(msg) => PortError::Serialization(msg),
             IggyBrokerError::Transport(e) => PortError::Transport(e.to_string()),

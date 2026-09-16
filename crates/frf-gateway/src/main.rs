@@ -4,26 +4,16 @@
 use std::sync::Arc;
 
 use anyhow::{Context as _, Result};
-use frf_app::SyncUseCase;
-use frf_app::{AuthzUseCase, EntityUseCase, PublishUseCase, SubscribePipeline};
-use frf_crdt::{InMemoryCrdtStore, LoroDeltaApplier};
+use frf_app::{PublishUseCase, SubscribePipeline};
 use frf_domain::TenantId;
 use frf_gateway::authz_backend::ConfiguredAuthzProvider;
 use frf_gateway::config::{AuthzBackend, GatewayProfile, PolicyEngineMode};
-use frf_gateway::{
-    AppState, GatewayConfig, agent_grpc_service::AgentGrpcService,
-    authz_grpc_service::AuthzGrpcService, entity_grpc_service::EntityGrpcService,
-    grpc_service::SpineGrpcService, signal_service::SpineSignalService,
-    sync_grpc_service::SyncGrpcService,
-};
+use frf_gateway::{AppState, GatewayConfig};
 use frf_identity_ory::OryIdentityVerifier;
 use frf_librefang::LibreFangBus;
 use frf_policy_cedar::CedarPolicyEngine;
-use frf_ports::{
-    BoxedPolicyProvider, DynAgentEventBus, DynMediaSignaler, DynPolicyProvider, NoOpPolicyProvider,
-};
+use frf_ports::{BoxedPolicyProvider, DynAgentEventBus, DynPolicyProvider, NoOpPolicyProvider};
 use frf_postgres_cdc::{CdcConfig, PostgresCdcConsumer};
-use frf_store_redb::RedbOpStore;
 use opentelemetry_sdk::trace::TracerProvider;
 use tokio::net::TcpListener;
 use tokio::sync::watch;
@@ -32,6 +22,7 @@ mod bootstrap;
 mod configured_broker;
 mod entity_projection_runtime;
 mod federation;
+mod grpc_runtime;
 mod inactive_lanes;
 
 use bootstrap::{ensure_entities_channel, init_telemetry};
@@ -146,7 +137,7 @@ async fn main() -> Result<()> {
     federation::spawn_federation_ingest_tasks(&state);
 
     let app = frf_gateway::build_router(Arc::clone(&state));
-    let grpc_task = spawn_grpc_server(Arc::clone(&state), projection_runtime.store)?;
+    let grpc_task = grpc_runtime::spawn(Arc::clone(&state), projection_runtime.store)?;
 
     tracing::info!("frf-gateway listening on {bind_addr}");
     let listener = TcpListener::bind(bind_addr).await?;
@@ -176,7 +167,11 @@ async fn build_broker(config: &GatewayConfig) -> Result<Arc<ConfiguredLogBroker>
         tracing::info!("event spine disabled for shape-only profile");
         Ok(Arc::new(disabled))
     } else {
-        let broker = ConfiguredLogBroker::for_full(&config.iggy_connection_string).await?;
+        let broker = ConfiguredLogBroker::for_full(
+            &config.iggy_connection_string,
+            config.entity_watch_retention_seconds,
+        )
+        .await?;
         ensure_entities_channel(&broker).await?;
         Ok(Arc::new(broker))
     }
@@ -309,99 +304,6 @@ fn build_policy_provider(config: &GatewayConfig) -> Result<BoxedPolicyProvider> 
             ))
         }
     }
-}
-
-fn spawn_grpc_server(
-    state: Arc<
-        AppState<
-            ConfiguredLogBroker,
-            ConfiguredAuthzProvider,
-            OryIdentityVerifier,
-            DynMediaSignaler,
-            DynAgentEventBus,
-            BoxedPolicyProvider,
-        >,
-    >,
-    entity_store: Arc<dyn frf_ports::EntityStore>,
-) -> Result<Option<tokio::task::JoinHandle<()>>> {
-    let Some(grpc_port) = state.config.grpc_port else {
-        tracing::info!("gRPC server disabled (GRPC_PORT=0)");
-        return Ok(None);
-    };
-
-    let grpc_addr: std::net::SocketAddr = format!("0.0.0.0:{grpc_port}").parse()?;
-
-    // Register every service that has a server implementation. SpineService is
-    // what the browser admin UI calls over Connect/gRPC-web (Subscribe/Publish).
-    // SyncService (CRDT sync) is wired here with an in-memory CRDT store + redb
-    // op-log + Loro applier. EntityService (read plane) is wired with an in-memory
-    // entity store. AuthzService uses the configured authorization adapter.
-    // All six proto services now have server implementations.
-    let spine_svc = SpineGrpcService::new(Arc::clone(&state)).into_server();
-    // For SFU_MODE=sovereign, compose the str0m media engine (StrOmTransport) alongside the
-    // signaling relay and drive it from the signal path via MediaTransportBridge. This does
-    // NOT flip the gate — end-to-end media is unproven (deferred); hosted stays the media path.
-    let signal_service = SpineSignalService::new(
-        Arc::clone(&state.media_signaler),
-        state.config.sfu_mode.into(),
-    );
-    let signal_service = match &state.media_bridge {
-        // Reuse the single sovereign bridge shared with the /ws/v1/signal inbound path (p23-c003)
-        // so both transports drive the same str0m engine + ADR-007 authz.
-        Some(bridge) => signal_service.with_media_bridge(Arc::clone(bridge)),
-        None => signal_service,
-    };
-    let signal_svc = signal_service.into_server();
-
-    // SyncService: CRDT sync over bidi streaming. In-memory stores are the
-    // default; persistent deployments swap in frf-store-surreal / a redb file.
-    let sync_use_case = Arc::new(SyncUseCase::new(
-        InMemoryCrdtStore::default(),
-        RedbOpStore::in_memory().context("initialize redb in-memory op-store")?,
-        LoroDeltaApplier,
-    ));
-    let sync_svc = SyncGrpcService::new(sync_use_case).into_server();
-
-    // EntityService: read side of the entity plane. CDC-enabled deployments use the
-    // durable projection composed before AppState; disabled deployments use memory.
-    // Reads are auth-guarded and watches re-check Keto `view` for every event.
-    // Built before `agent_svc` because that call consumes `state`.
-    let entity_use_case = Arc::new(EntityUseCase::new(
-        entity_store,
-        Arc::clone(&state.authz),
-        Arc::clone(&state.identity),
-    ));
-    let entity_svc = EntityGrpcService::new(entity_use_case).into_server();
-
-    // AuthzService: check/write/delete relation tuples against Keto. Each op verifies the
-    // caller's token and enforces tenant-equality before delegating to the provider.
-    let authz_use_case = Arc::new(AuthzUseCase::new(
-        Arc::clone(&state.authz),
-        Arc::clone(&state.identity),
-    ));
-    let authz_svc = AuthzGrpcService::new(authz_use_case).into_server();
-
-    let agent_svc = AgentGrpcService::new(state).into_server();
-    tracing::info!("frf-gateway gRPC (+gRPC-web) listening on {grpc_addr}");
-
-    Ok(Some(tokio::spawn(async move {
-        // `accept_http1(true)` + GrpcWebLayer lets browsers reach these services
-        // via Connect-Web / gRPC-web (HTTP/1.1), not just native HTTP/2 gRPC.
-        if let Err(e) = tonic::transport::Server::builder()
-            .accept_http1(true)
-            .layer(tonic_web::GrpcWebLayer::new())
-            .add_service(spine_svc)
-            .add_service(signal_svc)
-            .add_service(sync_svc)
-            .add_service(entity_svc)
-            .add_service(authz_svc)
-            .add_service(agent_svc)
-            .serve(grpc_addr)
-            .await
-        {
-            tracing::error!(error = %e, "gRPC server exited with error");
-        }
-    })))
 }
 
 /// Compose the ADR-009 relational replication lane from environment configuration.

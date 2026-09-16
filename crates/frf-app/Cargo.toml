@@ -15,9 +15,14 @@ thiserror.workspace = true
 tracing.workspace = true
 async-trait.workspace = true
 futures-util.workspace = true
+aes-gcm.workspace = true
+getrandom.workspace = true
+sha2.workspace = true
 tokio = { workspace = true, features = ["sync"] }
 serde_json.workspace = true
+serde_json_canonicalizer.workspace = true
 serde.workspace = true
+uuid.workspace = true
 
 [dev-dependencies]
 mockall.workspace = true
@@ -26,6 +31,7 @@ uuid = { workspace = true }
 serde_json.workspace = true
 futures-util.workspace = true
 chrono = { workspace = true }
+async-stream.workspace = true
 
 [lints]
 workspace = true

@@ -1,0 +1,47 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-gateway/src/grpc_runtime.rs",
+      "line": 120,
+      "claim": "The gateway registers two separate tonic servers for the same `flint.v2.EntityService`, so the new `WatchEntityType` transport cannot coexist correctly with the existing entity RPCs.",
+      "evidence": "`grpc_runtime.rs` builds `entity_svc = EntityGrpcService::new(...).into_server()` and `entity_type_svc = EntityTypeGrpcService::new(...).into_server()`, then calls `.add_service(entity_svc)` followed by `.add_service(entity_type_svc)`. `entity_type_grpc_service.rs` imports and returns `fv2::entity_service_server::{EntityService, EntityServiceServer}`, the same generated service family used by the existing entity service.",
+      "suggested_fix": "Implement `watch_entity_type` on the existing `EntityGrpcService` or replace both with one combined `EntityService` implementation so the generated `EntityServiceServer` is registered exactly once."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-gateway/src/grpc_runtime.rs",
+      "line": 94,
+      "claim": "The production gRPC runtime contains a hardcoded fallback checkpoint HMAC key.",
+      "evidence": "`checkpoint_key: state.config.entity_watch_checkpoint_key.clone().map_or_else(|| vec![0; 32], String::into_bytes)` hardcodes a 32-byte all-zero secret when configuration is absent, while constraint S1 says: \"No hardcoded secrets ... in any committed file. Secrets come from env / a secret manager; validated present at startup.\"",
+      "suggested_fix": "Do not synthesize a key; fail startup or disable the type-watch service unless `ENTITY_WATCH_CHECKPOINT_KEY` is present and valid."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/pri-c010-type-watch/tasks.md",
+      "line": 9,
+      "claim": "The change does not satisfy the required evidence and validation acceptance item.",
+      "evidence": "Acceptance task 5 is still unchecked: `- [ ] 5. Save a source-bound receipt under .kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c010-type-watch/; run applicable local quality checks and openspec validate ...`; the diff adds no file under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c010-type-watch/`.",
+      "suggested_fix": "Run the required checks, add the source-bound receipt at the specified evidence path, and only then mark the task complete."
+    },
+    {
+      "severity": "WARNING",
+      "file": "crates/frf-app/src/entity_type_watch/stream.rs",
+      "line": 181,
+      "claim": "Terminal source/error events can be emitted before already-buffered accepted or data frames, causing clients to miss frames that were successfully queued.",
+      "evidence": "`next_output` checks `state.terminal_rx.borrow().clone()` before reading `state.rx`, and the `tokio::select!` is biased toward `terminal_rx.changed()` over `state.rx.recv()`. `run_producer` sends initial frames to `tx` and later sets `terminal_tx`, so a terminal can preempt queued frames.",
+      "suggested_fix": "Drain queued frames before yielding terminal state, or couple terminal delivery to the frame queue so ordering is preserved."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

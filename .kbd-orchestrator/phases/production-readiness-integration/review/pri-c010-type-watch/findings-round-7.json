@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity_type_watch/stream.rs",
+      "line": 166,
+      "claim": "Live/resumed delivery does not reject or resnapshot on source-epoch changes, so a mutation from a different source epoch can be delivered under a checkpoint bound to the configured epoch.",
+      "evidence": "In `delivery_frame`, the checkpoint scope uses `source_epoch: &producer.source_epoch`, but the only delivery scope checks are `delivery.mutation.tenant_id != producer.request.tenant_id || !producer.request.entity_type.matches(&delivery.mutation)` before returning `EntityTypeWatchFrame::Mutation`; there is no check of `delivery.mutation.source.epoch` against `producer.source_epoch`. The snapshot path separately treats epoch mismatch as `ResnapshotReason::SourceEpochChanged` in `crates/frf-app/src/entity_type_watch.rs`, showing epoch changes are meant to fail explicitly rather than be delivered.",
+      "suggested_fix": "Before issuing/delivering a live mutation, compare `delivery.mutation.source.epoch` with `producer.source_epoch` and emit a terminal `ResnapshotRequired { reason: SourceEpochChanged, ... }` or equivalent fail-closed terminal instead of `Mutation`/`CheckpointAdvanced`."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

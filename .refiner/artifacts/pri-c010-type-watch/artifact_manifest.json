@@ -1,0 +1,37 @@
+{
+  "artifact_type": "code",
+  "variants": [
+    {
+      "name": "authorized-resumable-entity-type-watch",
+      "files": [
+        "../../../crates/frf-domain/src/entity_watch.rs",
+        "../../../crates/frf-ports/src/entity_type_watch.rs",
+        "../../../crates/frf-ports/src/entity_store.rs",
+        "../../../crates/frf-watch-broker/src/lib.rs",
+        "../../../crates/frf-app/src/entity_type_watch.rs",
+        "../../../crates/frf-app/src/entity_type_watch/snapshot.rs",
+        "../../../crates/frf-app/src/entity_type_watch/stream.rs",
+        "../../../crates/frf-app/src/watch_checkpoint.rs",
+        "../../../crates/frf-app/tests/entity_type_watch_empty_snapshot.rs",
+        "../../../crates/frf-projection-surreal/src/store.rs",
+        "../../../crates/frf-gateway/src/configured_broker.rs",
+        "../../../crates/frf-gateway/src/entity_type_grpc_service.rs",
+        "../../../crates/frf-gateway/src/main.rs",
+        "../../../crates/frf-gateway/tests/entity_type_watch_integration.rs",
+        "../../../scripts/run-entity-type-watch-integration.sh",
+        "../../../docs/RUNBOOK.md",
+        "../../../docs/ENVIRONMENT.md"
+      ],
+      "format": "mixed-source",
+      "description": "Versioned v2 entity-type watch with durable typed snapshots, broker replay, encrypted scope-bound checkpoints, per-frame authorization and expiry enforcement, bounded delivery, tonic transport, and owned local integration evidence."
+    }
+  ],
+  "preview": {"required": false, "runs": []},
+  "validation": {
+    "preview_status": "pass",
+    "has_console_errors": false,
+    "has_request_failures": false,
+    "notes": ["Real PostgreSQL/Iggy/SurrealDB/tonic acceptance, all focused security and recovery regressions, local quality gates, and independent adversarial review pass."]
+  },
+  "generated_at": "2026-09-16T22:39:30Z"
+}
