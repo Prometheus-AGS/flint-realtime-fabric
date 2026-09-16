@@ -38,8 +38,10 @@ output=${2:--}
 case "$profile" in
   full)
     compose_file=compose.yml
-    profile_images=(FRF_FULL_GATEWAY_IMAGE FRF_IGGY_IMAGE FRF_KETO_IMAGE)
-    profile_vars=(FRF_IGGY_USERNAME FRF_IGGY_PASSWORD FRF_CDC_TENANT_ID)
+    profile_images=(FRF_FULL_GATEWAY_IMAGE FRF_IGGY_IMAGE FRF_KETO_IMAGE FRF_SURREAL_IMAGE)
+    profile_vars=(FRF_IGGY_USERNAME FRF_IGGY_PASSWORD FRF_CDC_TENANT_ID \
+      FRF_SURREAL_USERNAME FRF_SURREAL_PASSWORD FRF_SURREAL_NAMESPACE \
+      FRF_SURREAL_DATABASE)
     ;;
   shape-only)
     compose_file=compose.shape-only.yml

@@ -13,8 +13,8 @@ use frf_gateway::config::{AuthzBackend, GatewayProfile, PolicyEngineMode};
 use frf_gateway::{
     AppState, GatewayConfig, agent_grpc_service::AgentGrpcService,
     authz_grpc_service::AuthzGrpcService, entity_grpc_service::EntityGrpcService,
-    entity_store_mem::InMemoryEntityStore, grpc_service::SpineGrpcService,
-    signal_service::SpineSignalService, sync_grpc_service::SyncGrpcService,
+    grpc_service::SpineGrpcService, signal_service::SpineSignalService,
+    sync_grpc_service::SyncGrpcService,
 };
 use frf_identity_ory::OryIdentityVerifier;
 use frf_librefang::LibreFangBus;
@@ -30,6 +30,7 @@ use tokio::sync::watch;
 
 mod bootstrap;
 mod configured_broker;
+mod entity_projection_runtime;
 mod federation;
 mod inactive_lanes;
 
@@ -79,8 +80,8 @@ async fn main() -> Result<()> {
     ));
 
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
-    let (cdc_task, cdc_readiness_rx) =
-        start_cdc(&config, Arc::clone(&broker), shutdown_rx.clone())?;
+    let (cdc_task, projection_runtime) =
+        start_entity_pipeline(&config, Arc::clone(&broker), shutdown_rx.clone()).await?;
 
     let media_signaler = Arc::new(inactive_lanes::build_media_signaler(&config));
     let agent_bus = Arc::new(
@@ -138,14 +139,14 @@ async fn main() -> Result<()> {
         media_bridge,
         #[cfg(feature = "shape-facade")]
         shape_usecase,
-        cdc_readiness: cdc_readiness_rx,
+        cdc_readiness: projection_runtime.readiness.clone(),
         config: Arc::new(config),
     });
 
     federation::spawn_federation_ingest_tasks(&state);
 
     let app = frf_gateway::build_router(Arc::clone(&state));
-    let grpc_task = spawn_grpc_server(Arc::clone(&state))?;
+    let grpc_task = spawn_grpc_server(Arc::clone(&state), projection_runtime.store)?;
 
     tracing::info!("frf-gateway listening on {bind_addr}");
     let listener = TcpListener::bind(bind_addr).await?;
@@ -158,7 +159,14 @@ async fn main() -> Result<()> {
         .await?;
     tracing::info!("HTTP server drained; shutting down background tasks");
 
-    drain_background_tasks(&shutdown_tx, cdc_task, grpc_task, tracer_provider).await;
+    drain_background_tasks(
+        &shutdown_tx,
+        cdc_task,
+        projection_runtime.tasks,
+        grpc_task,
+        tracer_provider,
+    )
+    .await;
 
     Ok(())
 }
@@ -179,12 +187,16 @@ async fn build_broker(config: &GatewayConfig) -> Result<Arc<ConfiguredLogBroker>
 async fn drain_background_tasks(
     shutdown_tx: &tokio::sync::watch::Sender<bool>,
     cdc_task: Option<tokio::task::JoinHandle<()>>,
+    projection_tasks: Vec<tokio::task::JoinHandle<()>>,
     grpc_task: Option<tokio::task::JoinHandle<()>>,
     tracer_provider: Option<TracerProvider>,
 ) {
     let _ = shutdown_tx.send(true);
 
     if let Some(task) = cdc_task {
+        let _ = task.await;
+    }
+    for task in projection_tasks {
         let _ = task.await;
     }
     if let Some(task) = grpc_task {
@@ -268,6 +280,20 @@ fn start_cdc(
     Ok((task, readiness_rx))
 }
 
+async fn start_entity_pipeline(
+    config: &GatewayConfig,
+    broker: Arc<ConfiguredLogBroker>,
+    shutdown: watch::Receiver<bool>,
+) -> Result<(
+    Option<tokio::task::JoinHandle<()>>,
+    entity_projection_runtime::ProjectionRuntime,
+)> {
+    let (cdc_task, cdc_readiness) = start_cdc(config, Arc::clone(&broker), shutdown.clone())?;
+    let projection =
+        entity_projection_runtime::start(config, broker, shutdown, cdc_readiness).await?;
+    Ok((cdc_task, projection))
+}
+
 fn build_policy_provider(config: &GatewayConfig) -> Result<BoxedPolicyProvider> {
     match config.policy_engine {
         PolicyEngineMode::Cedar => {
@@ -296,6 +322,7 @@ fn spawn_grpc_server(
             BoxedPolicyProvider,
         >,
     >,
+    entity_store: Arc<dyn frf_ports::EntityStore>,
 ) -> Result<Option<tokio::task::JoinHandle<()>>> {
     let Some(grpc_port) = state.config.grpc_port else {
         tracing::info!("gRPC server disabled (GRPC_PORT=0)");
@@ -335,11 +362,12 @@ fn spawn_grpc_server(
     ));
     let sync_svc = SyncGrpcService::new(sync_use_case).into_server();
 
-    // EntityService: read side of the entity plane. In-memory store is the default;
-    // reads are auth-guarded (identity + tenant-equality + Keto `view`) in the use-case.
+    // EntityService: read side of the entity plane. CDC-enabled deployments use the
+    // durable projection composed before AppState; disabled deployments use memory.
+    // Reads are auth-guarded and watches re-check Keto `view` for every event.
     // Built before `agent_svc` because that call consumes `state`.
     let entity_use_case = Arc::new(EntityUseCase::new(
-        Arc::new(InMemoryEntityStore::new()),
+        entity_store,
         Arc::clone(&state.authz),
         Arc::clone(&state.identity),
     ));

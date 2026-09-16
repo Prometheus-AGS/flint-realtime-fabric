@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use frf_domain::{EntityChange, EntityId, TenantId};
 use frf_ports::{AuthzProvider, EntityChangeStream, EntityStore, IdentityVerifier, RelationTuple};
+use futures_util::StreamExt as _;
 use tracing::instrument;
 
 use crate::error::AppError;
@@ -13,6 +14,11 @@ pub struct EntityRequest {
     pub bearer_token: String,
 }
 
+struct AuthorizedEntity {
+    tenant_id: TenantId,
+    view_tuple: RelationTuple,
+}
+
 /// Application-layer use-case for the read side of the entity plane.
 ///
 /// Wires three port traits, mirroring the publish/subscribe security model:
@@ -22,7 +28,7 @@ pub struct EntityRequest {
 ///
 /// No adapter crate is imported here; the dependency inversion is enforced at the Cargo
 /// level by `frf-app`'s `[dependencies]` section.
-pub struct EntityUseCase<S, A, I> {
+pub struct EntityUseCase<S: ?Sized, A, I> {
     store: Arc<S>,
     authz: Arc<A>,
     identity: Arc<I>,
@@ -30,7 +36,7 @@ pub struct EntityUseCase<S, A, I> {
 
 impl<S, A, I> EntityUseCase<S, A, I>
 where
-    S: EntityStore,
+    S: EntityStore + ?Sized,
     A: AuthzProvider,
     I: IdentityVerifier,
 {
@@ -44,7 +50,7 @@ where
 
     /// Verify the bearer token, enforce tenant-equality, and Keto `view` on the entity.
     /// Returns the verified `TenantId` (authoritative) on success.
-    async fn authorize(&self, req: &EntityRequest) -> Result<TenantId, AppError> {
+    async fn authorize(&self, req: &EntityRequest) -> Result<AuthorizedEntity, AppError> {
         let claims = self
             .identity
             .verify(&req.bearer_token)
@@ -79,7 +85,10 @@ where
             )));
         }
 
-        Ok(claims.tenant_id)
+        Ok(AuthorizedEntity {
+            tenant_id: claims.tenant_id,
+            view_tuple,
+        })
     }
 
     /// Fetch the latest known change for an entity, after auth.
@@ -94,8 +103,11 @@ where
         tenant_id = %req.tenant_id,
     ))]
     pub async fn get(&self, req: EntityRequest) -> Result<Option<EntityChange>, AppError> {
-        let tenant_id = self.authorize(&req).await?;
-        let change = self.store.get_entity(req.entity_id, tenant_id).await?;
+        let authorized = self.authorize(&req).await?;
+        let change = self
+            .store
+            .get_entity(req.entity_id, authorized.tenant_id)
+            .await?;
         Ok(change)
     }
 
@@ -110,8 +122,41 @@ where
         tenant_id = %req.tenant_id,
     ))]
     pub async fn watch(&self, req: EntityRequest) -> Result<EntityChangeStream, AppError> {
-        let tenant_id = self.authorize(&req).await?;
-        let stream = self.store.watch_entity(req.entity_id, tenant_id).await?;
-        Ok(stream)
+        let authorized = self.authorize(&req).await?;
+        let stream = self
+            .store
+            .watch_entity(req.entity_id, authorized.tenant_id)
+            .await?;
+        let authz = Arc::clone(&self.authz);
+        let view_tuple = authorized.view_tuple;
+        let checked = Box::pin(stream.then(move |item| {
+            let authz = Arc::clone(&authz);
+            let view_tuple = view_tuple.clone();
+            async move {
+                let change = match item {
+                    Ok(change) => change,
+                    Err(error) => return Err(error),
+                };
+                match authz.check(&view_tuple).await {
+                    Ok(true) => Ok(change),
+                    Ok(false) => Err(frf_ports::PortError::PermissionDenied(
+                        "entity view authorization was revoked".to_owned(),
+                    )),
+                    Err(error) => Err(error),
+                }
+            }
+        }));
+        let guarded = futures_util::stream::unfold(
+            (checked, false),
+            |(mut checked, terminated)| async move {
+                if terminated {
+                    return None;
+                }
+                let item = checked.as_mut().next().await?;
+                let terminated = item.is_err();
+                Some((item, (checked, terminated)))
+            },
+        );
+        Ok(Box::pin(guarded))
     }
 }

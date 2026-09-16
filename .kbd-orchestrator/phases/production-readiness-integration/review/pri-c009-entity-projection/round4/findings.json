@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-gateway/src/entity_projector.rs",
+      "line": 29,
+      "claim": "The Iggy adapter is made to implement a second port-like trait, breaching the one-port-per-adapter constraint.",
+      "evidence": "Constraint A2 says \"Each `frf-*` adapter implements exactly one port trait\"; this hunk defines `ProjectionLogBroker: LogBroker` and implements it for `frf_broker_iggy::IggyBroker` while the adapter already implements the `LogBroker` port.",
+      "suggested_fix": "Do not add a second adapter-facing port trait for Iggy; put the required head-offset capability on the existing broker port or compose it behind a gateway-owned wrapper that does not make the adapter implement another port."
+    },
+    {
+      "severity": "WARNING",
+      "file": "docs/RUNBOOK.md",
+      "line": 36,
+      "claim": "The runbook still refers to the nonexistent `iggy-server` dependency after the same startup list was changed to use the `iggy` service name.",
+      "evidence": "The diff changes step 3 to `iggy, postgres, surreal, and flint-gate` but step 4 says `gateway` starts only after `iggy-server`; `compose.yml` uses the service key `iggy`, not `iggy-server`.",
+      "suggested_fix": "Replace `iggy-server` with `iggy` in the runbook dependency description."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

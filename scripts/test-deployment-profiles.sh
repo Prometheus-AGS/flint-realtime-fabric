@@ -89,6 +89,8 @@ export FRF_SHAPE_GATEWAY_IMAGE
 FRF_SHAPE_GATEWAY_IMAGE=$(digest example/frf-shape 5)
 export FRF_IGGY_IMAGE
 FRF_IGGY_IMAGE=$(digest iggyrs/iggy 6)
+export FRF_SURREAL_IMAGE
+FRF_SURREAL_IMAGE=$(digest surrealdb/surrealdb 9)
 export FRF_KETO_IMAGE
 FRF_KETO_IMAGE=$(digest oryd/keto 7)
 export FRF_ELECTRIC_IMAGE
@@ -103,6 +105,8 @@ export FLINT_GATE_JWT_PUBLIC_KEY_FILE="$work/gate-public.pem"
 export FRF_TLS_CERT_FILE="$work/tls.crt" FRF_TLS_KEY_FILE="$work/tls.key"
 export FRF_TLS_CA_FILE="$work/ca.crt"
 export FRF_IGGY_USERNAME=frf FRF_IGGY_PASSWORD=secret
+export FRF_SURREAL_USERNAME=frf FRF_SURREAL_PASSWORD=secret
+export FRF_SURREAL_NAMESPACE=flint FRF_SURREAL_DATABASE=entity_projection
 export FRF_CDC_TENANT_ID=00000000-0000-0000-0000-000000000001
 export FRF_SHAPE_CATALOG_FILE="$work/catalog.json"
 
@@ -123,7 +127,10 @@ jq -e '.services.gateway.environment.GATEWAY_PROFILE == "full" and
   .services.gateway.environment.ADMIN_ENABLED == "false" and
   (.services.gateway.environment | has("SHAPE_ELECTRIC_URL") | not) and
   .services["flint-gate"].depends_on["flint-gate-db-init"].condition == "service_completed_successfully" and
-  .services["flint-gate"].environment.FLINT_GATE_REQUIRE_DATABASE == "true"' \
+  .services["flint-gate"].environment.FLINT_GATE_REQUIRE_DATABASE == "true" and
+  .services.gateway.depends_on.surreal.condition == "service_healthy" and
+  .services.gateway.environment.ENTITY_PROJECTION_URL == "ws://surreal:8000" and
+  .services.surreal.volumes[0].target == "/data"' \
   "$work/full.json" >/dev/null
 jq -e '.services.gateway.environment.GATEWAY_PROFILE == "shape-only" and
   .services.gateway.environment.GRPC_PORT == "0" and

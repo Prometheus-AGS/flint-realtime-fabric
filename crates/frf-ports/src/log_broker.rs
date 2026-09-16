@@ -34,6 +34,15 @@ pub trait LogBroker: Send + Sync + 'static {
         from: Offset,
     ) -> Result<EventStream, PortError>;
 
+    /// Return the inclusive current high-water offset, or `None` when empty.
+    /// Projection-capable brokers override this after establishing a
+    /// subscription so consumers can prove backlog catch-up before readiness.
+    async fn head_offset(&self, _channel_id: ChannelId) -> Result<Option<Offset>, PortError> {
+        Err(PortError::Transport(
+            "broker does not expose a channel high-water offset".to_owned(),
+        ))
+    }
+
     /// Store an inclusive last-processed offset for a named cursor without
     /// consuming events.
     async fn seek(&self, cursor: Cursor) -> Result<(), PortError>;

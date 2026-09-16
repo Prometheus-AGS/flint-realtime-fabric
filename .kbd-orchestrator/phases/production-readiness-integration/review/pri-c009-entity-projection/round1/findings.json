@@ -1,0 +1,37 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-gateway/src/entity_grpc_service.rs",
+      "line": 53,
+      "claim": "The new `PermissionDenied` mapping does not compile because it passes `&String` to `Status::permission_denied`, which expects an `Into<String>` value.",
+      "evidence": "Hunk changes `PortError::PermissionDenied(message) => Status::permission_denied(message)`, where matching on `&PortError` binds `message` as `&String`; constraint R1 requires `cargo check --workspace` to be clean.",
+      "suggested_fix": "Pass `message.as_str()` or `message.clone()` to `Status::permission_denied`."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/pri-c009-entity-projection",
+      "claim": "The change touches Rust/config/docs but includes no OpenSpec delta for the target change.",
+      "evidence": "Constraint P1 requires each change to carry a `specs/<capability>/spec.md` delta so `openspec validate <id>` passes; the diff contains no `openspec/changes/pri-c009-entity-projection/.../spec.md` changes.",
+      "suggested_fix": "Add the required OpenSpec spec delta with ADDED/MODIFIED sections and scenarios, then validate `pri-c009-entity-projection`."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c009-entity-projection",
+      "claim": "The required source-bound acceptance receipt is missing from the diff.",
+      "evidence": "Acceptance criterion 5 requires saving a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c009-entity-projection/`, but the diff contains no files under that evidence path.",
+      "suggested_fix": "Commit the required evidence receipt naming the exact local command and quality/OpenSpec checks run."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

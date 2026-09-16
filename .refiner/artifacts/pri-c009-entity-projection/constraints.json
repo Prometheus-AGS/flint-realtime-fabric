@@ -1,0 +1,21 @@
+{
+  "artifact_type": "code",
+  "constraints": [
+    {"id":"A","description":"A committed PostgreSQL mutation reaches existing v1 GetEntity and WatchEntity through real CDC, Iggy, and SurrealDB adapters.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"owned live database-to-v1 acceptance scenario"}},
+    {"id":"B","description":"Entity state and its source/broker cursor advance transactionally; inclusive snapshot/WAL overlap and restart replay are deduplicated without omission.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"live snapshot overlap and adapter/projector restart scenarios"}},
+    {"id":"C","description":"Delete clears current state and every watch event is reauthorized at object scope before payload delivery.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"live delete and post-subscription revocation scenarios plus focused unit regression"}},
+    {"id":"D","description":"The full deployment profile supplies pinned durable projection storage and fails fast on incomplete CDC projection configuration.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"deployment renderer and gateway configuration tests"}},
+    {"id":"P1","description":"Formatting, diff hygiene, hand-authored file size, affected tests, all-target check, strict Clippy, strict OpenSpec, and independent adversarial review pass locally.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"recorded local quality and review matrix"}}
+  ],
+  "global_rules": [
+    "Runtime tests execute locally; CI results are not evidence.",
+    "One adapter crate implements one application port.",
+    "The v1 protobuf wire contract remains unchanged.",
+    "The fixture owns and removes every PostgreSQL, Iggy, and SurrealDB resource it creates.",
+    "Source receipts bind candidate implementation and fixture files by SHA-256."
+  ],
+  "termination_conditions": [
+    "All blocking c009 constraints pass.",
+    "Independent review has no unresolved critical or warning finding."
+  ]
+}

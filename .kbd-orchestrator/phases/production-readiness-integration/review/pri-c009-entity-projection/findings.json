@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "crates/frf-gateway/src/entity_projector.rs",
+      "line": 62,
+      "claim": "Projector readiness is based on a one-time head offset snapshot, so events published after `head_offset` is read but before readiness is set can leave `/readyz` reporting ready while broker backlog still exists.",
+      "evidence": "Acceptance requires readiness/backlog correctness: \u201cEstablish snapshot-to-WAL catch-up and readiness\u201d and spec scenario says \u201cprojector readiness remains false until retained broker backlog is applied\u201d; `run_until_shutdown` captures `catch_up_to` once at lines 62-65 and sets readiness true when `delivered >= head` at lines 79-82 without rechecking the broker high-water mark.",
+      "suggested_fix": "After reaching the captured head offset, re-read `head_offset` and only set readiness true when the latest high-water mark is still at or below the delivered offset; otherwise continue catching up to the new head."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

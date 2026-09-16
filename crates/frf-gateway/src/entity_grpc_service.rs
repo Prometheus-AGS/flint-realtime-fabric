@@ -19,13 +19,13 @@ use uuid::Uuid;
 /// adapter-agnostic beyond the port-trait bounds. Conversion between the domain
 /// `EntityChange` and the proto message lives here — no `frf-domain`/`frf-app` crate
 /// imports `frf-proto`.
-pub struct EntityGrpcService<S, A, I> {
+pub struct EntityGrpcService<S: ?Sized, A, I> {
     use_case: Arc<EntityUseCase<S, A, I>>,
 }
 
 impl<S, A, I> EntityGrpcService<S, A, I>
 where
-    S: EntityStore,
+    S: EntityStore + ?Sized,
     A: AuthzProvider,
     I: IdentityVerifier,
 {
@@ -50,7 +50,10 @@ fn app_error_to_status(err: AppError) -> Status {
 }
 
 fn port_error_to_status(err: &PortError) -> Status {
-    Status::internal(err.to_string())
+    match err {
+        PortError::PermissionDenied(message) => Status::permission_denied(message.clone()),
+        _ => Status::internal(err.to_string()),
+    }
 }
 
 fn parse_entity_id(s: &str) -> Result<EntityId, Status> {
@@ -150,7 +153,7 @@ fn domain_change_to_proto(change: &EntityChange) -> fv1::EntityChange {
 #[tonic::async_trait]
 impl<S, A, I> EntityService for EntityGrpcService<S, A, I>
 where
-    S: EntityStore,
+    S: EntityStore + ?Sized,
     A: AuthzProvider + Send + Sync + 'static,
     I: IdentityVerifier + Send + Sync + 'static,
 {

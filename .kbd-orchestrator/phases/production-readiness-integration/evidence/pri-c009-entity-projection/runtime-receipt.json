@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "runId": "20260916132836-97391",
+  "source": {
+    "commit": "fe5a387da928d4a7414a798814d01459f9163565",
+    "candidateArtifactSetSha256": "bf36b30267b69ac6f60f433ce7e69ff157bb0047161dc5ff12b44627993a38de"
+  },
+  "startedAt": "2026-09-16T13:28:36Z",
+  "finishedAt": "2026-09-16T13:28:51Z",
+  "exitStatus": 0,
+  "topology": {
+    "composeProject": "frf-projection-20260916132836-97391",
+    "endpoints": {
+      "iggy": "127.0.0.1:32808",
+      "postgres": "127.0.0.1:32807",
+      "surreal": "127.0.0.1:32809"
+    },
+    "imageIds": {
+      "iggy": "sha256:5ed1de369f7d563d5da04093e2d04beb980d2ce965efaaa683bf9a3c72aa5c5f",
+      "postgres": "sha256:ff80089083d7365046af7f03d949a2defa14e0b09e14bd5b8f08a242291be8b2",
+      "surreal": "sha256:3ad3fe6160ada702242506d7134744e065052e380b716a00cd98893b61d05bc8"
+    }
+  },
+  "scenarios": {
+    "databaseToGetEntity": "pass",
+    "databaseToWatchEntity": "pass",
+    "backlogReadiness": "pass",
+    "snapshotWalOverlap": "pass",
+    "restartCursorCoherence": "pass",
+    "deleteClearsState": "pass",
+    "perEventAuthorization": "pass",
+    "transactionCancellation": "pass"
+  },
+  "cleanup": {
+    "status": "owned-resources-removed",
+    "composeProject": "frf-projection-20260916132836-97391"
+  },
+  "sha256": {
+    "sourceBinding": "bf36b30267b69ac6f60f433ce7e69ff157bb0047161dc5ff12b44627993a38de",
+    "testLog": "61e705fc0dc1bb7bd3286e973f10e6a35268153036c1ae7ad405ede34a0e5031",
+    "serverLog": "3c3e3a6b0071206cbc4b3aed17e68bb704d99d14891cc2cd4e03fb68c304dd62"
+  },
+  "credentials": "per-run fixture credentials removed with the owned Compose project"
+}

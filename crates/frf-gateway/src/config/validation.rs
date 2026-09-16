@@ -136,6 +136,30 @@ impl GatewayConfig {
                 !enrollments.is_empty(),
                 "CDC_ENROLLMENTS_JSON must contain at least one enrollment"
             );
+            for (name, value) in [
+                ("ENTITY_PROJECTION_URL", &self.entity_projection_url),
+                (
+                    "ENTITY_PROJECTION_USERNAME",
+                    &self.entity_projection_username,
+                ),
+                (
+                    "ENTITY_PROJECTION_PASSWORD",
+                    &self.entity_projection_password,
+                ),
+                (
+                    "ENTITY_PROJECTION_NAMESPACE",
+                    &self.entity_projection_namespace,
+                ),
+                (
+                    "ENTITY_PROJECTION_DATABASE",
+                    &self.entity_projection_database,
+                ),
+            ] {
+                anyhow::ensure!(
+                    value.as_ref().is_some_and(|value| !value.trim().is_empty()),
+                    "CDC_ENABLED=true requires {name}"
+                );
+            }
         }
         Ok(())
     }

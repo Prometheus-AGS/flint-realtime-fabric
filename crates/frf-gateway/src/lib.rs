@@ -6,6 +6,7 @@ pub mod authz_backend;
 pub mod authz_grpc_service;
 pub mod config;
 pub mod entity_grpc_service;
+pub mod entity_projector;
 pub mod entity_store_mem;
 pub mod error;
 pub mod grpc_service;

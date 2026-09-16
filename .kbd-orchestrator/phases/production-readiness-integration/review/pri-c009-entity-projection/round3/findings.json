@@ -1,0 +1,39 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-gateway/src/entity_projector.rs",
+      "line": 67,
+      "claim": "The projector reports readiness immediately after subscribing, before replaying any retained broker backlog, so `/readyz` can go healthy while GetEntity still serves stale projection state.",
+      "evidence": "Acceptance requires establishing \"snapshot-to-WAL catch-up and readiness so existing GetEntity/WatchEntity reflect production ingestion\"; `run_until_shutdown` calls `readiness.send_replace(true);` directly after `broker.subscribe(...)` and before any `stream.next()` item is applied.",
+      "suggested_fix": "Delay projector readiness until the subscription has caught up to the broker high-water mark or otherwise prove no backlog remains before publishing `true`."
+    },
+    {
+      "severity": "WARNING",
+      "file": "crates/frf-projection-surreal/src/store.rs",
+      "line": 147,
+      "claim": "Several error paths inside an open SurrealDB transaction return without cancelling the transaction, risking leaked or dangling transactional state on validation failures.",
+      "evidence": "`apply_projection` explicitly calls `transaction.cancel().await` for epoch mismatch, duplicate, and missing initial history, but the later missing-base update path returns `Err(PortError::NotFound(...))` without cancel after `let previous = ...`; subsequent `merge_object(...)` and `EntityRow::from_change(...)` errors also return before `transaction.commit()` with no cancel.",
+      "suggested_fix": "Ensure every pre-commit error path cancels the transaction, or wrap transaction handling in a guard that cancels on drop unless committed."
+    },
+    {
+      "severity": "WARNING",
+      "file": "crates/frf-gateway/src/entity_projector.rs",
+      "line": 149,
+      "claim": "Unsupported floating-point values are silently projected as JSON null instead of failing closed, corrupting entity data without surfacing an error.",
+      "evidence": "`canonical_to_json` maps `CanonicalValue::Float(value)` through `serde_json::Number::from_f64(value).map_or(serde_json::Value::Null, serde_json::Value::Number)`, so NaN or infinity becomes `null`; the reviewer mandate flags \"Silent failure \u2014 defaults that mask failure\".",
+      "suggested_fix": "Return `EntityProjectorError::Payload` when `Number::from_f64` returns `None` instead of substituting null."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

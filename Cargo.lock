@@ -3069,6 +3069,7 @@ dependencies = [
  "async-trait",
  "axum 0.8.9",
  "axum-test",
+ "base64 0.22.1",
  "bytes",
  "chrono",
  "frf-agentproto",
@@ -3086,6 +3087,7 @@ dependencies = [
  "frf-policy-cedar",
  "frf-ports",
  "frf-postgres-cdc",
+ "frf-projection-surreal",
  "frf-proto",
  "frf-shape-electric",
  "frf-store-redb",
@@ -3102,6 +3104,7 @@ dependencies = [
  "rust-embed",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
  "str0m",
  "thiserror 2.0.18",
  "tokio",
@@ -3252,6 +3255,25 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-postgres",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "frf-projection-surreal"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "frf-domain",
+ "frf-ports",
+ "futures-util",
+ "serde",
+ "serde_json",
+ "surrealdb",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-stream",
  "tracing",
  "uuid",
 ]

@@ -78,12 +78,12 @@ where
         if *state.cdc_readiness.borrow() {
             Check {
                 ok: true,
-                detail: "logical replication stream active".to_owned(),
+                detail: "logical replication and durable entity projection active".to_owned(),
             }
         } else {
             Check {
                 ok: false,
-                detail: "logical replication stream inactive".to_owned(),
+                detail: "logical replication or durable entity projection inactive".to_owned(),
             }
         }
     } else {

@@ -78,6 +78,23 @@ manager · **Dev-only** = must NOT be set in production.
 | `CDC_SOURCE_EPOCH` | ⚠️ | | — | Stable identity for this slot's logical history. Keep it across ordinary restarts; rotate it after slot/history recreation or source restore. |
 | `CDC_ENROLLMENTS_JSON` | ⚠️ | | — | Non-empty server-owned JSON allowlist of schema, table, projection, projected columns, tenant mode and optional unsigned-domain columns. Catalog validation fails startup for an unsafe mapping. |
 
+### Durable entity projection
+
+These values are required when `CDC_ENABLED=true`. The gateway consumes its
+committed CDC stream into this SurrealDB store before reporting CDC readiness.
+The reference full Compose profile always provisions that store so its topology
+does not change when CDC is enabled; its renderer therefore also requires the
+corresponding `FRF_SURREAL_*` image, account, namespace, database, and password
+inputs while CDC remains disabled.
+
+| Variable | Req | Secret | Default | Purpose |
+|----------|:---:|:------:|---------|---------|
+| `ENTITY_PROJECTION_URL` | ⚠️ | | — | SurrealDB WebSocket endpoint, such as `ws://surreal:8000`. |
+| `ENTITY_PROJECTION_USERNAME` | ⚠️ | | — | SurrealDB account used by the projection adapter. |
+| `ENTITY_PROJECTION_PASSWORD` | ⚠️ | ✅ | — | Password for the projection account. |
+| `ENTITY_PROJECTION_NAMESPACE` | ⚠️ | | — | SurrealDB namespace containing the entity projection. |
+| `ENTITY_PROJECTION_DATABASE` | ⚠️ | | — | SurrealDB database containing projected entities and the CDC cursor. |
+
 The configured publication must exist, must not use `FOR ALL TABLES`, and must
 already contain every enrolled table. Add tables through reviewed database
 migrations. Each table needs a primary key and replica identity that retains its
@@ -147,7 +164,8 @@ all other paths return `404` at the TLS boundary.
 The `full` profile requires `IGGY_CONNECTION_STRING`, `KETO_BASE_URL`,
 `GATEWAY_JWKS_URL`, `JWT_AUDIENCE`, and `JWT_ISSUER`. When its reference profile
 enables CDC, it also requires the CDC URL, slot, publication, tenant, source epoch,
-and enrollment allowlist described above. The `shape-only` profile
+enrollment allowlist, and durable entity-projection values described above. The
+`shape-only` profile
 requires the identity inputs plus both shape inputs and rejects Iggy, gRPC, CDC,
 federation and media. `LIVEKIT_*` is required only when `MEDIA_ENABLED=true` and
 `SFU_MODE=hosted`. `config.validate()` fails before binding a public socket when

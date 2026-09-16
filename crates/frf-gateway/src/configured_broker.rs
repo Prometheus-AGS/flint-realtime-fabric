@@ -54,6 +54,13 @@ impl LogBroker for ConfiguredLogBroker {
         }
     }
 
+    async fn head_offset(&self, channel_id: ChannelId) -> Result<Option<Offset>, PortError> {
+        match self {
+            Self::Iggy(broker) => broker.head_offset(channel_id).await,
+            Self::Disabled => Err(Self::disabled_error()),
+        }
+    }
+
     async fn seek(&self, cursor: Cursor) -> Result<(), PortError> {
         match self {
             Self::Iggy(broker) => broker.seek(cursor).await,
@@ -97,6 +104,11 @@ mod tests {
             })
             .await
             .expect_err("shape-only must reject broker operations");
+        assert!(error.to_string().contains("shape-only"));
+        let error = broker
+            .head_offset(ChannelId::WELL_KNOWN_ENTITIES)
+            .await
+            .expect_err("shape-only must reject high-water queries");
         assert!(error.to_string().contains("shape-only"));
     }
 }

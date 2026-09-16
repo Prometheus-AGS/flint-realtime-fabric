@@ -19,7 +19,9 @@ pub mod shape_facade;
 pub use agent_bus::{AgentEventBus, AgentEventStream, DynAgentEventBus};
 pub use authz::{AuthzProvider, RelationTuple};
 pub use crdt_store::{CrdtSnapshot, CrdtStore};
-pub use entity_store::{EntityChangeStream, EntityStore};
+pub use entity_store::{
+    EntityChangeStream, EntityProjectionSnapshot, EntityStore, ProjectionApply, ProjectionCursor,
+};
 pub use error::PortError;
 pub use federation::{FederatedEvent, FederationBridge, FederationProtocol};
 pub use identity::{IdentityVerifier, VerifiedClaims};

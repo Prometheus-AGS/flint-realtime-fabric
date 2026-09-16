@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity.rs",
+      "line": 142,
+      "claim": "The guarded watch stream does not terminate immediately after an authorization revocation error; it can remain pending until another store event arrives.",
+      "evidence": "Acceptance B requires the watch stream to return PERMISSION_DENIED and terminate after revocation, but the new code wraps the stream with `checked.scan(true, ...)`: on the first `Err` it sets `*active = false` and returns `Some(item)`, while `None` is only returned by the scan closure when the upstream stream yields a later item. A live broadcast stream with no later events will leave subsequent polls pending rather than terminated.",
+      "suggested_fix": "Replace the `scan` wrapper with a stream adapter that emits the first error and then returns `None` on the next poll without waiting for another upstream item, or make the per-event authorization failure close the underlying watch channel explicitly."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

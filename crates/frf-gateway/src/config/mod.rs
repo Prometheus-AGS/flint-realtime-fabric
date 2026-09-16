@@ -45,6 +45,11 @@ pub struct GatewayConfig {
     pub cdc_channel_path: Option<String>,
     pub cdc_source_epoch: Option<String>,
     pub cdc_enrollments_json: Option<String>,
+    pub entity_projection_url: Option<String>,
+    pub entity_projection_username: Option<String>,
+    pub entity_projection_password: Option<String>,
+    pub entity_projection_namespace: Option<String>,
+    pub entity_projection_database: Option<String>,
     /// SFU mode: "sovereign" → `str0m`, "hosted" → `LiveKit` (default: "hosted").
     pub sfu_mode: SfuMode,
     /// Optional endpoint lanes, each requiring an explicit deployment opt-in.
@@ -155,6 +160,11 @@ impl GatewayConfig {
             cdc_channel_path: None,
             cdc_source_epoch: None,
             cdc_enrollments_json: None,
+            entity_projection_url: None,
+            entity_projection_username: None,
+            entity_projection_password: None,
+            entity_projection_namespace: None,
+            entity_projection_database: None,
             // `test_default` uses Sovereign deliberately — unlike the production `from_env`
             // default (Hosted), it avoids the LiveKit-credentials requirement so unit tests
             // don't need `LIVEKIT_*` set. This intentional divergence is why the two
@@ -322,6 +332,11 @@ impl GatewayConfig {
             cdc_channel_path: std::env::var("CDC_CHANNEL_PATH").ok(),
             cdc_source_epoch: std::env::var("CDC_SOURCE_EPOCH").ok(),
             cdc_enrollments_json: std::env::var("CDC_ENROLLMENTS_JSON").ok(),
+            entity_projection_url: optional_env("ENTITY_PROJECTION_URL"),
+            entity_projection_username: optional_env("ENTITY_PROJECTION_USERNAME"),
+            entity_projection_password: optional_env("ENTITY_PROJECTION_PASSWORD"),
+            entity_projection_namespace: optional_env("ENTITY_PROJECTION_NAMESPACE"),
+            entity_projection_database: optional_env("ENTITY_PROJECTION_DATABASE"),
             sfu_mode,
             lanes,
             registry_idle_secs: std::env::var("REGISTRY_IDLE_SECS")
@@ -428,6 +443,12 @@ impl GatewayConfig {
             cors_allowed_origins,
         )
     }
+}
+
+fn optional_env(name: &str) -> Option<String> {
+    std::env::var(name)
+        .ok()
+        .filter(|value| !value.trim().is_empty())
 }
 
 #[cfg(test)]

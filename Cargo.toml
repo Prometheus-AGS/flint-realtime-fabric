@@ -20,6 +20,7 @@ members = [
     "crates/frf-wallet",
     "crates/frf-store-redb",
     "crates/frf-store-surreal",
+    "crates/frf-projection-surreal",
     "crates/frf-ffi",
     "crates/frf-media-livekit",
     "crates/frf-media-str0m",

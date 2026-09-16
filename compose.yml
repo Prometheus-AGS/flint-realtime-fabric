@@ -50,6 +50,11 @@ services:
       CDC_CHANNEL_PATH: "${FRF_CDC_CHANNEL_PATH:-entities}"
       CDC_SOURCE_EPOCH: "${FRF_CDC_SOURCE_EPOCH:-}"
       CDC_ENROLLMENTS_JSON: "${FRF_CDC_ENROLLMENTS_JSON:-[]}"
+      ENTITY_PROJECTION_URL: ws://surreal:8000
+      ENTITY_PROJECTION_USERNAME: "${FRF_SURREAL_USERNAME:?FRF_SURREAL_USERNAME is required}"
+      ENTITY_PROJECTION_PASSWORD: "${FRF_SURREAL_PASSWORD:?FRF_SURREAL_PASSWORD is required}"
+      ENTITY_PROJECTION_NAMESPACE: "${FRF_SURREAL_NAMESPACE:-flint}"
+      ENTITY_PROJECTION_DATABASE: "${FRF_SURREAL_DATABASE:-entity_projection}"
       FEDERATION_ENABLED: "false"
       POLICY_ENGINE: cedar
       CORS_ALLOWED_ORIGINS: "${FRF_PUBLIC_ORIGIN:?FRF_PUBLIC_ORIGIN is required}"
@@ -62,6 +67,8 @@ services:
       keto:
         condition: service_healthy
       postgres:
+        condition: service_healthy
+      surreal:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8080/readyz"]
@@ -167,6 +174,24 @@ services:
       start_period: 10s
     networks: [control, data]
 
+  surreal:
+    image: "${FRF_SURREAL_IMAGE:?FRF_SURREAL_IMAGE must be an image digest}"
+    command: ["start", "--log", "info"]
+    environment:
+      SURREAL_USER: "${FRF_SURREAL_USERNAME}"
+      SURREAL_PASS: "${FRF_SURREAL_PASSWORD}"
+      SURREAL_PATH: rocksdb:/data/entity-projection
+    expose: ["8000"]
+    volumes:
+      - surreal-data:/data
+    healthcheck:
+      test: ["CMD", "/surreal", "is-ready", "--endpoint", "ws://localhost:8000"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    networks: [data]
+
 networks:
   edge: {}
   control:
@@ -177,3 +202,4 @@ networks:
 volumes:
   iggy-data: {}
   postgres-data: {}
+  surreal-data: {}

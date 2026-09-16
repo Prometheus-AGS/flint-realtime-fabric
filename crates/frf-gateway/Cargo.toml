@@ -29,6 +29,7 @@ frf-postgres-cdc = { path = "../frf-postgres-cdc" }
 frf-media-livekit = { path = "../frf-media-livekit" }
 frf-media-str0m = { path = "../frf-media-str0m" }
 frf-store-surreal = { path = "../frf-store-surreal" }
+frf-projection-surreal = { path = "../frf-projection-surreal" }
 frf-broker-iggy = { path = "../frf-broker-iggy" }
 frf-bridge-matrix = { path = "../frf-bridge-matrix" }
 frf-bridge-atproto = { path = "../frf-bridge-atproto" }
@@ -38,6 +39,7 @@ frf-policy-cedar = { path = "../frf-policy-cedar" }
 axum = { workspace = true }
 prost-types = { workspace = true }
 bytes = { workspace = true }
+base64 = { workspace = true }
 tokio = { workspace = true }
 tonic = { workspace = true }
 tonic-web = { workspace = true }
@@ -56,6 +58,7 @@ opentelemetry-otlp = { workspace = true }
 tracing-opentelemetry = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+sha2 = { workspace = true }
 tower-http = { workspace = true }
 tower_governor = { workspace = true }
 rust-embed = { workspace = true }

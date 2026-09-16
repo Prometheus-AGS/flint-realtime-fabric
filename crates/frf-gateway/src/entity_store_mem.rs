@@ -2,8 +2,11 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use frf_domain::{EntityChange, EntityId, TenantId};
-use frf_ports::{EntityChangeStream, EntityStore, PortError};
+use frf_domain::{ChangeOp, EntityChange, EntityId, TenantId};
+use frf_ports::{
+    EntityChangeStream, EntityProjectionSnapshot, EntityStore, PortError, ProjectionApply,
+    ProjectionCursor,
+};
 use tokio::sync::{RwLock, broadcast};
 use tokio_stream::StreamExt as _;
 use tokio_stream::wrappers::BroadcastStream;
@@ -23,6 +26,7 @@ pub struct InMemoryEntityStore {
 struct Inner {
     latest: HashMap<(TenantId, EntityId), EntityChange>,
     watchers: HashMap<(TenantId, EntityId), broadcast::Sender<EntityChange>>,
+    checkpoint: Option<ProjectionCursor>,
 }
 
 impl InMemoryEntityStore {
@@ -73,13 +77,90 @@ impl EntityStore for InMemoryEntityStore {
         let stream = BroadcastStream::new(rx).filter_map(Result::ok).map(Ok);
         Ok(Box::pin(stream))
     }
+
+    async fn apply_projection(
+        &self,
+        mut change: EntityChange,
+        cursor: ProjectionCursor,
+    ) -> Result<ProjectionApply, PortError> {
+        let key = (change.tenant_id, change.entity_id);
+        let mut inner = self.inner.write().await;
+        if let Some(checkpoint) = &inner.checkpoint {
+            if checkpoint.source_epoch != cursor.source_epoch {
+                return Err(PortError::NotFound(
+                    "resnapshot_required: entity projection source epoch changed".to_owned(),
+                ));
+            }
+            if cursor.broker_offset <= checkpoint.broker_offset {
+                return Ok(ProjectionApply::Duplicate);
+            }
+        }
+        let previous = inner.latest.get(&key).cloned();
+        change.previous = previous.as_ref().map(|value| value.data.clone());
+        if change.op == ChangeOp::Update {
+            let Some(existing) = &previous else {
+                return Err(PortError::NotFound(
+                    "resnapshot_required: update has no projected base row".to_owned(),
+                ));
+            };
+            merge_object(&mut change.data, &existing.data)?;
+        }
+        if change.op == ChangeOp::Delete {
+            inner.latest.remove(&key);
+        } else {
+            inner.latest.insert(key, change.clone());
+        }
+        inner.checkpoint = Some(cursor);
+        if let Some(tx) = inner.watchers.get(&key) {
+            let _ = tx.send(change.clone());
+        }
+        Ok(ProjectionApply::Applied(Box::new(change)))
+    }
+
+    async fn install_projection_snapshot(
+        &self,
+        snapshot: EntityProjectionSnapshot,
+    ) -> Result<bool, PortError> {
+        let mut inner = self.inner.write().await;
+        if inner.checkpoint.as_ref().is_some_and(|checkpoint| {
+            checkpoint.source_epoch == snapshot.cursor.source_epoch
+                && checkpoint.broker_offset >= snapshot.cursor.broker_offset
+        }) {
+            return Ok(false);
+        }
+        inner.latest = snapshot
+            .entities
+            .into_iter()
+            .map(|change| ((change.tenant_id, change.entity_id), change))
+            .collect();
+        inner.checkpoint = Some(snapshot.cursor);
+        Ok(true)
+    }
+
+    async fn projection_checkpoint(&self) -> Result<Option<ProjectionCursor>, PortError> {
+        Ok(self.inner.read().await.checkpoint.clone())
+    }
+}
+
+fn merge_object(
+    patch: &mut serde_json::Value,
+    existing: &serde_json::Value,
+) -> Result<(), PortError> {
+    let (Some(patch), Some(existing)) = (patch.as_object_mut(), existing.as_object()) else {
+        return Err(PortError::Serialization(
+            "entity update and projected base must be JSON objects".to_owned(),
+        ));
+    };
+    for (key, value) in existing {
+        patch.entry(key.clone()).or_insert_with(|| value.clone());
+    }
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use chrono::Utc;
-    use frf_domain::ChangeOp;
 
     fn sample(entity: EntityId, tenant: TenantId, version: u64) -> EntityChange {
         EntityChange {

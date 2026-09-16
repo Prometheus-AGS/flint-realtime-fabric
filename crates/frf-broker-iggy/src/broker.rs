@@ -29,6 +29,7 @@ use crate::position::{
 
 const CHANNEL_BUF: usize = 256;
 const REPLAY_RETENTION_SECONDS: u64 = 86_400;
+const CONSUMER_HEAD_READER: &str = "head-offset";
 
 fn replay_retention() -> IggyExpiry {
     IggyExpiry::ExpireDuration(IggyDuration::new_from_secs(REPLAY_RETENTION_SECONDS))
@@ -100,6 +101,25 @@ impl IggyBroker {
             client: Arc::new(client),
             connection_string: Arc::from(connection_string),
         })
+    }
+
+    /// Return the inclusive current offset for a channel, or `None` when its
+    /// single partition has no messages.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`PortError::Transport`] or [`PortError::NotFound`] when the
+    /// channel metadata cannot be read.
+    #[instrument(name = "IggyBroker::head_offset", skip(self))]
+    pub async fn head_offset(&self, channel_id: ChannelId) -> Result<Option<Offset>, PortError> {
+        let snapshot = partition_snapshot(
+            &self.client,
+            &format!("channel-{channel_id}"),
+            "events",
+            partition_id(CONSUMER_HEAD_READER),
+        )
+        .await?;
+        Ok((snapshot.messages_count > 0).then_some(Offset(snapshot.current_offset)))
     }
 
     /// Read the stored consumer offset for a channel/consumer, if one has been recorded.
@@ -380,6 +400,11 @@ impl LogBroker for IggyBroker {
         });
 
         Ok(Box::pin(ReceiverStream::new(rx)))
+    }
+
+    #[instrument(name = "port::LogBroker::head_offset", skip(self))]
+    async fn head_offset(&self, channel_id: ChannelId) -> Result<Option<Offset>, PortError> {
+        IggyBroker::head_offset(self, channel_id).await
     }
 
     /// Seek a named cursor to an explicit offset.

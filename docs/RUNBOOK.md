@@ -33,13 +33,13 @@ The stack (see `compose.yml` for the reference deployment):
 1. `keto-migrate` runs `keto migrate up` and exits.
 2. `keto` starts only after `keto-migrate` **completed successfully**, then becomes
    healthy on `/health/ready`.
-3. `iggy-server`, `postgres`, `flint-gate` become healthy.
-4. `gateway` starts only after `iggy-server` (healthy), `keto` (**healthy**), and
-   `postgres` (healthy) — it never boots against an unmigrated/unready authz store.
+3. `iggy`, `postgres`, `surreal`, and `flint-gate` become healthy.
+4. `gateway` starts only after `iggy` (healthy), `keto` (**healthy**), and
+   `postgres` and `surreal` (healthy) — it never boots against an
+   unmigrated/unready authz or projection store.
 
-**Ports** (host:container in the reference compose): gateway `28080:8080` /
-`29090:9090`; flint-gate `14456:4456` / `14457:4457`; keto `4466`/`4467`; iggy `8090`;
-postgres `15432:5432`; surrealdb `8001:8000`.
+**Ports:** the reference profile publishes only the TLS edge. Gateway, Gate,
+Keto, Iggy, Postgres, and SurrealDB remain on internal Compose networks.
 
 ### Health & readiness
 
@@ -69,6 +69,7 @@ See [`ENVIRONMENT.md`](ENVIRONMENT.md) for the full list. The secrets are:
 | `FLINT_GATE_JWT_SECRET` | flint-gate | HMAC signing secret for minted JWTs. Compose `compose.yml` fails to start if unset. **Rotate on any exposure.** |
 | `IGGY_CONNECTION_STRING` | gateway | Contains broker credentials. |
 | `CDC_REPLICATION_URL` | gateway (CDC) | Contains Postgres replication credentials. |
+| `ENTITY_PROJECTION_PASSWORD` | gateway, SurrealDB | Protects the durable entity projection. |
 | `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` | gateway (hosted SFU) | LiveKit server credentials. |
 | `MATRIX_ACCESS_TOKEN` | gateway (federation) | Only if federation is enabled. |
 
@@ -161,6 +162,42 @@ The runner uses an owned PostgreSQL 17 plus Iggy Compose project, executes the
 ignored test by exact name, records image and source hashes, and removes only its
 project's containers and volumes.
 
+### Entity projection lifecycle and recovery
+
+The CDC publisher and entity projector form one ordered pipeline. The projector
+stores each entity mutation and its broker cursor in one SurrealDB transaction,
+then acknowledges the Iggy message. A restart resumes inclusively from the stored
+cursor; replay of the cursor message is detected as a duplicate. `/readyz` remains
+unready while CDC is enabled until both the logical-replication publisher and the
+durable projector are active.
+
+Keep `CDC_SOURCE_EPOCH`, `ENTITY_PROJECTION_NAMESPACE`, and
+`ENTITY_PROJECTION_DATABASE` stable across ordinary restarts and rollbacks. Back
+up the `surreal-data` volume with the same recovery point as the source database.
+If the replication slot is recreated, the source database is restored to another
+history, or the projection cursor reports a different source epoch, install a
+fresh projection snapshot and resume from its checkpoint. Do not edit the cursor
+or skip a poison message manually.
+
+Detect a stalled projection by combining `/readyz`, Iggy consumer lag, and the
+Postgres slot-lag query above. Restore service in this order:
+
+1. Keep the CDC slot and Iggy data intact; repair or restart SurrealDB.
+2. Restart the singleton CDC/projector gateway and allow inclusive cursor replay.
+3. If the projection state or source history is irrecoverable, create a consistent
+   source snapshot, install it with the matching source epoch and checkpoint, then
+   restart the projector.
+
+Local acceptance for the complete database-to-v1 API path:
+
+```sh
+./scripts/run-entity-projection-integration.sh
+```
+
+The runner owns PostgreSQL, Iggy, and SurrealDB fixtures and proves direct v1
+`GetEntity` and `WatchEntity`, snapshot/WAL overlap, restart recovery, delete
+handling, and per-event authorization before removing only its owned resources.
+
 ---
 
 ## 4. Scaling, upgrade & rollback
@@ -173,7 +210,8 @@ project's containers and volumes.
 - **CDC** must run on **exactly one** gateway replica (a single logical-replication
   consumer per slot). Run CDC as a singleton: either a dedicated single-replica
   deployment with `CDC_ENABLED=true`, or a leader-elected instance; the data-plane
-  replicas run with `CDC_ENABLED=false`.
+  replicas run with `CDC_ENABLED=false`. The durable entity projector runs with
+  that singleton so only one consumer advances its projection cursor.
 - **Media (LiveKit hosted):** outbound signaling is cross-node; cross-node **inbound**
   relay is a known v1 limitation (see the LiveKit adapter docs) — single-process
   signaling is unaffected.
@@ -196,4 +234,6 @@ project's containers and volumes.
 - **CDC:** retain the same enrollment and source epoch when rolling back to a
   compatible consumer. Verify the slot remains active and lag is bounded. Never
   move the slot forward manually to bypass a poison commit; repair the mapping or
-  source data and restart from the unchanged confirmed LSN.
+  source data and restart from the unchanged confirmed LSN. Retain the matching
+  SurrealDB projection and cursor; a rollback that cannot read them requires a
+  source-bound resnapshot before traffic returns.

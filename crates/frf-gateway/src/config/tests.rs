@@ -91,6 +91,7 @@ fn cdc_enabled_with_all_fields_passes() {
     cfg.cdc_enrollments_json = Some(
         r#"[{"schema":"public","table":"items","projection":"default","columns":["id"],"tenant":{"mode":"fixed"}}]"#.to_owned(),
     );
+    set_projection_config(&mut cfg);
     cfg.validate()
         .expect("CDC config with all fields should be valid");
 }
@@ -107,6 +108,25 @@ fn cdc_enabled_without_explicit_enrollment_fails_fast() {
     cfg.cdc_source_epoch = Some("epoch".to_owned());
     let error = cfg.validate().expect_err("missing enrollment must fail");
     assert!(error.to_string().contains("CDC_ENROLLMENTS_JSON"));
+}
+
+#[test]
+fn cdc_enabled_without_durable_projection_fails_fast() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.cdc_enabled = true;
+    cfg.cdc_replication_url = Some("postgres://x".to_owned());
+    cfg.cdc_slot_name = Some("frf_slot".to_owned());
+    cfg.cdc_publication_name = Some("frf_pub".to_owned());
+    cfg.cdc_tenant_id = Some(uuid::Uuid::nil());
+    cfg.cdc_channel_path = Some("entities".to_owned());
+    cfg.cdc_source_epoch = Some("epoch".to_owned());
+    cfg.cdc_enrollments_json = Some(
+        r#"[{"schema":"public","table":"items","projection":"default","columns":["id"],"tenant":{"mode":"fixed"}}]"#.to_owned(),
+    );
+    let error = cfg
+        .validate()
+        .expect_err("projection config must be required");
+    assert!(error.to_string().contains("ENTITY_PROJECTION_URL"));
 }
 
 #[test]
@@ -238,4 +258,12 @@ fn full_profile_rejects_shape_only_endpoints() {
         .validate()
         .expect_err("full profile must reject the Electric facade");
     assert!(error.to_string().contains("use the shape-only profile"));
+}
+
+fn set_projection_config(cfg: &mut GatewayConfig) {
+    cfg.entity_projection_url = Some("ws://surreal:8000".to_owned());
+    cfg.entity_projection_username = Some("root".to_owned());
+    cfg.entity_projection_password = Some("secret".to_owned());
+    cfg.entity_projection_namespace = Some("frf".to_owned());
+    cfg.entity_projection_database = Some("projection".to_owned());
 }
