@@ -2,10 +2,10 @@
   "schemaVersion": "5",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 311,
-  "derivedRevision": 311,
+  "sourceRevision": 312,
+  "derivedRevision": 312,
   "frontier": {
-    "573067f0-69c9-40fc-a33c-3aed7a5a839f": 311
+    "573067f0-69c9-40fc-a33c-3aed7a5a839f": 312
   },
   "conflictCount": 0,
   "projectId": "fe4a2436-c1c1-4e63-92c6-6e3817f03219",
@@ -25,8 +25,8 @@
   "completionMetric": "implementation",
   "implementationCompleted": 13,
   "implementationTotal": 23,
-  "planRevision": 6,
-  "revision": 311,
-  "exactNextCommand": "Keep the c011-c013 prototype runnable and reduce the measured PGlite hard-reload reopen latency before starting pri-c014-aso-memory",
-  "updatedAt": "2026-09-17T03:06:37.523083Z"
+  "planRevision": 7,
+  "revision": 312,
+  "exactNextCommand": "pri-c014-aso-memory task 1: inspect ASO source and dirty baseline, verify c002/c003 receipts, and reproduce the 16203-row memory campaign",
+  "updatedAt": "2026-09-17T12:00:31.081512Z"
 }

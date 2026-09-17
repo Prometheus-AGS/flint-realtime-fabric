@@ -2,13 +2,13 @@
   "schemaVersion": "1",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 311,
-  "derivedRevision": 311,
+  "sourceRevision": 312,
+  "derivedRevision": 312,
   "frontier": {
-    "573067f0-69c9-40fc-a33c-3aed7a5a839f": 311
+    "573067f0-69c9-40fc-a33c-3aed7a5a839f": 312
   },
   "conflictCount": 0,
-  "updatedAt": "2026-09-17T03:06:37.523083Z",
+  "updatedAt": "2026-09-17T12:00:31.081512Z",
   "cursor": [
     "production-readiness-integration"
   ],
