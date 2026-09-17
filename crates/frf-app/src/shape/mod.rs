@@ -17,7 +17,7 @@ use std::time::Duration;
 use frf_domain::{SessionId, TenantId};
 use frf_ports::{
     AuthorizedShapeRequest, AuthzProvider, Cursor, PortError, RelationTuple, ShapeFacade,
-    ShapeLease, ShapeRequest, ShapeResponse, VerifiedClaims,
+    ShapeHeader, ShapeLease, ShapeRequest, ShapeResponse, VerifiedClaims,
 };
 use tokio::time::Instant;
 
@@ -60,9 +60,12 @@ pub enum ShapeUseCaseError {
     /// Client protocol or narrowing input is malformed.
     #[error("invalid shape request: {0}")]
     InvalidRequest(String),
-    /// The supplied handle was issued under a different or expired grant.
+    /// The supplied handle was issued under a different grant.
     #[error("shape handle is not valid for this grant")]
     HandleMismatch,
+    /// The supplied handle belongs to this grant authority but its lease expired.
+    #[error("shape handle expired")]
+    HandleExpired,
     /// The authorization provider denied or could not evaluate the request.
     #[error("shape authorization denied")]
     Forbidden,
@@ -102,6 +105,10 @@ impl HandleBinding {
     fn matches(&self, claims: &VerifiedClaims, shape: &str, now_epoch: Duration) -> bool {
         let mut projection_ids = claims.projection_ids.clone();
         projection_ids.sort_unstable();
+        // Gate mints a new short-lived JWT for every continuation request. Its
+        // expiry may differ while the underlying session and authorization
+        // tuple remain identical. The stored handle must itself still be live;
+        // the incoming grant's expiry is validated before this comparison.
         Duration::from_secs(self.expires_at) > now_epoch
             && self.tenant_id == claims.tenant_id
             && self.subject == claims.subject
@@ -221,6 +228,7 @@ where
             return Err(ShapeUseCaseError::GrantExpired);
         }
         let response_deadline = (request_time.monotonic + self.active_lease).min(grant_deadline);
+        let timeout_response = lease_timeout_response(&request);
         let lease: Arc<dyn ShapeLease> = Arc::new(lease::GrantLease::new(
             Arc::clone(&self.authz),
             tuple,
@@ -258,6 +266,12 @@ where
                 HandleBinding::from_claims(claims, &request.shape),
                 request_time.epoch.as_secs(),
             );
+            // A 204 has no response body for Axum to poll. Settling it here preserves the
+            // existing continuation binding instead of letting a dropped empty body revoke it.
+            if response.status == 204 {
+                continuation.settle(lease::StreamOutcome::Completed);
+                return Ok(response);
+            }
             response.body = lease::protect(
                 response.body,
                 Arc::clone(&lease),
@@ -268,7 +282,7 @@ where
         };
         let response = match tokio::time::timeout_at(response_deadline, protected_exchange).await {
             Ok(result) => result?,
-            Err(_) => return Ok(ShapeResponse::new(204, Vec::new(), Vec::new())),
+            Err(_) => return Ok(timeout_response),
         };
 
         Ok(response)
@@ -291,11 +305,40 @@ where
             .iter()
             .any(|binding| binding.matches(claims, &request.shape, now_epoch))
         {
-            Ok(())
-        } else {
-            Err(ShapeUseCaseError::HandleMismatch)
+            return Ok(());
         }
+        let candidate = HandleBinding::from_claims(claims, &request.shape);
+        if handle_bindings.iter().any(|binding| {
+            binding.same_authority(&candidate)
+                && Duration::from_secs(binding.expires_at) <= now_epoch
+        }) {
+            return Err(ShapeUseCaseError::HandleExpired);
+        }
+        Err(ShapeUseCaseError::HandleMismatch)
     }
+}
+
+fn lease_timeout_response(request: &ShapeRequest) -> ShapeResponse {
+    let Cursor::Resume { handle, offset } = &request.cursor else {
+        return ShapeResponse::new(204, Vec::new(), Vec::new());
+    };
+    ShapeResponse::new(
+        204,
+        vec![
+            ShapeHeader::new("electric-handle", handle.as_bytes()),
+            ShapeHeader::new("electric-offset", offset.as_bytes()),
+            ShapeHeader::new(
+                "electric-cursor",
+                request
+                    .protocol
+                    .cursor
+                    .as_deref()
+                    .unwrap_or_default()
+                    .as_bytes(),
+            ),
+        ],
+        Vec::new(),
+    )
 }
 
 fn validated_response_handle(

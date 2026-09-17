@@ -1,33 +1,32 @@
 {
-  "phase": "issue-triage-and-architecture-audit",
-  "previousPhase": "phase-36-sovereign-sfu-ice-linux-fix",
-  "status": "reflected",
-  "exactNextCommand": "/kbd-new-phase",
-  "activeChange": null,
-  "updatedAt": "2026-09-15T06:16:09Z",
-  "planComplete": true,
-  "assessmentComplete": true,
-  "executeComplete": true,
-  "reflectComplete": true,
-  "backend": "openspec",
-  "next": "/kbd-new-phase",
-  "path": [
-    "phase-36-sovereign-sfu-ice-linux-fix",
-    "adr-009-replication-materializer-and-pem-publication"
-  ],
-  "childPhases": [],
-  "childPointer": null,
-  "currentTask": "phase reflected and closed; choose the next phase (recommended: kbd-ledger-schema-and-runtime-authority)",
   "schemaVersion": "5",
+  "generatedBy": "kbd-runtime",
+  "projectionContractVersion": 2,
+  "sourceRevision": 311,
+  "derivedRevision": 311,
+  "frontier": {
+    "573067f0-69c9-40fc-a33c-3aed7a5a839f": 311
+  },
+  "conflictCount": 0,
+  "projectId": "fe4a2436-c1c1-4e63-92c6-6e3817f03219",
+  "runId": "production-readiness-integration-20260915T074708Z",
+  "path": [
+    "production-readiness-integration"
+  ],
+  "phaseIds": [
+    "production-readiness-integration"
+  ],
+  "activePhaseId": "production-readiness-integration",
+  "phase": "production-readiness-integration",
+  "childPointer": null,
   "change": null,
-  "nextPendingChange": null,
-  "parentPhase": null,
+  "currentTask": null,
+  "status": "ready",
   "completionMetric": "implementation",
-  "implementationCompleted": 6,
-  "implementationTotal": 6,
-  "certificationStatus": "NOT_TRACKED",
-  "publicationStatus": "NOT_TRACKED",
-  "planRevision": 1,
-  "revision": 4,
-  "lastCompletedChange": "p38-c006-dead-code-and-guard-classification"
+  "implementationCompleted": 13,
+  "implementationTotal": 23,
+  "planRevision": 6,
+  "revision": 311,
+  "exactNextCommand": "Keep the c011-c013 prototype runnable and reduce the measured PGlite hard-reload reopen latency before starting pri-c014-aso-memory",
+  "updatedAt": "2026-09-17T03:06:37.523083Z"
 }

@@ -26,7 +26,7 @@ pub struct VerifiedClaims {
 }
 
 pub const ASO_REPLICA_SCOPE: &str = "aso.replica.read";
-pub const ASO_PROJECTION_REVISION: u32 = 1;
+pub const ASO_PROJECTION_REVISION: u32 = 3;
 
 impl VerifiedClaims {
     /// Validate the dedicated ASO replica claim contract and return its
@@ -55,20 +55,12 @@ impl VerifiedClaims {
                 "ASO session linkage".to_owned(),
             ));
         }
-        let expected = [
-            "case_evidence",
-            "cases",
-            "documents",
-            "evidence_citations",
-            "evidence_states",
-        ];
-        let mut actual = self
-            .projection_ids
-            .iter()
-            .map(String::as_str)
-            .collect::<Vec<_>>();
-        actual.sort_unstable();
-        if actual != expected {
+        if self.projection_ids.is_empty()
+            || self
+                .projection_ids
+                .iter()
+                .any(|projection| projection.trim().is_empty())
+        {
             return Err(PortError::PermissionDenied(
                 "ASO projection allowlist".to_owned(),
             ));

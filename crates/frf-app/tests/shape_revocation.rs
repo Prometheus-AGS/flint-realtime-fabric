@@ -189,6 +189,8 @@ fn claims(expires_at: u64) -> VerifiedClaims {
         authorization_revision: Some("membership:1".to_owned()),
         projection_revision: Some(frf_ports::identity::ASO_PROJECTION_REVISION),
         projection_ids: vec![
+            "annotation_types".to_owned(),
+            "annotations".to_owned(),
             "cases".to_owned(),
             "case_evidence".to_owned(),
             "documents".to_owned(),

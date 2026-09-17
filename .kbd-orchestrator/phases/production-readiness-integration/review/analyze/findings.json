@@ -1,0 +1,31 @@
+{
+  "mode": "artifact",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "analysis.md",
+      "line": 0,
+      "claim": "The analysis rules out adopting another CDC service even though it did not evaluate the CDC solution category.",
+      "evidence": "The WAL section states, \"No rewrite of replication parsing or adoption of another CDC service is justified by this bounded search,\" while the research scope says, \"Tier 4: not used. Broad stack comparisons would not resolve the concrete adapter defects\" and the only WAL candidate evaluated is \"cand-002: pg_walstream 0.6.3.\"",
+      "suggested_fix": "Change the conclusion to say alternative CDC services were not evaluated in this bounded pass, or add a follow-up evaluation of relevant CDC services/libraries before making a no-adoption recommendation."
+    },
+    {
+      "severity": "WARNING",
+      "file": "library-candidates.json",
+      "line": 0,
+      "claim": "The machine-readable gap coverage omits F10 even though the candidate evaluations and build-required entries claim F10 was partially addressed.",
+      "evidence": "`gaps_addressed` is `[\"F01\", \"F03\", \"F07\", \"F08\"]`, but cand-001 has `fit_for_gap`: \"F01/F03/F10: durable event history, replay and projection population\", the build-required entry has `capability_gap_id`: \"F03/F10\", and analysis.md says, \"No completed coverage is claimed for F10 as a whole: only its broker recovery concerns were investigated here.\"",
+      "suggested_fix": "Either include F10 in `gaps_addressed` with a partial/limited coverage marker, or remove F10 from candidate fit/build-required claims and keep it solely in the backlog."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

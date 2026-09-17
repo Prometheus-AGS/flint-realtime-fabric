@@ -119,6 +119,8 @@ fn claims(subject: &str, token: u128) -> VerifiedClaims {
         authorization_revision: Some("membership:1".to_owned()),
         projection_revision: Some(frf_ports::identity::ASO_PROJECTION_REVISION),
         projection_ids: vec![
+            "annotation_types".to_owned(),
+            "annotations".to_owned(),
             "case_evidence".to_owned(),
             "cases".to_owned(),
             "documents".to_owned(),
@@ -144,6 +146,7 @@ fn initial_request() -> ShapeRequest {
         params: Vec::new(),
         cursor: Cursor::Initial,
         protocol: ShapeProtocol {
+            log: None,
             live: Some("true".to_owned()),
             cursor: Some("1234".to_owned()),
             if_none_match: Some("etag-1".to_owned()),
@@ -219,7 +222,8 @@ async fn continuation_handle_is_bound_to_the_exact_verified_grant() {
         handle: "handle-1".to_owned(),
         offset: "10_0".to_owned(),
     };
-    let fresh_token_for_same_session = claims("subject-1", 12);
+    let mut fresh_token_for_same_session = claims("subject-1", 12);
+    fresh_token_for_same_session.expires_at = 2_500;
     let provisional_error = use_case
         .execute(
             &fresh_token_for_same_session,
@@ -331,7 +335,7 @@ async fn expired_handle_is_denied_under_a_fresh_valid_grant() {
         .execute(&fresh_grant, continuation, epoch(2_001))
         .await
         .expect_err("expired handle");
-    assert!(matches!(error, ShapeUseCaseError::HandleMismatch));
+    assert!(matches!(error, ShapeUseCaseError::HandleExpired));
     assert_eq!(facade.seen.lock().expect("seen lock").len(), 1);
 }
 

@@ -1,30 +1,245 @@
 {
   "schemaVersion": "1",
-  "generatedBy": "legacy-position-projection",
-  "sourceRevision": 4,
-  "updatedAt": "2026-09-15T06:16:32Z",
+  "generatedBy": "kbd-runtime",
+  "projectionContractVersion": 2,
+  "sourceRevision": 311,
+  "derivedRevision": 311,
+  "frontier": {
+    "573067f0-69c9-40fc-a33c-3aed7a5a839f": 311
+  },
+  "conflictCount": 0,
+  "updatedAt": "2026-09-17T03:06:37.523083Z",
   "cursor": [
-    "phase-36-sovereign-sfu-ice-linux-fix",
-    "adr-009-replication-materializer-and-pem-publication"
+    "production-readiness-integration"
   ],
   "root": {
     "type": "phase",
-    "id": "phase-36-sovereign-sfu-ice-linux-fix",
-    "status": "active-parent",
+    "id": "fe4a2436-c1c1-4e63-92c6-6e3817f03219",
+    "status": "ready",
     "progress": {
-      "done": 6,
-      "total": 6
+      "done": 13,
+      "total": 23
     },
     "children": [
       {
         "type": "phase",
-        "id": "adr-009-replication-materializer-and-pem-publication",
-        "status": "reflected",
+        "id": "production-readiness-integration",
+        "canonicalId": "production-readiness-integration",
+        "status": "IN_PROGRESS",
         "progress": {
-          "done": 0,
-          "total": 0
+          "done": 13,
+          "total": 23
         },
-        "children": []
+        "children": [
+          {
+            "type": "change",
+            "id": "pri-c001-build-policy",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 7,
+              "total": 7
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c002-local-fixtures",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 5,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c003-scope-research-contract",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 5,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c004-deployment-profiles",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 5,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c005-authority-lifetime",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 5,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c006-watch-contract",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 5,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c007-broker-replay",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 5,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c008-cdc-commit-mapping",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 5,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c009-entity-projection",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 5,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c010-type-watch",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 5,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c011-forge-watch",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 5,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c012-sdk-pem-network",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 5,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c013-sync-persistence",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 5,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c014-aso-memory",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c015-aso-protected-proof",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c017-hosted-media",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c018-matrix-recovery",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c019-atproto-recovery",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c020-sovereign-decode",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c021-admin-auth",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c022-platform-parity",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c016-operations-recovery",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "pri-c023-release-signoff",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 5
+            }
+          }
+        ],
+        "annotations": []
       }
     ],
     "annotations": []

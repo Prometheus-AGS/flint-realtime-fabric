@@ -15,6 +15,7 @@ use axum_test::TestServer;
 use frf_app::{ShapeCatalog, ShapeUseCase};
 use frf_domain::{Channel, ChannelId, Cursor, EventEnvelope, Offset, SessionId, TenantId};
 use frf_gateway::{AppState, GatewayConfig};
+use frf_ports::identity::ASO_PROJECTION_REVISION;
 use frf_ports::{
     AuthorizedShapeRequest, AuthzProvider, IdentityVerifier, LogBroker, PortError, RelationTuple,
     ShapeFacade, ShapeHeader, ShapeResponse, VerifiedClaims,
@@ -131,6 +132,8 @@ fn claims(scope: &str, projection_revision: u32) -> VerifiedClaims {
         authorization_revision: Some("membership-revision".to_owned()),
         projection_revision: Some(projection_revision),
         projection_ids: vec![
+            "annotation_types".to_owned(),
+            "annotations".to_owned(),
             "case_evidence".to_owned(),
             "cases".to_owned(),
             "documents".to_owned(),
@@ -222,17 +225,25 @@ async fn assert_grant_rejected_before_data_access(claims: VerifiedClaims) {
 
 #[tokio::test]
 async fn mounted_shape_route_rejects_wrong_scope_before_resolver_or_facade() {
-    assert_grant_rejected_before_data_access(claims("another.service.read", 1)).await;
+    assert_grant_rejected_before_data_access(claims(
+        "another.service.read",
+        ASO_PROJECTION_REVISION,
+    ))
+    .await;
 }
 
 #[tokio::test]
 async fn mounted_shape_route_rejects_wrong_revision_before_resolver_or_facade() {
-    assert_grant_rejected_before_data_access(claims("aso.replica.read", 2)).await;
+    assert_grant_rejected_before_data_access(claims(
+        "aso.replica.read",
+        ASO_PROJECTION_REVISION - 1,
+    ))
+    .await;
 }
 
 #[tokio::test]
 async fn authorized_shape_route_preserves_a_cleared_gate_summary() {
-    let verified = claims("aso.replica.read", 1);
+    let verified = claims("aso.replica.read", ASO_PROJECTION_REVISION);
     let practice_id = verified.tenant_id.to_string();
     let body = br#"[{"id":"synthetic-case","gate_affirmed_at":null}]"#.to_vec();
     let catalog = ShapeCatalog::from_json(

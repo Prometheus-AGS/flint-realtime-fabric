@@ -1,0 +1,14 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-09-15T07:00:14Z",
+  "outputs": [
+    "assessment.md",
+    "evidence-index.json",
+    "review/assess/findings.json",
+    "stage-completion.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Assessment artifact complete: Fabric default/shape, Gate and Forge checks pass; Fabric dev-endpoints fails E0063. Critical integration gaps include disconnected v1 entity storage, absent type watch, CDC/PEM mapping and ASO RSS qualification. Review remains BLOCK after the two-round cap; final external-source evidence and platform/subgoal matrices were added but not re-vetted. Canonical assessment stage recording is pending the separately scoped legacy-to-runtime migration decision (37 ledgers, five uncertain rows, one alias conflict); do not infer lifecycle or certification completion.",
+  "skipped": false,
+  "skipReason": null
+}

@@ -1,0 +1,40 @@
+[
+  {
+    "name": "compose-validation",
+    "command": [
+      "docker",
+      "compose",
+      "-f",
+      "compose.yml",
+      "config",
+      "--quiet"
+    ],
+    "exitCode": 1,
+    "seconds": 0.4,
+    "log": "compose-validation.log"
+  },
+  {
+    "name": "sdk-typecheck",
+    "command": [
+      "sdks/ts/node_modules/.bin/tsc",
+      "--noEmit",
+      "-p",
+      "sdks/ts/tsconfig.build.json"
+    ],
+    "exitCode": 0,
+    "seconds": 1.05,
+    "log": "sdk-typecheck.log"
+  },
+  {
+    "name": "format",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "exitCode": 0,
+    "seconds": 0.62,
+    "log": "format.log"
+  }
+]

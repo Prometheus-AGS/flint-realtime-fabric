@@ -86,3 +86,19 @@ Rust vulnerabilities, Forge 6, PEM's production monorepo graph includes 2
 critical npm advisories, and ASO web includes 13 high/moderate React Router
 advisories. `integration-audit-summary.json` assigns remediation/non-applicability
 proof to the owning changes and requires fresh per-repository evidence at c023.
+
+## 2026-09-16 — Plan revision 3 prioritizes a usable prototype loop
+
+The operator replaced the previous breadth-first priority with the fastest path
+to user-visible value: database-triggered Forge realtime plus a complete PGlite,
+ElectricSQL, PostgreSQL and PEM loop that stays runnable during development.
+
+Decision: finish c011, redefine c012 as the online prototype loop and redefine
+c013 as durable PGlite outbound replay. Keep LISTEN as Forge's rollback source;
+defer broad SDK generation and unrelated Fabric CRDT snapshot/op-store work.
+ASO and the remaining capability tracks follow the usable c011-c013 path.
+
+ElectricSQL is the downstream PostgreSQL-to-client replication mechanism.
+PGlite mutations go upstream through Forge's authenticated API, then reconcile
+from canonical Electric/Fabric state. Full functionality precedes testing; the
+first behavioral acceptance proof is a complete local integration campaign.

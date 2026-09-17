@@ -107,7 +107,7 @@ mod tests {
             "originating_session_id": Uuid::from_u128(4).to_string(),
             "authorization_revision": "membership:synthetic",
             "projection_revision": ASO_PROJECTION_REVISION,
-            "projection_ids": ["cases", "case_evidence", "evidence_states", "evidence_citations", "documents"],
+            "projection_ids": ["annotation_types", "annotations", "cases", "case_evidence", "evidence_states", "evidence_citations", "documents"],
             "aud": "frf-gateway",
             "exp": 9_999_999_999_u64
         }))

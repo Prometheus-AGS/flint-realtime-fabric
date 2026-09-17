@@ -49,6 +49,7 @@ fn protocol(headers: &HeaderMap, params: &HashMap<String, String>) -> Result<Sha
         .map_err(|_| ())?
         .map(str::to_owned);
     Ok(ShapeProtocol {
+        log: params.get("log").cloned(),
         live: params.get("live").cloned(),
         cursor: params.get("cursor").cloned(),
         if_none_match,
@@ -68,7 +69,7 @@ fn bearer_token(headers: &HeaderMap) -> Option<String> {
 /// Serve one shape chunk for a verified, authorized subject.
 ///
 /// The practice scope comes from the verified tenant claim after the dedicated
-/// ASO scope, revision, projection allowlist, and session linkage are checked.
+/// ASO scope, revision, projection grant, and session linkage are checked.
 // `Query` deserializes into a concrete `HashMap<String, String>`; the hasher cannot be
 // generalized at an axum extractor boundary, so the pedantic lint does not apply here.
 #[allow(clippy::implicit_hasher)]
@@ -120,7 +121,7 @@ where
         .filter(|(k, _)| {
             !matches!(
                 k.as_str(),
-                "shape" | "handle" | "offset" | "live" | "cursor"
+                "shape" | "handle" | "offset" | "log" | "live" | "cursor"
             )
         })
         .map(|(k, v)| (k.clone(), v.clone()))
@@ -155,6 +156,7 @@ where
         Err(ShapeUseCaseError::Unauthorized | ShapeUseCaseError::HandleMismatch) => {
             StatusCode::FORBIDDEN.into_response()
         }
+        Err(ShapeUseCaseError::HandleExpired) => StatusCode::CONFLICT.into_response(),
         Err(ShapeUseCaseError::GrantExpired) => StatusCode::UNAUTHORIZED.into_response(),
         Err(ShapeUseCaseError::UnknownShape) => StatusCode::NOT_FOUND.into_response(),
         Err(ShapeUseCaseError::InvalidRequest(message)) => {

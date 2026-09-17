@@ -1,0 +1,55 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "F04 makes a detailed Forge source finding without any supporting Forge source provenance in the review packet.",
+      "evidence": "F04 asserts `flint-forge/crates/fdb-app/src/lib.rs:107\u2013122` behavior: \"re-queries the PK under RLS, then returns the original `event`\" and other Forge LISTEN/Fabric-source details. The supplied `source_evidence` contains excerpts only for `.github/workflows/ci.yml`, ASO `replica-runtime.ts`, ASO `materializer-adoption.ts`, ASO `task-10-cold-fold-order-repair.md`, and PEM `flint-live.integration.test.ts`; no Forge source excerpt or hash is included, and the Fabric `file_tree` does not contain `flint-forge/crates/fdb-app/src/lib.rs`.",
+      "suggested_fix": "Attach the inspected Forge source excerpts/provenance for every F04 source claim or downgrade F04 to an unverified question requiring Forge source inspection."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "The assessment misses a concrete file-size constraint violation in the ASO source it uses as evidence.",
+      "evidence": "Constraint R5 says: \"No file over 500 lines (any language).\" The supplied source evidence for `/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web/src/shared/sync/replica-runtime.ts` records `totalLines: 524`. The assessment discusses that file in F07 as present implementation but its \"Known violations\" list omits the 524-line file-size violation.",
+      "suggested_fix": "Add a finding or constraint note that `replica-runtime.ts` exceeds the 500-line cap, and require split/refactor or an explicit project-scope exemption before ASO adoption work is planned."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "G5's supported-platform-limits requirement is not actually assessed.",
+      "evidence": "Goal G5 requires proving SDKs and PEM \"including mutation-to-graph delivery, isolation, recovery and supported platform limits.\" The G5 progress row only says: \"Artifacts and adapter exist; CJS and real-network/durable contract proof incomplete.\" F08 likewise covers a missing `index.cjs` and loopback transport, but does not identify which supported platforms exist, are untested, or are out of scope.",
+      "suggested_fix": "Add an SDK/PEM platform matrix covering the advertised supported runtimes/platforms and mark each as proven, unproven, unsupported, or blocked."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "G6's checkpoint atomicity, epoch fencing, and deployment-specific isolation requirements are not separately assessed.",
+      "evidence": "Goal G6 requires: \"prove checkpoint atomicity, epoch fencing and deployment-specific isolation.\" The G6 progress row says only: \"Located source and recent mounted receipts; browser memory qualification still fails.\" F07 focuses on materializer existence, mounted behavior receipts, memory RSS failure, and the experimental flag; it does not state whether checkpoint atomicity, epoch fencing, or deployment-specific isolation are proven, partial, missing, or blocked.",
+      "suggested_fix": "Add explicit status entries for checkpoint atomicity, epoch fencing, and deployment-specific isolation, with source/evidence references or open gaps for each."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "F11's ASO revocation-boundary claim is unsupported by the supplied packet.",
+      "evidence": "F11 asserts that ASO `docs/architecture/frf-shape-facade-integration.md:119\u2013125` measures \"authoritative commit/expiry \u2192 last server-produced protected frame\" and excludes \"kernel/proxy buffers, transit and client receipt.\" The supplied `source_evidence` does not include that ASO docs file, and the Fabric `file_tree` does not contain the ASO repository path.",
+      "suggested_fix": "Attach the cited ASO documentation excerpt/provenance or restate F11 as an unresolved verification item rather than a settled assessment finding."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

@@ -49,11 +49,31 @@
   "active_change": null,
   "blocked_changes": [],
   "changes": [
-    "p37-c001-pem-runtime-scoped-state",
-    "p37-c002-pem-dispose-barrier",
-    "p37-c003-pem-checkpoint-atomicity",
-    "p37-c004-aso-replica-runtime",
-    "p37-c005-evidence-not-loaded-state"
+    {
+      "id": "p37-c001-pem-runtime-scoped-state",
+      "status": "DONE",
+      "implementation_status": "COMPLETE"
+    },
+    {
+      "id": "p37-c002-pem-dispose-barrier",
+      "status": "DONE",
+      "implementation_status": "COMPLETE"
+    },
+    {
+      "id": "p37-c003-pem-checkpoint-atomicity",
+      "status": "DONE",
+      "implementation_status": "COMPLETE"
+    },
+    {
+      "id": "p37-c004-aso-replica-runtime",
+      "status": "DONE",
+      "implementation_status": "COMPLETE"
+    },
+    {
+      "id": "p37-c005-evidence-not-loaded-state",
+      "status": "DONE",
+      "implementation_status": "COMPLETE"
+    }
   ],
   "last_updated": "2026-09-09T10:37:44Z",
   "last_updated_by": "kbd-apply (QA gate + archive)",

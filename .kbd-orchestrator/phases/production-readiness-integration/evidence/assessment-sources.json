@@ -1,0 +1,36 @@
+{
+  "capturedAt": "2026-09-15T06:48:43.813622+00:00",
+  "repositories": {
+    "fabric": {
+      "root": "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric",
+      "commit": "3043ca53239cc74a7f94a9e12484e2fd17726adb",
+      "trackedDiffSha256": "9ce842f53fe1bbdbbc9a1872d0a71e6a7cd4b847b886a88a00352463e43a8219",
+      "dirtyEntryCount": 7
+    },
+    "gate": {
+      "root": "/Users/gqadonis/Projects/prometheus/flint-gate",
+      "commit": "97d65437c937a285fb000f5e42fddc8af4ff9934",
+      "trackedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "dirtyEntryCount": 0
+    },
+    "forge": {
+      "root": "/Users/gqadonis/Projects/prometheus/flint-forge",
+      "commit": "dc472be531d0f878f96cab71321b29058474df77",
+      "trackedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "dirtyEntryCount": 0
+    },
+    "pem": {
+      "root": "/Users/gqadonis/Projects/prometheus/prometheus-entity-management",
+      "commit": "071b9e5b06c31f6c7d9d191bdaa4a2e188d1d565",
+      "trackedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "dirtyEntryCount": 0
+    },
+    "aso": {
+      "root": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth",
+      "commit": "d95242542060d1e19a6efe9143f57c015d6162f4",
+      "trackedDiffSha256": "a4bf8e8a3191687e57281c9dadec5df971d070bdac0d32cccdd31748c622f220",
+      "dirtyEntryCount": 334
+    }
+  },
+  "note": "Tracked diff hashes include current planning state where applicable; untracked files are not hashed. No claim of a clean-tree release build."
+}

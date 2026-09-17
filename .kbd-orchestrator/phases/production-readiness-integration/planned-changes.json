@@ -1,0 +1,793 @@
+{
+  "phase": "production-readiness-integration",
+  "revision": 4,
+  "authority": "OpenSpec proposals; KBD legacy ledger not migrated",
+  "implementation_authorized": true,
+  "changes": [
+    {
+      "id": "pri-c001-build-policy",
+      "title": "Restore the declared build matrix and local-only testing policy",
+      "depends_on": [],
+      "owner": "Fabric",
+      "files": [
+        "Cargo.toml",
+        ".github/workflows/ci.yml",
+        "dagger/",
+        "crates/frf-gateway/src/routes/dev.rs",
+        "openspec/config.yaml"
+      ],
+      "scope": "Fix the demonstrated missing SignalEnvelope subject and reconcile MSRV. Remove CI-reachable test execution while preserving local entry points; correct stale Dart-generator guidance to ADR-003.",
+      "checks": [
+        "Default, dev-endpoints and shape-facade checks plus applicable Clippy, format and SDK typecheck succeed locally against recorded source hashes.",
+        "Inventory every workflow/Dagger call path: CI performs build/lint/typecheck/format/package only; each removed runtime gate has a documented local invocation and is exercised by its owning later change."
+      ],
+      "questions": [],
+      "libraries": [],
+      "size": "M",
+      "complexity_score": "Medium",
+      "model_class": "frontier",
+      "agent": "Codex",
+      "priority": "P0",
+      "legacy_package": "C01",
+      "status": "READY"
+    },
+    {
+      "id": "pri-c002-local-fixtures",
+      "title": "Provide an isolated local integration runner",
+      "depends_on": [
+        "pri-c001-build-policy"
+      ],
+      "owner": "Fabric integration",
+      "files": [
+        "compose.yml",
+        "compose.ci.yml",
+        "scripts/",
+        "crates/frf-gateway/tests/subscribe_mux.rs",
+        "crates/frf-postgres-cdc/tests/cdc_integration.rs"
+      ],
+      "scope": "Create a namespaced composed fixture and mandatory-prerequisite runner with disposable credentials, deadlines, receipts and ownership-safe cleanup. Replace the mux outline with real publish/receive; reserve CDC semantics for c008.",
+      "checks": [
+        "A real authenticated publish reaches a subscribed gateway client; disabling delivery makes that assertion fail before restoration passes.",
+        "Missing prerequisites, zero required scenarios and skipped required tests exit nonzero; cleanup touches only the run-owned containers/volumes/slots."
+      ],
+      "questions": [],
+      "libraries": [],
+      "size": "M",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex",
+      "priority": "P0",
+      "legacy_package": "C09",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c003-scope-research-contract",
+      "title": "Resolve release decisions and complete dependency qualification research",
+      "depends_on": [],
+      "owner": "Fabric coordinator + Gate/Forge/PEM/ASO owners",
+      "files": [
+        ".kbd-orchestrator/phases/production-readiness-integration/analysis.md",
+        ".kbd-orchestrator/phases/production-readiness-integration/decision-log.md",
+        ".kbd-orchestrator/phases/production-readiness-integration/library-candidates.json"
+      ],
+      "scope": "Resolve Q1\u2013Q7 with provenance and research the named identity/policy, persistence/deployment, media/federation and platform backlog in bounded passes. Inventory source/package/image revisions and runtime profiles. Record Q8 separately; KBD migration is not part of this change. Research and decision facilitation may start immediately; unresolved Q1\u2013Q7 block closure and dependent implementation, not the start of this change.",
+      "checks": [
+        "An accepted release matrix names required profiles, clients, source schemas/keys/tenants, historical/delete semantics, scale/retention/RTO/RPO, ASO budgets and profile-specific authorization lifetime endpoints.",
+        "Pinned API, compatibility and maintenance/security evidence exists for each retained dependency; unsupported choices trigger a revised proposal, not invented feasibility. Reconcile Assess provenance finding through focused independent review."
+      ],
+      "questions": [],
+      "libraries": [],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex; operator resolves recorded decisions",
+      "priority": "P0",
+      "legacy_package": "C01 + Analyze backlog",
+      "status": "READY_FOR_RESEARCH",
+      "questions_to_resolve": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "pri-c004-deployment-profiles",
+      "title": "Make selected deployment profiles portable and truthful",
+      "depends_on": [
+        "pri-c001-build-policy",
+        "pri-c002-local-fixtures",
+        "pri-c003-scope-research-contract"
+      ],
+      "owner": "Fabric deployment + Gate",
+      "files": [
+        "compose.yml",
+        ".env.example",
+        "k8s/overlays/ssr/",
+        "crates/frf-gateway/src/config/mod.rs",
+        "docs/ENVIRONMENT.md"
+      ],
+      "scope": "Render supported full and restricted-shape profiles from pinned artifacts and explicit identity/media/secret inputs. Remove absolute developer paths and false-success health checks; reject endpoints outside profile authority.",
+      "checks": [
+        "Clean local installation of each selected profile reaches semantic readiness with real dependency handshakes; missing issuer/keys/broker/auth authority fails visibly.",
+        "Pinned images, declared secret sources, exposed ports and feature flags match the profile; release artifacts contain no dev authorization bypass. Each profile declares TLS termination, certificate/key/trust sources and external/internal network boundaries; valid HTTPS succeeds, invalid or missing TLS inputs fail startup/readiness, and prohibited plaintext or backend-bypass access is denied."
+      ],
+      "questions": [
+        2
+      ],
+      "libraries": [],
+      "size": "M",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex; operator resolves recorded decisions",
+      "priority": "P0",
+      "legacy_package": "C02",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c005-authority-lifetime",
+      "title": "Enforce identity and authorization on selected exposed lanes",
+      "depends_on": [
+        "pri-c002-local-fixtures",
+        "pri-c003-scope-research-contract",
+        "pri-c004-deployment-profiles"
+      ],
+      "owner": "Gate + Fabric; Forge/ASO boundary owners",
+      "files": [
+        "crates/frf-gateway/src/",
+        "crates/frf-app/src/",
+        "crates/frf-authz-keto/src/",
+        "../flint-gate/"
+      ],
+      "scope": "Verify real Gate credentials and current object authorization on generic streams, and preserve Gate/ASO fresh authority on restricted shape streams. Check expiry, rotation, revoked grants, cancellation and bypass paths.",
+      "checks": [
+        "Real Gate-issued tokens allow only intended issuer/audience/tenant/subject and object; same-tenant unauthorized subjects, cross-tenant access, authority loss, key rotation and stale refill races are exercised locally.",
+        "ASO authoritative commit/expiry to last server-produced protected frame or cancellation preventing the next frame is at most 5000 ms, followed by new-request denial; direct Kratos revocation uses the documented observation/ASO-denial start. All other lanes meet the lifetime contract accepted in c003."
+      ],
+      "questions": [
+        2,
+        5,
+        7
+      ],
+      "libraries": [],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex; operator resolves recorded decisions",
+      "priority": "P0",
+      "legacy_package": "C03",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c006-watch-contract",
+      "title": "Freeze the versioned watch and recovery contract",
+      "depends_on": [
+        "pri-c003-scope-research-contract"
+      ],
+      "owner": "Fabric contract + Forge/PEM consumers",
+      "files": [
+        "proto/flint/",
+        "crates/frf-domain/src/",
+        "crates/frf-ports/src/",
+        "docs/decisions/"
+      ],
+      "scope": "Specify a new versioned WatchEntityType contract, canonical typed payload/key mapping and compatibility with immutable v1. Separate source LSN/epoch, stable event identity, partition offset and client checkpoint; specify snapshot barrier, ordering, duplicates, retention, lag, cancellation and authorized deletes.",
+      "checks": [
+        "Contract scenarios cover accepted schema/key/tenant shapes, transaction commit, snapshot-to-live races, restart/replay, old cursors, unauthorized history and deletion/projection; consumer acceptance is recorded before codegen.",
+        "Frozen proto/flint/v1 files remain byte-identical; new-version generation and old/new compatibility validation succeed. Semver impact on frf-domain/frf-ports and one-port adapter boundaries are documented."
+      ],
+      "questions": [
+        4,
+        5,
+        6
+      ],
+      "libraries": [
+        1,
+        2,
+        4
+      ],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex; operator resolves recorded decisions",
+      "priority": "P0",
+      "legacy_package": "C04",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c007-broker-replay",
+      "title": "Expose durable broker positions and commit-controlled replay",
+      "depends_on": [
+        "pri-c002-local-fixtures",
+        "pri-c006-watch-contract"
+      ],
+      "owner": "Fabric broker adapter",
+      "files": [
+        "crates/frf-broker-iggy/src/",
+        "crates/frf-broker-iggy/tests/",
+        "crates/frf-ports/src/log_broker.rs"
+      ],
+      "scope": "Replace producer-local replay counters with the accepted broker position mapping. Configure explicit commit policy instead of polling-time defaults and prove exact pinned-fork seek/replay/ack semantics, stable producer identity and cancellation.",
+      "checks": [
+        "Crash after poll but before durable consumer checkpoint replays the event; restart after acknowledgement respects defined cursor inclusivity and duplicate rules.",
+        "Producer restart does not reuse a replay position; independent consumers, partition boundaries, retention expiry and cancellation behave as the frozen contract requires. Record actual server durability/flush configuration."
+      ],
+      "questions": [],
+      "libraries": [
+        1
+      ],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex",
+      "priority": "P0",
+      "legacy_package": "C05",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c008-cdc-commit-mapping",
+      "title": "Deliver committed typed CDC changes without checkpoint gaps",
+      "depends_on": [
+        "pri-c002-local-fixtures",
+        "pri-c006-watch-contract",
+        "pri-c007-broker-replay"
+      ],
+      "owner": "Fabric CDC",
+      "files": [
+        "crates/frf-postgres-cdc/src/consumer.rs",
+        "crates/frf-postgres-cdc/src/decode.rs",
+        "crates/frf-postgres-cdc/tests/cdc_integration.rs"
+      ],
+      "scope": "Reuse the pinned WAL parser; implement validated catalog/replica-identity mapping, schema-qualified routing and supported typed values. Couple acknowledged WAL progress to durable committed publication, including decode/transaction failures.",
+      "checks": [
+        "Real INSERT/UPDATE/DELETE and rollback/multi-row transactions exercise enrolled non-first/composite/non-UUID keys and accepted tenant modes; unsupported mappings fail enrollment, not silent delivery.",
+        "Crash between publication and LSN advancement permits defined deduplication without loss; poison rows, schema change, unchanged TOAST and missing old-key data cannot be skipped beneath an acknowledged checkpoint."
+      ],
+      "questions": [],
+      "libraries": [
+        1,
+        2
+      ],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex",
+      "priority": "P0",
+      "legacy_package": "C05",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c009-entity-projection",
+      "title": "Populate durable v1 entity reads and watches",
+      "depends_on": [
+        "pri-c004-deployment-profiles",
+        "pri-c005-authority-lifetime",
+        "pri-c008-cdc-commit-mapping"
+      ],
+      "owner": "Fabric entity projection",
+      "files": [
+        "crates/frf-gateway/src/main.rs",
+        "crates/frf-app/src/entity.rs",
+        "crates/frf-ports/src/",
+        "crates/frf-store-surreal/src/"
+      ],
+      "scope": "Compose a durable entity projection and population/checkpoint seam following one-port-per-adapter. Establish snapshot-to-WAL catch-up and readiness so existing GetEntity/WatchEntity reflect production ingestion.",
+      "checks": [
+        "A database commit reaches existing v1 GetEntity and WatchEntity through real adapters; snapshot overlap does not omit or duplicate state incorrectly.",
+        "Gateway/projector restart preserves state and cursor coherence; delete removes current state; v1 wire remains unchanged and required per-event object authorization is applied."
+      ],
+      "questions": [],
+      "libraries": [
+        1,
+        2
+      ],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex",
+      "priority": "P0",
+      "legacy_package": "C05 / F01",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c010-type-watch",
+      "title": "Serve authorized resumable WatchEntityType streams",
+      "depends_on": [
+        "pri-c005-authority-lifetime",
+        "pri-c006-watch-contract",
+        "pri-c007-broker-replay",
+        "pri-c008-cdc-commit-mapping",
+        "pri-c009-entity-projection"
+      ],
+      "owner": "Fabric application + gateway",
+      "files": [
+        "crates/frf-app/src/",
+        "crates/frf-gateway/src/",
+        "crates/frf-proto/"
+      ],
+      "scope": "Implement the frozen type-watch use case and transport using durable broker delivery and projection semantics. Enforce subscribe-time/per-event authority, bounded buffers, explicit resync and teardown. Generate and export the frozen-version tonic Rust client from frf-proto, and compile the Forge-facing client surface here before c011; c012 owns separate non-Rust package generation.",
+      "checks": [
+        "Two authorized subscribers receive committed changes of the enrolled type; other schemas/types/tenants and unauthorized same-tenant subjects receive no protected payload.",
+        "Snapshot/subscribe races, reconnect, expired cursor, slow-client lag, cancellation during awaited authorization and revocation meet the contract; resources return to baseline."
+      ],
+      "questions": [],
+      "libraries": [
+        1,
+        2
+      ],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex",
+      "priority": "P0",
+      "legacy_package": "C05",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c011-forge-watch",
+      "title": "Replace Forge's Fabric stub with safe GraphQL delivery",
+      "depends_on": [
+        "pri-c005-authority-lifetime",
+        "pri-c010-type-watch"
+      ],
+      "owner": "Forge realtime/app/gateway",
+      "files": [
+        "../flint-forge/crates/fdb-realtime/src/",
+        "../flint-forge/crates/fdb-app/src/lib.rs",
+        "../flint-forge/crates/fdb-gateway/src/realtime_source.rs"
+      ],
+      "scope": "Finish the runnable SQL-write -> Fabric WatchEntityType -> authenticated Forge GraphQL-subscription path using the c010 tonic client and canonical payload mapping. Deliver RLS projection, safe delete/invalidation behavior and truncation reconstruction. Retain LISTEN as a selectable rollback source.",
+      "checks": [
+        "A real SQL create/update/delete reaches an authenticated GraphQL subscription through Fabric with only permitted fields, including composite/key changes and truncated payload reconstruction.",
+        "Checkpoint reconnect, revocation, backend failure and LISTEN/Fabric rollback are explicit and do not silently lose updates or double-apply them."
+      ],
+      "questions": [],
+      "libraries": [
+        4
+      ],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex",
+      "priority": "P0",
+      "legacy_package": "C06",
+      "status": "IN_PROGRESS"
+    },
+    {
+      "id": "pri-c012-sdk-pem-network",
+      "title": "Deliver the runnable PGlite\u2013Forge\u2013Electric prototype loop",
+      "depends_on": [
+        "pri-c004-deployment-profiles",
+        "pri-c005-authority-lifetime",
+        "pri-c010-type-watch"
+      ],
+      "owner": "Forge + Fabric shape facade + PGlite/PEM adapter",
+      "files": [
+        "crates/frf-shape-electric/",
+        "crates/frf-gateway/src/routes/shape.rs",
+        "sdks/ts/",
+        "../prometheus-entity-sync/packages/entity-sync-pglite/",
+        "../flint-forge/crates/fdb-gateway/",
+        "runnable local compose/example assets"
+      ],
+      "scope": "Implement the complete online PGlite -> authenticated Forge -> PostgreSQL -> Electric/Fabric -> PGlite/PEM loop after c011 tasks 2\u20133. Defer all behavioral proof until c013 functionality is complete, then use one combined c011\u2013c013 campaign.",
+      "checks": [
+        "A create/update/delete initiated against PGlite reaches PostgreSQL through Forge and returns through Electric/Fabric to PGlite and PEM without manual refresh or direct database access.",
+        "A second authenticated client observes canonical state, tenant/field projection is enforced, and LISTEN remains a usable Forge GraphQL rollback source."
+      ],
+      "questions": [],
+      "libraries": [
+        3,
+        4
+      ],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex",
+      "priority": "P0",
+      "legacy_package": "C07",
+      "status": "IN_PROGRESS"
+    },
+    {
+      "id": "pri-c013-sync-persistence",
+      "title": "Make PGlite outbound sync durable and restart-safe",
+      "depends_on": [
+        "pri-c004-deployment-profiles",
+        "pri-c005-authority-lifetime",
+        "pri-c010-type-watch"
+      ],
+      "owner": "PGlite/PEM sync transport + Forge mutation API",
+      "files": [
+        "../prometheus-entity-sync/packages/entity-sync-pglite/",
+        "../prometheus-entity-sync/packages/entity-sync-core/",
+        "../flint-forge/crates/fdb-gateway/",
+        "../flint-forge/crates/fdb-app/",
+        "runnable local compose/example assets"
+      ],
+      "scope": "After c012 tasks 2\u20133 are functional, add a durable PGlite outbox, stable mutation identity, retry/replay and canonical reconciliation. Defer behavioral proof to the combined c011\u2013c013 campaign.",
+      "checks": [
+        "An offline mutation survives client restart, submits after reconnect and converges through canonical Electric/Fabric state in PGlite and PEM.",
+        "Retries do not duplicate database effects; rejection/conflict is visible and recoverable; two clients converge while tenant isolation remains enforced."
+      ],
+      "questions": [],
+      "libraries": [
+        3,
+        4
+      ],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex",
+      "priority": "P0",
+      "legacy_package": "C10 / F10",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c014-aso-memory",
+      "title": "Diagnose and reduce the existing ASO replica memory cost",
+      "depends_on": [
+        "pri-c002-local-fixtures",
+        "pri-c003-scope-research-contract",
+        "pri-c013-sync-persistence"
+      ],
+      "owner": "ASO materializer + PEM",
+      "files": [
+        "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web/src/shared/sync/",
+        "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/scripts/test-ra11c-materialization.py"
+      ],
+      "scope": "Reconcile current source with mounted receipts and profile the existing 16203-row workload. Apply measured, bounded memory corrections while preserving SQL/checkpoint atomicity, owner fencing and the experimental gate.",
+      "checks": [
+        "Same-fixture browser campaign measures incremental RSS at or below 536870912 bytes and heap at or below 268435456 bytes, unless c003 records an explicit operator-approved replacement contract.",
+        "Worker/DB/graph-copy and cold-fold allocations explain the result; passing behavior survives optimization. If one bounded session cannot close the gate, record findings and split remaining implementation before continuing; do not close this change on diagnosis alone. Inspect the owning ASO repository rules before edits; any modified file must be at most 500 lines, splitting replica-runtime.ts if that file is touched and preserving its owner fences. Untouched oversized files remain explicitly tracked."
+      ],
+      "questions": [
+        7
+      ],
+      "libraries": [
+        3
+      ],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex; operator resolves recorded decisions",
+      "priority": "P0",
+      "legacy_package": "C08",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c015-aso-protected-proof",
+      "title": "Qualify the protected shape-to-SQL-to-PEM path",
+      "depends_on": [
+        "pri-c005-authority-lifetime",
+        "pri-c014-aso-memory",
+        "pri-c013-sync-persistence"
+      ],
+      "owner": "ASO + Gate/Fabric + PEM",
+      "files": [
+        "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web/src/shared/sync/",
+        "crates/frf-app/src/shape/",
+        "crates/frf-gateway/src/routes/shape.rs",
+        "../flint-gate/"
+      ],
+      "scope": "Prove current-source protected replication using the existing shape feed and materializer, independently of generic entity watching. Cover every selected browser/native topology and approved schema/egress boundary.",
+      "checks": [
+        "Crash before SQL checkpoint rolls back rows/checkpoints; crash after SQL commit before PEM publication recovers coherently only after current authorization. Logout/practice switch fences stale owners and clears the old graph.",
+        "Interrupted shape bodies, expiry/refetch, revocation timing, direct-backend isolation and forbidden/local-only field egress pass for each selected topology; no competing generic-watch writer handles the same clinical rows. Inspect the owning ASO repository rules before edits; any modified file must be at most 500 lines, splitting replica-runtime.ts if that file is touched and preserving its owner fences. Untouched oversized files remain explicitly tracked."
+      ],
+      "questions": [
+        2,
+        7
+      ],
+      "libraries": [
+        3
+      ],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex; operator resolves recorded decisions",
+      "priority": "P0",
+      "legacy_package": "C08",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c017-hosted-media",
+      "title": "Qualify hosted media on its selected profile",
+      "depends_on": [
+        "pri-c002-local-fixtures",
+        "pri-c003-scope-research-contract",
+        "pri-c004-deployment-profiles",
+        "pri-c005-authority-lifetime"
+      ],
+      "owner": "Fabric LiveKit + deployment",
+      "files": [
+        "crates/frf-media-livekit/src/",
+        "crates/frf-gateway/src/",
+        "scripts/"
+      ],
+      "scope": "Reuse researched LiveKit integration; prove real two-participant decoded audio/video and grant lifetime on the selected server version. Qualify relay only if advertised.",
+      "checks": [
+        "Two clients show progressing decoded audio/video across late join and reconnect; wrong room/tenant/subject is denied and revoked participants stop under the accepted lifetime contract.",
+        "Any advertised cross-node relay passes a two-gateway campaign; absent configurations fail visibly. Local protocol fixtures alone cannot certify an untested production service version."
+      ],
+      "questions": [
+        1,
+        2
+      ],
+      "libraries": [],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex; operator resolves recorded decisions",
+      "priority": "P1",
+      "legacy_package": "C11",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c018-matrix-recovery",
+      "title": "Qualify Matrix directions and restart cursors",
+      "depends_on": [
+        "pri-c002-local-fixtures",
+        "pri-c003-scope-research-contract",
+        "pri-c004-deployment-profiles",
+        "pri-c005-authority-lifetime",
+        "pri-c007-broker-replay"
+      ],
+      "owner": "Fabric Matrix bridge",
+      "files": [
+        "crates/frf-bridge-matrix/src/",
+        "crates/frf-gateway/src/"
+      ],
+      "scope": "Reuse actual Matrix sync/send code. Repair demonstrated direction/cursor/echo defects and stale stub logs; qualify the accepted Tuwunel/Matrix version.",
+      "checks": [
+        "Inbound and outbound events reach intended rooms/channels after bridge restart with bounded deduplication and durable cursor continuity.",
+        "Echo-loop suppression, cross-tenant denial, target outage and unconfigured direction errors are asserted against the actual selected local server version."
+      ],
+      "questions": [
+        1,
+        2
+      ],
+      "libraries": [],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex; operator resolves recorded decisions",
+      "priority": "P1",
+      "legacy_package": "C12",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c019-atproto-recovery",
+      "title": "Qualify ATProto ingestion and outbound recovery",
+      "depends_on": [
+        "pri-c002-local-fixtures",
+        "pri-c003-scope-research-contract",
+        "pri-c004-deployment-profiles",
+        "pri-c005-authority-lifetime",
+        "pri-c007-broker-replay"
+      ],
+      "owner": "Fabric ATProto bridge",
+      "files": [
+        "crates/frf-bridge-atproto/src/",
+        "crates/frf-gateway/src/"
+      ],
+      "scope": "Reuse existing firehose and configured outbound implementations. Prove stable cursor/channel identity, authorization and retry behavior against selected Tranquil/PDS versions.",
+      "checks": [
+        "Supported directions resume after disconnect/process restart without missed acknowledged events or unbounded duplication.",
+        "Outbound retries, self-echo, tenant/channel routing and unavailable/unconfigured targets have explicit assertions; faithful protocol mocks are labeled and cannot substitute for target-version qualification."
+      ],
+      "questions": [
+        1,
+        2
+      ],
+      "libraries": [],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex; operator resolves recorded decisions",
+      "priority": "P1",
+      "legacy_package": "C12",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c020-sovereign-decode",
+      "title": "Close sovereign media decode and protected fan-out",
+      "depends_on": [
+        "pri-c002-local-fixtures",
+        "pri-c003-scope-research-contract",
+        "pri-c004-deployment-profiles",
+        "pri-c005-authority-lifetime"
+      ],
+      "owner": "Fabric str0m media",
+      "files": [
+        "crates/frf-media-str0m/src/",
+        "crates/frf-gateway/src/",
+        "scripts/"
+      ],
+      "scope": "Reproduce the zero-decoded-frame failure in a locally controlled Linux ICE/TURN topology. Trace room/track/keyframe routing, apply the smallest demonstrated correction and prove room-scoped protected egress.",
+      "checks": [
+        "Repeated two-peer campaigns show increasing receiver framesDecoded plus audio progress, including late join/reconnect and multiple rooms; ICE/RTP alone is insufficient.",
+        "Revocation/expiry removes protected fan-out within c003's accepted bound; wrong-room/tenant traffic is denied and task/socket counts return to baseline. Keep production mode gated until proof."
+      ],
+      "questions": [
+        1,
+        2
+      ],
+      "libraries": [],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex; operator resolves recorded decisions",
+      "priority": "P1",
+      "legacy_package": "C13",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c021-admin-auth",
+      "title": "Deliver the accepted admin authentication profile",
+      "depends_on": [
+        "pri-c002-local-fixtures",
+        "pri-c003-scope-research-contract",
+        "pri-c004-deployment-profiles",
+        "pri-c005-authority-lifetime"
+      ],
+      "owner": "Fabric admin + Gate",
+      "files": [
+        "admin-ui/",
+        "crates/frf-gateway/src/",
+        "docs/decisions/"
+      ],
+      "scope": "Implement only the admin profile accepted in c003: either a deliberately restricted operator tool or the separately accepted interactive login design. Reuse the actual Gate/IdP surface without assuming an unrelated identity provider.",
+      "checks": [
+        "Selected admin login/token entry, expiry, logout and unauthorized access behavior work against real local identity services.",
+        "Interactive-login claims require the actual redirect/session flow; a documented operator-only profile is never reported as delivered interactive login."
+      ],
+      "questions": [
+        1,
+        2
+      ],
+      "libraries": [],
+      "size": "M",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex; operator resolves recorded decisions",
+      "priority": "P1",
+      "legacy_package": "C14",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c022-platform-parity",
+      "title": "Qualify required native and generated SDK transports",
+      "depends_on": [
+        "pri-c003-scope-research-contract",
+        "pri-c006-watch-contract",
+        "pri-c012-sdk-pem-network",
+        "pri-c013-sync-persistence"
+      ],
+      "owner": "Fabric SDK/FFI + consumer owners",
+      "files": [
+        "crates/frf-ffi/",
+        "sdks/go/",
+        "sdks/csharp/",
+        "sdks/swift/",
+        "sdks/kotlin/",
+        "sdks/dart/"
+      ],
+      "scope": "Expand the working c012-c013 browser/Node transport into selected native/generated SDK surfaces using pinned or explicitly superseded ADR-003 tooling; qualify real install/runtime/device behavior.",
+      "checks": [
+        "Each required platform installs the packaged artifact and performs authenticated publish/watch/reconnect; supported offline outbox behavior survives process replacement.",
+        "Dart async remains blocked until a real transport proof passes; unsupported platforms remain excluded with explicit reasons, without claiming full phase closure or parity."
+      ],
+      "questions": [
+        3
+      ],
+      "libraries": [],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex; operator resolves recorded decisions",
+      "priority": "P1",
+      "legacy_package": "C14",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c016-operations-recovery",
+      "title": "Qualify capacity, recovery and rotation per profile",
+      "depends_on": [
+        "pri-c003-scope-research-contract",
+        "pri-c004-deployment-profiles",
+        "pri-c005-authority-lifetime",
+        "pri-c007-broker-replay",
+        "pri-c008-cdc-commit-mapping",
+        "pri-c009-entity-projection",
+        "pri-c010-type-watch",
+        "pri-c011-forge-watch",
+        "pri-c012-sdk-pem-network",
+        "pri-c013-sync-persistence",
+        "pri-c014-aso-memory",
+        "pri-c015-aso-protected-proof",
+        "pri-c017-hosted-media",
+        "pri-c018-matrix-recovery",
+        "pri-c019-atproto-recovery",
+        "pri-c020-sovereign-decode",
+        "pri-c021-admin-auth",
+        "pri-c022-platform-parity"
+      ],
+      "owner": "Deployment + Fabric operations",
+      "files": [
+        "compose.yml",
+        "k8s/",
+        "scripts/",
+        "docs/"
+      ],
+      "scope": "Execute load and failure campaigns at accepted profile targets; cover broker/WAL/checkpoint lag, backup/restore, rolling replacement, secrets/certificate rotation, drains and no-progress alerts. Final qualification cannot close before every selected profile implementation and client surface is complete; early diagnostic campaigns are non-final.",
+      "checks": [
+        "Local campaigns meet accepted subscription/change-rate/latency/retention/RTO/RPO targets with explicit resource allocation, no required skips and recorded recovery positions.",
+        "Restoration and credential/certificate rotation preserve required authorization and durable state; bounded backpressure/cancellation and alerts prevent false-ready/no-progress operation. Repeat affected receipts after consumer or profile changes."
+      ],
+      "questions": [
+        2,
+        6
+      ],
+      "libraries": [],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex; operator resolves recorded decisions",
+      "priority": "P0",
+      "legacy_package": "C10",
+      "status": "WAITING_DEPENDENCIES"
+    },
+    {
+      "id": "pri-c023-release-signoff",
+      "title": "Produce source-bound release verdicts for each agreed profile",
+      "depends_on": [
+        "pri-c001-build-policy",
+        "pri-c002-local-fixtures",
+        "pri-c003-scope-research-contract",
+        "pri-c004-deployment-profiles",
+        "pri-c005-authority-lifetime",
+        "pri-c006-watch-contract",
+        "pri-c007-broker-replay",
+        "pri-c008-cdc-commit-mapping",
+        "pri-c009-entity-projection",
+        "pri-c010-type-watch",
+        "pri-c011-forge-watch",
+        "pri-c012-sdk-pem-network",
+        "pri-c013-sync-persistence",
+        "pri-c014-aso-memory",
+        "pri-c015-aso-protected-proof",
+        "pri-c016-operations-recovery",
+        "pri-c017-hosted-media",
+        "pri-c018-matrix-recovery",
+        "pri-c019-atproto-recovery",
+        "pri-c020-sovereign-decode",
+        "pri-c021-admin-auth",
+        "pri-c022-platform-parity"
+      ],
+      "owner": "Fabric release + all consumer owners",
+      "files": [
+        "docs/",
+        "SECURITY.md",
+        "CHANGELOG.md",
+        ".kbd-orchestrator/phases/production-readiness-integration/"
+      ],
+      "scope": "Re-audit effective source/configuration, verify all selected profile receipts and publish a dated local GO/NO-GO matrix. Reconcile capability, rollout/rollback and support documentation; retain separate phase, certification and publication statuses.",
+      "checks": [
+        "Every selected profile has exact repository/diff/lockfile/package/image/config/topology fingerprints, commands, timestamps, exits, scenario counts and artifact hashes; critical/high findings are resolved by an independent reviewer.",
+        "A narrower profile may receive a scoped interim verdict while other capabilities remain blocked; c023 and the whole phase cannot close until all agreed phase goals are satisfied or the operator explicitly accepts scope reduction. No registry publication/deployment is inferred."
+      ],
+      "questions": [],
+      "libraries": [],
+      "size": "L",
+      "complexity_score": "High",
+      "model_class": "frontier",
+      "agent": "Codex",
+      "priority": "P0",
+      "legacy_package": "C15",
+      "status": "WAITING_DEPENDENCIES"
+    }
+  ]
+}

@@ -56,6 +56,8 @@ pub enum Cursor {
 /// appear here. The server derives those from policy after authorization.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ShapeProtocol {
+    /// Electric log mode from the `log` query parameter.
+    pub log: Option<String>,
     /// Electric long-polling mode from the `live` query parameter.
     pub live: Option<String>,
     /// Electric cache-busting cursor from the `cursor` query parameter.

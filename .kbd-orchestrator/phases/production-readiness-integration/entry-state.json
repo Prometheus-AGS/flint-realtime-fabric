@@ -1,0 +1,78 @@
+{
+  "capturedAt": "2026-09-15T06:35:17Z",
+  "previousWaypoint": {
+    "phase": "issue-triage-and-architecture-audit",
+    "previousPhase": "phase-36-sovereign-sfu-ice-linux-fix",
+    "status": "reflected",
+    "exactNextCommand": "/kbd-new-phase",
+    "activeChange": null,
+    "updatedAt": "2026-09-15T06:16:09Z",
+    "planComplete": true,
+    "assessmentComplete": true,
+    "executeComplete": true,
+    "reflectComplete": true,
+    "backend": "openspec",
+    "next": "/kbd-new-phase",
+    "path": [
+      "phase-36-sovereign-sfu-ice-linux-fix",
+      "adr-009-replication-materializer-and-pem-publication"
+    ],
+    "childPhases": [],
+    "childPointer": null,
+    "currentTask": "phase reflected and closed; choose the next phase (recommended: kbd-ledger-schema-and-runtime-authority)",
+    "schemaVersion": "5",
+    "change": null,
+    "nextPendingChange": null,
+    "parentPhase": null,
+    "completionMetric": "implementation",
+    "implementationCompleted": 6,
+    "implementationTotal": 6,
+    "certificationStatus": "NOT_TRACKED",
+    "publicationStatus": "NOT_TRACKED",
+    "planRevision": 1,
+    "revision": 4,
+    "lastCompletedChange": "p38-c006-dead-code-and-guard-classification"
+  },
+  "previousProject": {
+    "name": "flint-realtime-fabric",
+    "change_backend": "openspec",
+    "activePhase": "issue-triage-and-architecture-audit",
+    "completedPhase": "phase-36-sovereign-sfu-ice-linux-fix",
+    "createdAt": "2026-06-17T13:30:22Z",
+    "updatedAt": "2026-09-14T10:14:03Z",
+    "status": "reflected"
+  },
+  "repositories": {
+    "flint-realtime-fabric": {
+      "path": "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric",
+      "commit": "3043ca53239cc74a7f94a9e12484e2fd17726adb",
+      "status": [
+        " M crates/frf-app/src/shape/mod.rs",
+        " M crates/frf-app/src/shape/tests.rs",
+        " M crates/frf-gateway/src/routes/shape.rs"
+      ]
+    },
+    "flint-gate": {
+      "path": "/Users/gqadonis/Projects/prometheus/flint-gate",
+      "commit": "97d65437c937a285fb000f5e42fddc8af4ff9934",
+      "status": []
+    },
+    "flint-forge": {
+      "path": "/Users/gqadonis/Projects/prometheus/flint-forge",
+      "commit": "dc472be531d0f878f96cab71321b29058474df77",
+      "status": []
+    },
+    "prometheus-entity-management": {
+      "path": "/Users/gqadonis/Projects/prometheus/prometheus-entity-management",
+      "commit": "071b9e5b06c31f6c7d9d191bdaa4a2e188d1d565",
+      "status": []
+    }
+  },
+  "preexistingFileSha256": {
+    "crates/frf-app/src/shape/mod.rs": "ee3d47c8fbad27d7567a53d22d50e6acef0313ccb4ece4c52ff8b56aaacf1ad9",
+    "crates/frf-app/src/shape/tests.rs": "4bcd1c5992cf85a1f2ac9a22b23b22d7b4f6ff96b5caca1363f072fc535a4d04",
+    "crates/frf-gateway/src/routes/shape.rs": "60610541438a529e4a85922ac627448819847c695213949c93dfe4a05aebf4d6"
+  },
+  "feedbackSha256": "e9ee506a7e6e6f07760bb5ae2b36b39a267fa8b408ad0f231f8cd7a988968faf",
+  "initializationMethod": "Skill step-by-step legacy workflow; reset known phase-scoped path and completion fields before the single phase:before hook. No runtime migration."
+}

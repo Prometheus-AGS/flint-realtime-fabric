@@ -1,0 +1,300 @@
+{
+  "schemaVersion": "2",
+  "generatedBy": "kbd-runtime",
+  "projectionContractVersion": 2,
+  "sourceRevision": 310,
+  "derivedRevision": 310,
+  "frontier": {
+    "573067f0-69c9-40fc-a33c-3aed7a5a839f": 310
+  },
+  "conflictCount": 0,
+  "phase": "production-readiness-integration",
+  "phaseId": "production-readiness-integration",
+  "parentPhase": null,
+  "last_updated": "2026-09-17T03:05:37.202781Z",
+  "last_updated_by": "kbd-runtime",
+  "changes_total": 23,
+  "changes_completed": 13,
+  "implementation_total": 23,
+  "implementation_completed": 13,
+  "completion": {
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 13,
+      "total": 23,
+      "status": "IN_PROGRESS"
+    },
+    "evidence": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "changes": [
+    {
+      "id": "pri-c001-build-policy",
+      "title": "Restore the declared build matrix and local-only testing policy",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 7,
+      "tasks_done": 7,
+      "last_task_completed": "5. Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c001-build-policy/`; run applicable local quality checks and `openspec validate pri-c001-build-policy --strict --no-interactive`. Resolve required review findings before archive.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "pri-c002-local-fixtures",
+      "title": "Provide an isolated local integration runner",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "5. Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c002-local-fixtures/`; run applicable local quality checks and `openspec validate pri-c002-local-fixtures --strict --no-interactive`. Resolve required review findings before archive.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "pri-c003-scope-research-contract",
+      "title": "Resolve release decisions and complete dependency qualification research",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "5. Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/`; run applicable local quality checks and `openspec validate pri-c003-scope-research-contract --strict --no-interactive`. Resolve required review findings before archive.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "pri-c004-deployment-profiles",
+      "title": "Make selected deployment profiles portable and truthful",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "5. Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c004-deployment-profiles/`; run applicable local quality checks and `openspec validate pri-c004-deployment-profiles --strict --no-interactive`. Resolve required review findings before archive.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "pri-c005-authority-lifetime",
+      "title": "Enforce identity and authorization on selected exposed lanes",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "5. Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c005-authority-lifetime/`; run applicable local quality checks and `openspec validate pri-c005-authority-lifetime --strict --no-interactive`. Resolve required review findings before archive.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "pri-c006-watch-contract",
+      "title": "Freeze the versioned watch and recovery contract",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "5. Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c006-watch-contract/`; run applicable local quality checks and `openspec validate pri-c006-watch-contract --strict --no-interactive`. Resolve required review findings before archive.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "pri-c007-broker-replay",
+      "title": "Expose durable broker positions and commit-controlled replay",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "5. Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c007-broker-replay/`; run applicable local quality checks and `openspec validate pri-c007-broker-replay --strict --no-interactive`. Resolve required review findings before archive.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "pri-c008-cdc-commit-mapping",
+      "title": "Deliver committed typed CDC changes without checkpoint gaps",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "5. Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c008-cdc-commit-mapping/`; run applicable local quality checks and `openspec validate pri-c008-cdc-commit-mapping --strict --no-interactive`. Resolve required review findings before archive.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "pri-c009-entity-projection",
+      "title": "Populate durable v1 entity reads and watches",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "5. Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c009-entity-projection/`; run applicable local quality checks and `openspec validate pri-c009-entity-projection --strict --no-interactive`. Resolve required review findings before archive.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "pri-c010-type-watch",
+      "title": "Serve authorized resumable WatchEntityType streams",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "5. Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c010-type-watch/`; run applicable local quality checks and `openspec validate pri-c010-type-watch --strict --no-interactive`. Resolve required review findings before archive.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "pri-c011-forge-watch",
+      "title": "Replace Forge's Fabric stub with safe GraphQL delivery",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "5. Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c011-forge-watch/`; run applicable local quality checks and `openspec validate pri-c011-forge-watch --strict --no-interactive`. Resolve required review findings before archive.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "pri-c012-sdk-pem-network",
+      "title": "Ship valid SDK artifacts and prove PEM over the network",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "5. Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c012-sdk-pem-network/`; run applicable local quality checks and `openspec validate pri-c012-sdk-pem-network --strict --no-interactive`. Resolve required review findings before archive.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "pri-c013-sync-persistence",
+      "title": "Wire persistent CRDT snapshots and operation storage",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "5. Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c013-sync-persistence/`; run applicable local quality checks and `openspec validate pri-c013-sync-persistence --strict --no-interactive`. Resolve required review findings before archive.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "pri-c014-aso-memory",
+      "title": "Diagnose and reduce the existing ASO replica memory cost",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1. Inspect the affected paths listed in design.md, record their source/dirty-diff baseline and verify dependency receipts: pri-c002-local-fixtures, pri-c003-scope-research-contract.",
+      "blockers": []
+    },
+    {
+      "id": "pri-c015-aso-protected-proof",
+      "title": "Qualify the protected shape-to-SQL-to-PEM path",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1. Inspect the affected paths listed in design.md, record their source/dirty-diff baseline and verify dependency receipts: pri-c005-authority-lifetime, pri-c014-aso-memory.",
+      "blockers": []
+    },
+    {
+      "id": "pri-c017-hosted-media",
+      "title": "Qualify hosted media on its selected profile",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1. Inspect the affected paths listed in design.md, record their source/dirty-diff baseline and verify dependency receipts: pri-c002-local-fixtures, pri-c003-scope-research-contract, pri-c004-deployment-profiles, pri-c005-authority-lifetime.",
+      "blockers": []
+    },
+    {
+      "id": "pri-c018-matrix-recovery",
+      "title": "Qualify Matrix directions and restart cursors",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1. Inspect the affected paths listed in design.md, record their source/dirty-diff baseline and verify dependency receipts: pri-c002-local-fixtures, pri-c003-scope-research-contract, pri-c004-deployment-profiles, pri-c005-authority-lifetime, pri-c007-broker-replay.",
+      "blockers": []
+    },
+    {
+      "id": "pri-c019-atproto-recovery",
+      "title": "Qualify ATProto ingestion and outbound recovery",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1. Inspect the affected paths listed in design.md, record their source/dirty-diff baseline and verify dependency receipts: pri-c002-local-fixtures, pri-c003-scope-research-contract, pri-c004-deployment-profiles, pri-c005-authority-lifetime, pri-c007-broker-replay.",
+      "blockers": []
+    },
+    {
+      "id": "pri-c020-sovereign-decode",
+      "title": "Close sovereign media decode and protected fan-out",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1. Inspect the affected paths listed in design.md, record their source/dirty-diff baseline and verify dependency receipts: pri-c002-local-fixtures, pri-c003-scope-research-contract, pri-c004-deployment-profiles, pri-c005-authority-lifetime.",
+      "blockers": []
+    },
+    {
+      "id": "pri-c021-admin-auth",
+      "title": "Deliver the accepted admin authentication profile",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1. Inspect the affected paths listed in design.md, record their source/dirty-diff baseline and verify dependency receipts: pri-c002-local-fixtures, pri-c003-scope-research-contract, pri-c004-deployment-profiles, pri-c005-authority-lifetime.",
+      "blockers": []
+    },
+    {
+      "id": "pri-c022-platform-parity",
+      "title": "Qualify required native and generated SDK transports",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1. Inspect the affected paths listed in design.md, record their source/dirty-diff baseline and verify dependency receipts: pri-c003-scope-research-contract, pri-c006-watch-contract, pri-c012-sdk-pem-network, pri-c013-sync-persistence.",
+      "blockers": []
+    },
+    {
+      "id": "pri-c016-operations-recovery",
+      "title": "Qualify capacity, recovery and rotation per profile",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1. Inspect the affected paths listed in design.md, record their source/dirty-diff baseline and verify dependency receipts: pri-c003-scope-research-contract, pri-c004-deployment-profiles, pri-c005-authority-lifetime, pri-c007-broker-replay, pri-c008-cdc-commit-mapping, pri-c009-entity-projection, pri-c010-type-watch, pri-c011-forge-watch, pri-c012-sdk-pem-network, pri-c013-sync-persistence, pri-c014-aso-memory, pri-c015-aso-protected-proof, pri-c017-hosted-media, pri-c018-matrix-recovery, pri-c019-atproto-recovery, pri-c020-sovereign-decode, pri-c021-admin-auth, pri-c022-platform-parity.",
+      "blockers": []
+    },
+    {
+      "id": "pri-c023-release-signoff",
+      "title": "Produce source-bound release verdicts for each agreed profile",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1. Inspect the affected paths listed in design.md, record their source/dirty-diff baseline and verify dependency receipts: pri-c001-build-policy, pri-c002-local-fixtures, pri-c003-scope-research-contract, pri-c004-deployment-profiles, pri-c005-authority-lifetime, pri-c006-watch-contract, pri-c007-broker-replay, pri-c008-cdc-commit-mapping, pri-c009-entity-projection, pri-c010-type-watch, pri-c011-forge-watch, pri-c012-sdk-pem-network, pri-c013-sync-persistence, pri-c014-aso-memory, pri-c015-aso-protected-proof, pri-c016-operations-recovery, pri-c017-hosted-media, pri-c018-matrix-recovery, pri-c019-atproto-recovery, pri-c020-sovereign-decode, pri-c021-admin-auth, pri-c022-platform-parity.",
+      "blockers": []
+    }
+  ],
+  "children": {},
+  "migrationStatus": null
+}
