@@ -6,6 +6,33 @@ Status: planning input; wire changes require a repository-scoped child and contr
 
 Source baseline: `3043ca53239cc74a7f94a9e12484e2fd17726adb`
 
+## C08 provider implementation checkpoint (2026-09-28)
+
+The `codex/afc-c08-routed-envelope` worktree now carries a proposed provider
+profile, `frf.routed-observer/1`, in
+[`frf-domain`](../crates/frf-domain/src/routed_observer.rs). It is an additive
+JSON companion inside the existing `EventEnvelope`; frozen protobuf v1 remains
+unchanged. The profile records source occurrence, native provider identity,
+selected handler and revisions, original principal, observer delivery and
+subscriber cursor identities, projection class, and causal limits. The Iggy
+adapter validates candidate records on publication and replay. Fabric still
+neither chooses the handler nor owns the subscriber cursor.
+
+The payload discriminator is required because protobuf v1 maps any Rust
+`EventKind::Custom` string to enum value 6. A consumer must decode the payload
+with `RoutedObserverEnvelopeV1::from_event_envelope` and reject legacy or unknown
+profiles; matching a custom kind alone is insufficient. The public gateway
+publish/subscribe path continues to apply its existing identity and event-view
+checks. The provider does **not** include Gate's new disclosure/delivery grant,
+BossFang's durable route store, or UAR's channel-source observer cursor; cross-host
+routing stays disabled until those checkpoints and C08's composed gate exist.
+
+`AgentRunControl.cancel` on Fabric now returns an unsupported runtime-control
+status and closes only that observation stream. The owning runtime must receive
+an actual cancellation request. The repository change is
+[`afc-c08-routed-observer-transport`](../openspec/changes/afc-c08-routed-observer-transport/)
+and its production gate remains pending.
+
 ## Role in the convergence
 
 Flint Realtime Fabric is the durable transport and projection plane. It can carry committed agent, domain, observer, and connector facts between hosts, retain ordered positions, and expose replay. It must not execute agents, choose a workflow step, merge permissions, or become the authoritative task board.

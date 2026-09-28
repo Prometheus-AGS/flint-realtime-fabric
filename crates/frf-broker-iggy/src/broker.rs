@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use bytes::Bytes;
-use frf_domain::{Channel, ChannelId, Cursor, EventEnvelope, Offset};
+use frf_domain::{Channel, ChannelId, Cursor, EventEnvelope, Offset, RoutedObserverEnvelopeV1};
 use frf_ports::{EventStream, LogBroker, PortError};
 use futures_util::StreamExt;
 use iggy::client::{Client, ConsumerOffsetClient, StreamClient, TopicClient};
@@ -132,6 +132,12 @@ impl LogBroker for IggyBroker {
     /// Returns [`PortError::Transport`] if the Iggy producer fails.
     #[instrument(name = "port::LogBroker::publish", skip(self, envelope))]
     async fn publish(&self, envelope: EventEnvelope) -> Result<Offset, PortError> {
+        // A routed observer record is an explicit v1 profile, never a best-effort
+        // interpretation of an ordinary event. Validate before Iggy admission.
+        if RoutedObserverEnvelopeV1::is_candidate(&envelope) {
+            RoutedObserverEnvelopeV1::from_event_envelope(&envelope)
+                .map_err(|error| PortError::Serialization(error.to_string()))?;
+        }
         let stream = format!("channel-{}", envelope.channel.id);
         let topic = "events";
 
@@ -201,7 +207,17 @@ impl LogBroker for IggyBroker {
                     Ok(msg) => {
                         let decoded: Result<EventEnvelope, _> =
                             serde_json::from_slice(&msg.message.payload);
-                        let item = decoded.map_err(|e| PortError::Serialization(e.to_string()));
+                        let item = decoded
+                            .map_err(|error| PortError::Serialization(error.to_string()))
+                            .and_then(|envelope| {
+                                if RoutedObserverEnvelopeV1::is_candidate(&envelope) {
+                                    RoutedObserverEnvelopeV1::from_event_envelope(&envelope)
+                                        .map_err(|error| {
+                                            PortError::Serialization(error.to_string())
+                                        })?;
+                                }
+                                Ok(envelope)
+                            });
                         if tx.send(item).await.is_err() {
                             break;
                         }

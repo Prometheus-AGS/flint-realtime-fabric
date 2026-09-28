@@ -51,8 +51,9 @@ where
     type RunAgentStream = Pin<Box<dyn Stream<Item = Result<ProtoEvent, Status>> + Send>>;
 
     // Bidirectional streaming RPC: the first client frame must be
-    // `AgentRunStart`; subsequent frames may be `AgentRunControl` (cancel /
-    // pause / resume).  JWT verification and Keto subscribe-time check happen
+    // `AgentRunStart`; subsequent frames may be `AgentRunControl`. The Fabric
+    // agent bus is observational: it cannot cancel the runtime that owns a run.
+    // JWT verification and Keto subscribe-time check happen
     // before the first frame is processed.
     #[instrument(name = "grpc::agent::run_agent", skip(self, request))]
     async fn run_agent(
@@ -118,10 +119,11 @@ where
         let agent_id = start.agent_id.clone();
         let session_id = start.session_id.clone();
 
-        // Spawn a background task to drain inbound control frames so tonic
-        // does not buffer them unboundedly. Pause / resume are not yet
-        // implemented; cancel sets a flag that closes the outbound stream.
+        // Drain inbound frames so tonic does not buffer them unboundedly. A
+        // cancel frame is rejected on the response stream as unsupported run
+        // control. Closing this subscription only detaches the observer.
         let (cancel_tx, cancel_rx) = tokio::sync::watch::channel(false);
+        let cancel_guard = cancel_tx.clone();
         tokio::spawn(async move {
             while let Ok(Some(frame)) = inbound.message().await {
                 if let Some(Payload::Control(ctrl)) = frame.payload
@@ -140,16 +142,39 @@ where
             .await
             .map_err(|e| Status::internal(e.to_string()))?;
 
-        let proto_stream = domain_stream
+        let filtered_stream = domain_stream
             .filter(move |ev| {
-                // Close outbound stream when client sends cancel.
-                if *cancel_rx.borrow() {
-                    return false;
-                }
                 // Filter to events for this specific agent + session.
                 ev.agent_id.to_string() == agent_id && ev.session_id.to_string() == session_id
             })
             .map(|ev| Ok(domain_to_proto(ev)));
+
+        // Retain a sender with the response stream so a normal inbound
+        // half-close does not make `changed` spin or terminate observation.
+        let proto_stream = futures_util::stream::unfold(
+            (Some(filtered_stream), cancel_rx, cancel_guard),
+            |(stream, mut cancel_rx, cancel_tx)| async move {
+                let mut stream = stream?;
+                tokio::select! {
+                    biased;
+                    changed = cancel_rx.changed() => {
+                        if changed.is_ok() && *cancel_rx.borrow() {
+                            Some((
+                                Err(Status::unimplemented(
+                                    "Fabric cannot cancel the agent runtime; observer stream detached",
+                                )),
+                                (None, cancel_rx, cancel_tx),
+                            ))
+                        } else {
+                            None
+                        }
+                    }
+                    event = stream.next() => event.map(|event| {
+                        (event, (Some(stream), cancel_rx, cancel_tx))
+                    }),
+                }
+            },
+        );
 
         Ok(Response::new(Box::pin(proto_stream)))
     }
