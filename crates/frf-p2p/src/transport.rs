@@ -15,9 +15,9 @@ use crate::identity::{DenyAllVerifier, PairingStore, PeerIdentity, TokenVerifier
 /// Everything else a peer asserts is verified by the configured
 /// [`TokenVerifier`] before a session is handed back.
 pub struct PeerTransport {
-    endpoint: Endpoint,
-    verifier: Arc<dyn TokenVerifier>,
-    pairing: PairingStore,
+    pub(crate) endpoint: Endpoint,
+    pub(crate) verifier: Arc<dyn TokenVerifier>,
+    pub(crate) pairing: std::sync::RwLock<PairingStore>,
 }
 
 /// An established, authenticated session with a peer.
@@ -28,6 +28,8 @@ pub struct PeerTransport {
 pub struct PeerSession {
     connection: Connection,
     identity: PeerIdentity,
+    credential: String,
+    verifier: Arc<dyn TokenVerifier>,
 }
 
 impl PeerSession {
@@ -41,6 +43,24 @@ impl PeerSession {
     #[must_use]
     pub fn endpoint_id(&self) -> &str {
         &self.identity.endpoint_id
+    }
+
+    /// Revalidate the original peer credential against the host's current authority.
+    pub async fn revalidate(&self) -> Result<(), P2pError> {
+        match self
+            .verifier
+            .verify(&self.credential, self.endpoint_id())
+            .await
+        {
+            Ok(identity) if identity == self.identity => Ok(()),
+            _ => {
+                self.connection
+                    .close(2u8.into(), b"current peer authority denied");
+                Err(P2pError::Unauthenticated(
+                    "current peer authority denied".into(),
+                ))
+            }
+        }
     }
 
     /// The underlying QUIC connection, for opening streams.
@@ -75,6 +95,9 @@ impl PeerTransport {
         }
 
         let mut builder = Endpoint::builder(presets::N0).alpns(vec![FRF_P2P_ALPN.to_vec()]);
+        if !config.relay_enabled {
+            builder = builder.relay_mode(iroh::RelayMode::Disabled);
+        }
         if let Some(key) = secret_key {
             builder = builder.secret_key(key);
         }
@@ -87,7 +110,9 @@ impl PeerTransport {
         Ok(Self {
             endpoint,
             verifier: Arc::new(DenyAllVerifier),
-            pairing: PairingStore::from_endpoint_ids(config.paired_endpoints.clone()),
+            pairing: std::sync::RwLock::new(PairingStore::from_endpoint_ids(
+                config.paired_endpoints.clone(),
+            )),
         })
     }
 
@@ -98,6 +123,29 @@ impl PeerTransport {
     pub fn with_verifier(mut self, verifier: Arc<dyn TokenVerifier>) -> Self {
         self.verifier = verifier;
         self
+    }
+
+    pub(crate) fn is_paired(&self, endpoint: &str) -> Result<bool, P2pError> {
+        Ok(self
+            .pairing
+            .read()
+            .map_err(|_| P2pError::Unauthenticated("pairing state unavailable".into()))?
+            .is_paired(endpoint))
+    }
+
+    /// Update the discovery prerequisite after the host commits explicit consent.
+    /// The verifier remains authoritative; pairing alone grants no access.
+    pub fn set_paired(&self, endpoint: EndpointId, paired: bool) -> Result<(), P2pError> {
+        let mut store = self
+            .pairing
+            .write()
+            .map_err(|_| P2pError::Unauthenticated("pairing state unavailable".into()))?;
+        if paired {
+            store.pair(endpoint.to_string());
+        } else {
+            store.unpair(&endpoint.to_string());
+        }
+        Ok(())
     }
 
     /// This node's endpoint id — its Ed25519 public key.
@@ -126,7 +174,7 @@ impl PeerTransport {
         let addr = addr.into();
         let remote_id = addr.id.to_string();
 
-        if !self.pairing.is_paired(&remote_id) {
+        if !self.is_paired(&remote_id)? {
             return Err(P2pError::NotPaired(remote_id));
         }
 
@@ -136,11 +184,59 @@ impl PeerTransport {
             .await
             .map_err(|e| P2pError::Connect(e.to_string()))?;
 
-        let identity = self.verifier.verify(token, &remote_id).await?;
+        let (identity, credential) = self.authenticate(&connection, token, false).await?;
         Ok(PeerSession {
             connection,
             identity,
+            credential,
+            verifier: self.verifier.clone(),
         })
+    }
+
+    /// Accept one incoming connection and complete mutual credential admission.
+    /// The caller owns the accept loop; this transport creates no scheduler.
+    pub async fn accept(&self, token: &str) -> Result<PeerSession, P2pError> {
+        let incoming = self
+            .endpoint
+            .accept()
+            .await
+            .ok_or_else(|| P2pError::Connect("endpoint closed".into()))?;
+        let connection = tokio::time::timeout(std::time::Duration::from_secs(15), incoming)
+            .await
+            .map_err(|_| P2pError::Connect("QUIC admission deadline exceeded".into()))?
+            .map_err(|e| P2pError::Connect(e.to_string()))?;
+        let (identity, credential) = self.authenticate(&connection, token, true).await?;
+        Ok(PeerSession {
+            connection,
+            identity,
+            credential,
+            verifier: self.verifier.clone(),
+        })
+    }
+
+    async fn authenticate(
+        &self,
+        connection: &Connection,
+        token: &str,
+        incoming: bool,
+    ) -> Result<(PeerIdentity, String), P2pError> {
+        let result = tokio::time::timeout(
+            std::time::Duration::from_secs(15),
+            self.admit(connection, token, incoming),
+        )
+        .await
+        .map_err(|_| P2pError::Unauthenticated("credential admission deadline exceeded".into()))
+        .and_then(std::convert::identity);
+        if result.is_err() {
+            connection.close(1u8.into(), b"admission denied");
+        }
+        result
+    }
+
+    /// Address suitable for explicit out-of-band pairing, never a trust assertion.
+    #[must_use]
+    pub fn address(&self) -> EndpointAddr {
+        self.endpoint.addr()
     }
 
     /// Closes the endpoint.

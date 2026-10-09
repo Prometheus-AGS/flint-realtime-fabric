@@ -39,11 +39,16 @@
 //! Default-on does not mean auth-optional.
 
 pub mod config;
+mod admission;
 pub mod error;
 pub mod identity;
 pub mod transport;
+pub mod protocol;
 
 pub use config::{FRF_P2P_ALPN, PeerConfig};
 pub use error::P2pError;
 pub use identity::{DenyAllVerifier, PairingStore, PeerIdentity, TokenVerifier};
 pub use transport::{PeerSession, PeerTransport};
+
+// Consumers reuse the provider's exact identity/address types.
+pub use iroh::{EndpointAddr, EndpointId, SecretKey};
