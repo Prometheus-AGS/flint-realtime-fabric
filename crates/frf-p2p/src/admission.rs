@@ -23,7 +23,7 @@ impl PeerTransport {
             .remote_id()
             .map_err(|_| P2pError::Unauthenticated("QUIC peer identity unavailable".into()))?
             .to_string();
-        if !self.pairing.is_paired(&remote) {
+        if !self.is_paired(&remote)? {
             return Err(P2pError::NotPaired(remote));
         }
         let local = self

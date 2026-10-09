@@ -17,7 +17,7 @@ use crate::identity::{DenyAllVerifier, PairingStore, PeerIdentity, TokenVerifier
 pub struct PeerTransport {
     pub(crate) endpoint: Endpoint,
     pub(crate) verifier: Arc<dyn TokenVerifier>,
-    pub(crate) pairing: PairingStore,
+    pub(crate) pairing: std::sync::RwLock<PairingStore>,
 }
 
 /// An established, authenticated session with a peer.
@@ -87,7 +87,9 @@ impl PeerTransport {
         Ok(Self {
             endpoint,
             verifier: Arc::new(DenyAllVerifier),
-            pairing: PairingStore::from_endpoint_ids(config.paired_endpoints.clone()),
+            pairing: std::sync::RwLock::new(PairingStore::from_endpoint_ids(
+                config.paired_endpoints.clone(),
+            )),
         })
     }
 
@@ -98,6 +100,29 @@ impl PeerTransport {
     pub fn with_verifier(mut self, verifier: Arc<dyn TokenVerifier>) -> Self {
         self.verifier = verifier;
         self
+    }
+
+    pub(crate) fn is_paired(&self, endpoint: &str) -> Result<bool, P2pError> {
+        Ok(self
+            .pairing
+            .read()
+            .map_err(|_| P2pError::Unauthenticated("pairing state unavailable".into()))?
+            .is_paired(endpoint))
+    }
+
+    /// Update the discovery prerequisite after the host commits explicit consent.
+    /// The verifier remains authoritative; pairing alone grants no access.
+    pub fn set_paired(&self, endpoint: EndpointId, paired: bool) -> Result<(), P2pError> {
+        let mut store = self
+            .pairing
+            .write()
+            .map_err(|_| P2pError::Unauthenticated("pairing state unavailable".into()))?;
+        if paired {
+            store.pair(endpoint.to_string());
+        } else {
+            store.unpair(&endpoint.to_string());
+        }
+        Ok(())
     }
 
     /// This node's endpoint id — its Ed25519 public key.
@@ -126,7 +151,7 @@ impl PeerTransport {
         let addr = addr.into();
         let remote_id = addr.id.to_string();
 
-        if !self.pairing.is_paired(&remote_id) {
+        if !self.is_paired(&remote_id)? {
             return Err(P2pError::NotPaired(remote_id));
         }
 
