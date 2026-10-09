@@ -18,7 +18,7 @@ impl PeerTransport {
         connection: &Connection,
         token: &str,
         incoming: bool,
-    ) -> Result<PeerIdentity, P2pError> {
+    ) -> Result<(PeerIdentity, String), P2pError> {
         let remote = connection
             .remote_id()
             .map_err(|_| P2pError::Unauthenticated("QUIC peer identity unavailable".into()))?
@@ -83,6 +83,6 @@ impl PeerTransport {
             write_frame(&mut send, ACK, MAX_CREDENTIAL_BYTES).await?;
         }
         send.finish().map_err(|e| P2pError::Stream(e.to_string()))?;
-        Ok(identity)
+        Ok((identity, presented.token))
     }
 }

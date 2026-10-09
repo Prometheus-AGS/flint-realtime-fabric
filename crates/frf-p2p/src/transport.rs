@@ -28,6 +28,8 @@ pub struct PeerTransport {
 pub struct PeerSession {
     connection: Connection,
     identity: PeerIdentity,
+    credential: String,
+    verifier: Arc<dyn TokenVerifier>,
 }
 
 impl PeerSession {
@@ -41,6 +43,24 @@ impl PeerSession {
     #[must_use]
     pub fn endpoint_id(&self) -> &str {
         &self.identity.endpoint_id
+    }
+
+    /// Revalidate the original peer credential against the host's current authority.
+    pub async fn revalidate(&self) -> Result<(), P2pError> {
+        match self
+            .verifier
+            .verify(&self.credential, self.endpoint_id())
+            .await
+        {
+            Ok(identity) if identity == self.identity => Ok(()),
+            _ => {
+                self.connection
+                    .close(2u8.into(), b"current peer authority denied");
+                Err(P2pError::Unauthenticated(
+                    "current peer authority denied".into(),
+                ))
+            }
+        }
     }
 
     /// The underlying QUIC connection, for opening streams.
@@ -164,10 +184,12 @@ impl PeerTransport {
             .await
             .map_err(|e| P2pError::Connect(e.to_string()))?;
 
-        let identity = self.authenticate(&connection, token, false).await?;
+        let (identity, credential) = self.authenticate(&connection, token, false).await?;
         Ok(PeerSession {
             connection,
             identity,
+            credential,
+            verifier: self.verifier.clone(),
         })
     }
 
@@ -183,10 +205,12 @@ impl PeerTransport {
             .await
             .map_err(|_| P2pError::Connect("QUIC admission deadline exceeded".into()))?
             .map_err(|e| P2pError::Connect(e.to_string()))?;
-        let identity = self.authenticate(&connection, token, true).await?;
+        let (identity, credential) = self.authenticate(&connection, token, true).await?;
         Ok(PeerSession {
             connection,
             identity,
+            credential,
+            verifier: self.verifier.clone(),
         })
     }
 
@@ -195,7 +219,7 @@ impl PeerTransport {
         connection: &Connection,
         token: &str,
         incoming: bool,
-    ) -> Result<PeerIdentity, P2pError> {
+    ) -> Result<(PeerIdentity, String), P2pError> {
         let result = tokio::time::timeout(
             std::time::Duration::from_secs(15),
             self.admit(connection, token, incoming),
