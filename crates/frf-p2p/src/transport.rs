@@ -75,6 +75,9 @@ impl PeerTransport {
         }
 
         let mut builder = Endpoint::builder(presets::N0).alpns(vec![FRF_P2P_ALPN.to_vec()]);
+        if !config.relay_enabled {
+            builder = builder.relay_mode(iroh::RelayMode::Disabled);
+        }
         if let Some(key) = secret_key {
             builder = builder.secret_key(key);
         }

@@ -21,6 +21,8 @@ pub const FRF_P2P_ALPN: &[u8] = b"frf/p2p/1";
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct PeerConfig {
+    /// Permit relay fallback. Personal hosts may require direct-address-only sessions.
+    pub relay_enabled: bool,
     /// Whether peer-to-peer operation is enabled. **Defaults to `true`.**
     pub enabled: bool,
 
@@ -40,6 +42,7 @@ pub struct PeerConfig {
 impl Default for PeerConfig {
     fn default() -> Self {
         Self {
+            relay_enabled: true,
             enabled: true,
             mdns_discovery: true,
             paired_endpoints: Vec::new(),
