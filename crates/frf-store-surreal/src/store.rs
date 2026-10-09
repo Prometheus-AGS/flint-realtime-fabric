@@ -63,6 +63,7 @@ impl CrdtStore for SurrealCrdtStore {
             .bind(("hex", encoded_hex))
             .bind(("ver", version))
             .await
+            .and_then(|response| response.check())
             .map_err(SurrealStoreError::Db)
             .map_err(PortError::from)?;
 
@@ -90,6 +91,7 @@ impl CrdtStore for SurrealCrdtStore {
             .bind(("eid", eid))
             .bind(("tid", tid))
             .await
+            .and_then(|response| response.check())
             .map_err(SurrealStoreError::Db)
             .map_err(PortError::from)?;
 
@@ -127,6 +129,7 @@ impl CrdtStore for SurrealCrdtStore {
             .bind(("eid", eid))
             .bind(("tid", tid))
             .await
+            .and_then(|response| response.check())
             .map_err(SurrealStoreError::Db)
             .map_err(PortError::from)?;
 
