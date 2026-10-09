@@ -15,9 +15,9 @@ use crate::identity::{DenyAllVerifier, PairingStore, PeerIdentity, TokenVerifier
 /// Everything else a peer asserts is verified by the configured
 /// [`TokenVerifier`] before a session is handed back.
 pub struct PeerTransport {
-    endpoint: Endpoint,
-    verifier: Arc<dyn TokenVerifier>,
-    pairing: PairingStore,
+    pub(crate) endpoint: Endpoint,
+    pub(crate) verifier: Arc<dyn TokenVerifier>,
+    pub(crate) pairing: PairingStore,
 }
 
 /// An established, authenticated session with a peer.
@@ -136,11 +136,55 @@ impl PeerTransport {
             .await
             .map_err(|e| P2pError::Connect(e.to_string()))?;
 
-        let identity = self.verifier.verify(token, &remote_id).await?;
+        let identity = self.authenticate(&connection, token, false).await?;
         Ok(PeerSession {
             connection,
             identity,
         })
+    }
+
+    /// Accept one incoming connection and complete mutual credential admission.
+    /// The caller owns the accept loop; this transport creates no scheduler.
+    pub async fn accept(&self, token: &str) -> Result<PeerSession, P2pError> {
+        let incoming = self
+            .endpoint
+            .accept()
+            .await
+            .ok_or_else(|| P2pError::Connect("endpoint closed".into()))?;
+        let connection = tokio::time::timeout(std::time::Duration::from_secs(15), incoming)
+            .await
+            .map_err(|_| P2pError::Connect("QUIC admission deadline exceeded".into()))?
+            .map_err(|e| P2pError::Connect(e.to_string()))?;
+        let identity = self.authenticate(&connection, token, true).await?;
+        Ok(PeerSession {
+            connection,
+            identity,
+        })
+    }
+
+    async fn authenticate(
+        &self,
+        connection: &Connection,
+        token: &str,
+        incoming: bool,
+    ) -> Result<PeerIdentity, P2pError> {
+        let result = tokio::time::timeout(
+            std::time::Duration::from_secs(15),
+            self.admit(connection, token, incoming),
+        )
+        .await
+        .map_err(|_| P2pError::Unauthenticated("credential admission deadline exceeded".into()))
+        .and_then(std::convert::identity);
+        if result.is_err() {
+            connection.close(1u8.into(), b"admission denied");
+        }
+        result
+    }
+
+    /// Address suitable for explicit out-of-band pairing, never a trust assertion.
+    #[must_use]
+    pub fn address(&self) -> EndpointAddr {
+        self.endpoint.addr()
     }
 
     /// Closes the endpoint.
