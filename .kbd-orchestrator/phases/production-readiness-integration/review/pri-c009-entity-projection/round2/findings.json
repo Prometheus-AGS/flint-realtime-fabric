@@ -1,0 +1,39 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/pri-c009-entity-projection/tasks.md",
+      "line": 10,
+      "claim": "The change has not satisfied the required archive-readiness task for source-bound receipts and local quality/OpenSpec validation.",
+      "evidence": "Acceptance criterion task 5 remains unchecked: `- [ ] 5. Save a source-bound receipt ...; run applicable local quality checks and openspec validate pri-c009-entity-projection --strict --no-interactive. Resolve required review findings before archive.`",
+      "suggested_fix": "Run the required quality checks and OpenSpec validation, add the missing source-bound receipt evidence, and mark task 5 complete only after those commands pass."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "compose.yml",
+      "line": 53,
+      "claim": "The reference full Compose profile now requires SurrealDB projection configuration even when CDC is disabled, contradicting the stated deployment compatibility boundary.",
+      "evidence": "`compose.yml` unconditionally adds `ENTITY_PROJECTION_USERNAME: \"${FRF_SURREAL_USERNAME:?FRF_SURREAL_USERNAME is required}\"`, `ENTITY_PROJECTION_PASSWORD: \"${FRF_SURREAL_PASSWORD:?FRF_SURREAL_PASSWORD is required}\"`, an unconditional `depends_on.surreal`, and a `surreal` service, while `semver.md` states: `Deployments that keep CDC disabled retain the existing in-memory read behavior and do not require projection configuration at gateway validation time.`",
+      "suggested_fix": "Gate the SurrealDB service and required projection environment behind the CDC-enabled/full-CDC deployment path, or make the Compose defaults consistent with CDC-disabled in-memory operation."
+    },
+    {
+      "severity": "WARNING",
+      "file": "docs/RUNBOOK.md",
+      "line": 36,
+      "claim": "The runbook refers to a `surrealdb` service name that does not match the Compose service actually added.",
+      "evidence": "`docs/RUNBOOK.md` says `iggy-server`, `postgres`, `surrealdb`, and `flint-gate` become healthy and gateway waits for `surrealdb`, but `compose.yml` adds the service as `surreal` and `gateway.depends_on.surreal`.",
+      "suggested_fix": "Use the actual service name `surreal` in the runbook, or rename the Compose service consistently."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

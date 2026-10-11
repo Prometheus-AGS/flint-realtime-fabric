@@ -1,0 +1,27 @@
+{
+  "artifact_type": "code",
+  "variants": [
+    {
+      "name": "validated-research-contract",
+      "files": [
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/analysis.md",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/decision-log.md",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/library-candidates.json",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/release-contract.md",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/dependency-qualification.md",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/source-inventory.md",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/receipt.md"
+      ],
+      "format": "mixed-source",
+      "description": "The accepted c003 release contract, source inventory, dependency qualification, decisions and source-bound receipt."
+    }
+  ],
+  "preview": {"required": false, "runs": []},
+  "validation": {
+    "preview_status": "pass",
+    "has_console_errors": false,
+    "has_request_failures": false,
+    "notes": ["All applicable c003 structural, provenance and review constraints passed locally; production audits remain explicitly blocked and assigned to later changes."]
+  },
+  "generated_at": "2026-09-15T09:12:06Z"
+}

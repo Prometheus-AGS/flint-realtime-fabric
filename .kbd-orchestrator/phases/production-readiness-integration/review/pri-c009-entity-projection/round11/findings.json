@@ -1,0 +1,39 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity.rs",
+      "line": 5,
+      "claim": "The app crate now directly imports and uses `futures_util` without any shown direct dependency update for `frf-app`, which can break `cargo check --workspace`.",
+      "evidence": "The hunk adds `use futures_util::StreamExt as _;` and later calls `futures_util::stream::unfold`, but the diff contains no corresponding change to `crates/frf-app/Cargo.toml`; constraint R1 requires `cargo check --workspace` to be clean.",
+      "suggested_fix": "Add `futures-util` as a direct dependency of `crates/frf-app` or avoid the new direct dependency."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-gateway/tests/support/entity_projection/mod.rs",
+      "line": 14,
+      "claim": "The new gateway integration test directly imports `tokio_postgres` without any shown direct dependency update for `frf-gateway`.",
+      "evidence": "The new support module contains `use tokio_postgres::{Client, NoTls};`, while the `crates/frf-gateway/Cargo.toml` hunk only adds `frf-projection-surreal`, `base64`, and `sha2`; constraint R1 covers workspace/all-target compilation.",
+      "suggested_fix": "Add `tokio-postgres` as a direct dev-dependency or dependency of `crates/frf-gateway`."
+    },
+    {
+      "severity": "WARNING",
+      "file": "openspec/changes/pri-c009-entity-projection/proposal.md",
+      "line": 14,
+      "claim": "The proposal document says the change is proposal-only with unchecked implementation tasks even though the submitted tasks are checked and implementation/evidence files claim completion.",
+      "evidence": "`proposal.md` states `Status: proposal only; all implementation tasks are unchecked.`, while `openspec/changes/pri-c009-entity-projection/tasks.md` marks tasks 1-5 as `[x]` and `.kbd-orchestrator/.../implementation.md` says `Status: **COMPLETE**`; constraint T2 requires honest surface/no doc drift.",
+      "suggested_fix": "Update the proposal status text to reflect the completed implementation or remove the stale statement."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

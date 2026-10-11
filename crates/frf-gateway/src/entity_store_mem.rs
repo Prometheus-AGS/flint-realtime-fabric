@@ -2,8 +2,13 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use frf_domain::{EntityChange, EntityId, TenantId};
-use frf_ports::{EntityChangeStream, EntityStore, PortError};
+use frf_domain::{
+    ChangeOp, EntityChange, EntityId, EntityTypeDelivery, EntityTypeSelector, TenantId,
+};
+use frf_ports::{
+    EntityChangeStream, EntityProjectionSnapshot, EntityStore, EntityTypeProjectionSnapshot,
+    PortError, ProjectionApply, ProjectionCursor, TypedEntityProjection,
+};
 use tokio::sync::{RwLock, broadcast};
 use tokio_stream::StreamExt as _;
 use tokio_stream::wrappers::BroadcastStream;
@@ -23,6 +28,8 @@ pub struct InMemoryEntityStore {
 struct Inner {
     latest: HashMap<(TenantId, EntityId), EntityChange>,
     watchers: HashMap<(TenantId, EntityId), broadcast::Sender<EntityChange>>,
+    checkpoint: Option<ProjectionCursor>,
+    typed: HashMap<(TenantId, EntityId), EntityTypeDelivery>,
 }
 
 impl InMemoryEntityStore {
@@ -73,13 +80,187 @@ impl EntityStore for InMemoryEntityStore {
         let stream = BroadcastStream::new(rx).filter_map(Result::ok).map(Ok);
         Ok(Box::pin(stream))
     }
+
+    async fn apply_projection(
+        &self,
+        mut change: EntityChange,
+        cursor: ProjectionCursor,
+    ) -> Result<ProjectionApply, PortError> {
+        let key = (change.tenant_id, change.entity_id);
+        let mut inner = self.inner.write().await;
+        if let Some(checkpoint) = &inner.checkpoint {
+            if checkpoint.source_epoch != cursor.source_epoch {
+                return Err(PortError::NotFound(
+                    "resnapshot_required: entity projection source epoch changed".to_owned(),
+                ));
+            }
+            if cursor.broker_offset <= checkpoint.broker_offset {
+                return Ok(ProjectionApply::Duplicate);
+            }
+        }
+        let previous = inner.latest.get(&key).cloned();
+        change.previous = previous.as_ref().map(|value| value.data.clone());
+        if change.op == ChangeOp::Update {
+            let Some(existing) = &previous else {
+                return Err(PortError::NotFound(
+                    "resnapshot_required: update has no projected base row".to_owned(),
+                ));
+            };
+            merge_object(&mut change.data, &existing.data)?;
+        }
+        if change.op == ChangeOp::Delete {
+            inner.latest.remove(&key);
+        } else {
+            inner.latest.insert(key, change.clone());
+        }
+        inner.checkpoint = Some(cursor);
+        if let Some(tx) = inner.watchers.get(&key) {
+            let _ = tx.send(change.clone());
+        }
+        Ok(ProjectionApply::Applied(Box::new(change)))
+    }
+
+    async fn apply_typed_projection(
+        &self,
+        mut projection: TypedEntityProjection,
+        cursor: ProjectionCursor,
+    ) -> Result<ProjectionApply, PortError> {
+        let key = (projection.change.tenant_id, projection.change.entity_id);
+        let mut inner = self.inner.write().await;
+        if let Some(checkpoint) = &inner.checkpoint {
+            if checkpoint.source_epoch != cursor.source_epoch {
+                return Err(PortError::NotFound(
+                    "resnapshot_required: entity projection source epoch changed".to_owned(),
+                ));
+            }
+            if cursor.broker_offset <= checkpoint.broker_offset {
+                return Ok(ProjectionApply::Duplicate);
+            }
+        }
+        let previous = inner.latest.get(&key).cloned();
+        projection.change.previous = previous.as_ref().map(|value| value.data.clone());
+        if projection.change.op == ChangeOp::Update {
+            let Some(existing) = &previous else {
+                return Err(PortError::NotFound(
+                    "resnapshot_required: update has no projected base row".to_owned(),
+                ));
+            };
+            merge_object(&mut projection.change.data, &existing.data)?;
+            let prior = inner.typed.get(&key).ok_or_else(|| {
+                PortError::NotFound(
+                    "resnapshot_required: update has no typed projected base row".to_owned(),
+                )
+            })?;
+            merge_typed_record(&mut projection.delivery, prior);
+        }
+        if projection.change.op == ChangeOp::Delete {
+            inner.latest.remove(&key);
+            inner.typed.remove(&key);
+        } else {
+            inner.latest.insert(key, projection.change.clone());
+            inner.typed.insert(key, projection.delivery);
+        }
+        inner.checkpoint = Some(cursor);
+        if let Some(tx) = inner.watchers.get(&key) {
+            let _ = tx.send(projection.change.clone());
+        }
+        Ok(ProjectionApply::Applied(Box::new(projection.change)))
+    }
+
+    async fn snapshot_entity_type(
+        &self,
+        entity_type: &EntityTypeSelector,
+        tenant_id: TenantId,
+    ) -> Result<EntityTypeProjectionSnapshot, PortError> {
+        let inner = self.inner.read().await;
+        let mut entities = inner
+            .typed
+            .values()
+            .filter(|delivery| {
+                delivery.mutation.tenant_id == tenant_id && entity_type.matches(&delivery.mutation)
+            })
+            .cloned()
+            .collect::<Vec<_>>();
+        entities.sort_by(|left, right| {
+            left.mutation
+                .key
+                .canonical_id
+                .cmp(&right.mutation.key.canonical_id)
+        });
+        Ok(EntityTypeProjectionSnapshot {
+            entities,
+            cursor: inner.checkpoint.clone(),
+        })
+    }
+
+    async fn install_projection_snapshot(
+        &self,
+        snapshot: EntityProjectionSnapshot,
+    ) -> Result<bool, PortError> {
+        let mut inner = self.inner.write().await;
+        if inner.checkpoint.as_ref().is_some_and(|checkpoint| {
+            checkpoint.source_epoch == snapshot.cursor.source_epoch
+                && checkpoint.broker_offset >= snapshot.cursor.broker_offset
+        }) {
+            return Ok(false);
+        }
+        inner.latest = snapshot
+            .entities
+            .into_iter()
+            .map(|change| ((change.tenant_id, change.entity_id), change))
+            .collect();
+        inner.typed.clear();
+        inner.checkpoint = Some(snapshot.cursor);
+        Ok(true)
+    }
+
+    async fn projection_checkpoint(&self) -> Result<Option<ProjectionCursor>, PortError> {
+        Ok(self.inner.read().await.checkpoint.clone())
+    }
+}
+
+fn merge_typed_record(next: &mut EntityTypeDelivery, previous: &EntityTypeDelivery) {
+    let updates = next
+        .mutation
+        .record
+        .take()
+        .unwrap_or_default()
+        .into_iter()
+        .map(|field| (field.column.clone(), field))
+        .collect::<HashMap<_, _>>();
+    let mut merged = previous.mutation.record.clone().unwrap_or_default();
+    for field in &mut merged {
+        if let Some(updated) = updates.get(&field.column) {
+            *field = updated.clone();
+        }
+    }
+    for (column, field) in updates {
+        if !merged.iter().any(|existing| existing.column == column) {
+            merged.push(field);
+        }
+    }
+    next.mutation.record = Some(merged);
+}
+
+fn merge_object(
+    patch: &mut serde_json::Value,
+    existing: &serde_json::Value,
+) -> Result<(), PortError> {
+    let (Some(patch), Some(existing)) = (patch.as_object_mut(), existing.as_object()) else {
+        return Err(PortError::Serialization(
+            "entity update and projected base must be JSON objects".to_owned(),
+        ));
+    };
+    for (key, value) in existing {
+        patch.entry(key.clone()).or_insert_with(|| value.clone());
+    }
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use chrono::Utc;
-    use frf_domain::ChangeOp;
 
     fn sample(entity: EntityId, tenant: TenantId, version: u64) -> EntityChange {
         EntityChange {

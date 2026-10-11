@@ -1,0 +1,111 @@
+{
+  "result": "Passed",
+  "verification_tier": 1,
+  "observed_at": "2026-09-18T05:24:33.347716+00:00",
+  "scope": "RA05 client segment, Gate, FRF facade, Electric backend, and loopback diagnostic",
+  "command": "python3 scripts/test-authorized-shape-topology.py --output /Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c015-aso-protected-proof/protected-topology.json",
+  "checks": {
+    "required_topology_prerequisites_are_available": {
+      "result": "Passed",
+      "electric_health": "healthy",
+      "frf_health": "healthy",
+      "topology_probe_image": "pri-c015-frf:60e5ec0775a0b0e9"
+    },
+    "resolved_topology_requires_gate_before_frf_and_electric": {
+      "result": "Passed",
+      "electric_networks": [
+        "ra05-backend"
+      ],
+      "gate_networks": [
+        "ra05-backend",
+        "ra05-client"
+      ],
+      "facade_networks": [
+        "ra05-backend"
+      ],
+      "client_networks": [
+        "ra05-client"
+      ],
+      "client_network_internal": true
+    },
+    "electric_and_facade_have_no_host_ports": {
+      "result": "Passed",
+      "facade_host_ports": 0,
+      "electric_host_ports": 0
+    },
+    "running_containers_match_resolved_network_membership": {
+      "result": "Passed",
+      "electric_networks": [
+        "aso-prior-auth_ra05-backend"
+      ],
+      "gate_networks": [
+        "aso-prior-auth_ra05-backend",
+        "aso-prior-auth_ra05-client"
+      ],
+      "facade_networks": [
+        "aso-prior-auth_ra05-backend"
+      ]
+    },
+    "client_segment_reaches_gate_and_is_challenged_for_a_session": {
+      "result": "Passed",
+      "exit_code": 0,
+      "status": "401"
+    },
+    "client_segment_cannot_resolve_or_reach_frf_directly": {
+      "result": "Passed",
+      "exit_code": 6
+    },
+    "client_segment_cannot_resolve_or_reach_electric": {
+      "result": "Passed",
+      "exit_code": 6
+    },
+    "client_segment_cannot_reach_the_operator_loopback_diagnostic": {
+      "result": "Passed",
+      "exit_code": 6
+    },
+    "host_browser_position_cannot_reach_electric_directly": {
+      "result": "Passed",
+      "status": null,
+      "error": "URLError",
+      "host": "127.0.0.1"
+    }
+  },
+  "prerequisites": {
+    "docker_cli": {
+      "available": true
+    },
+    "stack_script": {
+      "available": true
+    },
+    "resolved_compose_model": {
+      "available": true
+    },
+    "topology_probe_image": {
+      "available": true,
+      "image": "pri-c015-frf:60e5ec0775a0b0e9"
+    },
+    "electric_container": {
+      "running": true,
+      "health": "healthy"
+    },
+    "gate_container": {
+      "running": true
+    },
+    "frf_container": {
+      "running": true,
+      "health": "healthy"
+    }
+  },
+  "certification": {
+    "scope": "bounded-local-compose-client-segment",
+    "client_to_gate_status": "401",
+    "client_to_frf_exit": 6,
+    "client_to_electric_exit": 6,
+    "client_to_operator_diagnostic_exit": 6,
+    "operator_to_diagnostic_status": null,
+    "electric_on_client_network": false,
+    "frf_on_client_network": false,
+    "facade_host_port_count": 0,
+    "electric_host_port_count": 0
+  }
+}

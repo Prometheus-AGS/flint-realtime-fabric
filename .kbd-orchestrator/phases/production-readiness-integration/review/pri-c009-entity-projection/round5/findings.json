@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "compose.yml",
+      "line": 178,
+      "claim": "The SurrealDB password is passed as a process command-line argument, exposing the secret through container inspection/process metadata.",
+      "evidence": "The new `surreal` service command includes `--pass` followed by `${FRF_SURREAL_PASSWORD}` in `compose.yml`, while the constraints state under S1 that secrets must come from env/secret-manager handling and RUNBOOK marks `ENTITY_PROJECTION_PASSWORD` as a secret.",
+      "suggested_fix": "Use SurrealDB's supported environment/file-based secret mechanism or an entrypoint that reads the password from a mounted secret file without placing it in argv."
+    },
+    {
+      "severity": "WARNING",
+      "file": "compose.entity-projection-integration.yml",
+      "line": 41,
+      "claim": "The integration SurrealDB fixture also passes its password on the command line, leaking per-run credentials into inspectable container metadata.",
+      "evidence": "The new integration compose command is `[\"start\", \"--log\", \"info\", \"--user\", \"${FRF_PROJECTION_SURREAL_USER:?required}\", \"--pass\", \"${FRF_PROJECTION_SURREAL_PASSWORD:?required}\", \"memory\"]`, putting the secret in argv.",
+      "suggested_fix": "Read the fixture password from an env var or temporary secret file inside the container instead of passing it as a command argument."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

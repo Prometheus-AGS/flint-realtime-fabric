@@ -1,0 +1,61 @@
+{
+  "memory": {
+    "baseline": {
+      "heapUsedBytes": 16165560,
+      "rssBytes": 91422720
+    },
+    "peak": {
+      "heapUsedBytes": 96392848,
+      "rssBytes": 1127235584
+    },
+    "rssDeltaBytes": 1035812864,
+    "heapDeltaBytes": 80227288,
+    "stages": {
+      "baseline": {
+        "heapUsedBytes": 16165560,
+        "rssBytes": 91422720
+      },
+      "open-memory-runtime": {
+        "heapUsedBytes": 16171992,
+        "rssBytes": 91422720
+      },
+      "pglite-open": {
+        "heapUsedBytes": 43486168,
+        "rssBytes": 656424960
+      },
+      "schema-ready": {
+        "heapUsedBytes": 33185424,
+        "rssBytes": 938262528
+      },
+      "graph-ready": {
+        "heapUsedBytes": 33829128,
+        "rssBytes": 959905792
+      },
+      "projector-ready": {
+        "heapUsedBytes": 34035096,
+        "rssBytes": 971800576
+      },
+      "cold-fold": {
+        "heapUsedBytes": 34048424,
+        "rssBytes": 975093760
+      },
+      "cold-fold-complete": {
+        "heapUsedBytes": 38453496,
+        "rssBytes": 562839552
+      },
+      "sql-checkpoint-graph": {
+        "heapUsedBytes": 38454504,
+        "rssBytes": 562839552
+      },
+      "revision-published": {
+        "heapUsedBytes": 95171088,
+        "rssBytes": 675135488
+      },
+      "final": {
+        "heapUsedBytes": 96392848,
+        "rssBytes": 676102144
+      }
+    },
+    "peakStage": "cold-fold"
+  }
+}

@@ -1,0 +1,704 @@
+{
+  "schemaVersion": 2,
+  "change": "pri-c014-aso-memory",
+  "task": 5,
+  "result": "Passed",
+  "observedAt": "2026-09-17T14:18:18.911268+00:00",
+  "scope": "ASO 16203-row protected replica browser memory qualification and behavior preservation",
+  "source": {
+    "aso": {
+      "schemaVersion": 3,
+      "repository": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth",
+      "branch": "main",
+      "head": "d95242542060d1e19a6efe9143f57c015d6162f4",
+      "observedAt": "2026-09-17T14:18:18.911268+00:00",
+      "dirtyState": {
+        "porcelainSha256": "014739aae732d739c64c96eb6797bc7c510f545c5cd4a10711c34794f8565685",
+        "trackedDiffSha256": "be33f9e6c264ee8395f4e17a37e51b355afa006939cb24b74873c5fcd4b32443",
+        "untrackedPathsSha256": "620b1417fb5e72142af84123821349a0aeb4b4c8af32ece9b6b2ea20181a14ed"
+      },
+      "files": {
+        "docker-compose.ra05.yaml": {
+          "sha256": "1815b800b226a0b356d903062f172d9377108194fa5bbf9f1b18cdd9687a50bc",
+          "bytes": 6131,
+          "lines": 201
+        },
+        "docker-compose.yaml": {
+          "sha256": "6f642f9f561b78a46fae7f1f3863dcdcd633c9dd2730954a58ee87b1bbda7e8b",
+          "bytes": 9907,
+          "lines": 193
+        },
+        "docker/flint-gate/config.ra05.yaml": {
+          "sha256": "347d3dd0d30f2221fbbe39237f967b0511e703ab5ecee8e327a87b78ff3dafa1",
+          "bytes": 2843,
+          "lines": 107
+        },
+        "docker/frf/shape-catalog.json": {
+          "sha256": "7c50cc69ff87cfd5db56fc847c17ac035f97bd900ae71a7eee286fca286ce453",
+          "bytes": 2460,
+          "lines": 114
+        },
+        "scripts/ra05-stack.sh": {
+          "sha256": "824377cc9561e71474da079219527a4b1846a02592653e5a5ec430a2fc7cf2f4",
+          "bytes": 922,
+          "lines": 28
+        },
+        "scripts/ra06c_campaign_config.py": {
+          "sha256": "cd99908ae918fb7a4d1eff48500aad329ac923ad477bb1f2bfb77e8706fa9b4e",
+          "bytes": 4379,
+          "lines": 130
+        },
+        "scripts/test-authorized-shape-composition.py": {
+          "sha256": "bbac93420ab50c53624c3c06c9c27d61ef94ca2fa28dfeb4031cbe09346f09d7",
+          "bytes": 16064,
+          "lines": 418
+        },
+        "scripts/test-ra11a-sync-conformance.py": {
+          "sha256": "b21d01815058e7307f30989b11ce35c3954e3910e50f47a2bc05158e6915261a",
+          "bytes": 33272,
+          "lines": 816
+        },
+        "scripts/test-ra11c-browser-memory.py": {
+          "sha256": "10e3c049d5c4299e34bb1024377d06912a4fb5ff05b5f4de3ea4860fc1b24205",
+          "bytes": 13301,
+          "lines": 346
+        },
+        "scripts/test-ra11c-materialization.py": {
+          "sha256": "be8af39283fe56e1fac1c384a755986df5e10712770f96ca02962730f2b9bdf1",
+          "bytes": 10019,
+          "lines": 259
+        },
+        "web/package.json": {
+          "sha256": "c8c7a697a514ddc18246f35e2c12db5eaa07bfa2f63ab131034b42c1c8be6641",
+          "bytes": 1928,
+          "lines": 63
+        },
+        "web/pnpm-lock.yaml": {
+          "sha256": "fbe014d8cde45225e4c8884edd5193ddcd387295f065fbbb27690fd0269c2547",
+          "bytes": 315803,
+          "lines": 8481
+        },
+        "web/public/pglite-base.tgz": {
+          "sha256": "f4818a049c2e017209433b00518760dbd8694d20c88fdc59b3bc2aea299f635f",
+          "bytes": 4529203,
+          "lines": 27674
+        },
+        "web/ra11c-browser-memory.html": {
+          "sha256": "4a26bd7963b6efb023a4a5f152170a9e350e9737a18f982b97b449e17662dd72",
+          "bytes": 366,
+          "lines": 12
+        },
+        "web/src/shared/session-revocation-events.ts": {
+          "sha256": "e6c691d5b611aa9e8add31d3995d60529aa274b132e3ef67d357a93580ca6850",
+          "bytes": 1035,
+          "lines": 30
+        },
+        "web/src/shared/sync/chunk-writer.ts": {
+          "sha256": "e3b25011f44d25b969759599c0abd90664ea873cc0996da454572f6c4815826e",
+          "bytes": 9375,
+          "lines": 234
+        },
+        "web/src/shared/sync/electric-shapes.ts": {
+          "sha256": "830e2540b6e03d5356243a390c622b467fde5e637ecdceb5030afc492be9944c",
+          "bytes": 4440,
+          "lines": 101
+        },
+        "web/src/shared/sync/frf-shape-transport.ts": {
+          "sha256": "49751868d6d78da375c1750e6093e2c27e39403b48152f3de1d62fc1ed9e176c",
+          "bytes": 11521,
+          "lines": 301
+        },
+        "web/src/shared/sync/migration-ledger.ts": {
+          "sha256": "206d0e3ce46181653db0b1b5d2c675c7a7018ae8e773c1d4c0c7d9da95567bc4",
+          "bytes": 10722,
+          "lines": 311
+        },
+        "web/src/shared/sync/pglite-bootstrap.ts": {
+          "sha256": "5d7cf6b33bfae8c0c6e74287950575c10741c2aa3e07dddca2b69045a799b0c6",
+          "bytes": 1513,
+          "lines": 45
+        },
+        "web/src/shared/sync/pglite-schema.ts": {
+          "sha256": "7754586386bbfd29144e7cb47f9f188a41bd8c6f17aa688dce48d6f4a0bf433e",
+          "bytes": 10640,
+          "lines": 299
+        },
+        "web/src/shared/sync/replica-browser-memory.ts": {
+          "sha256": "a8d17a9a591b08cce218f843621b35cf9b9788320b241a0eb98bb4f6e56a2208",
+          "bytes": 10469,
+          "lines": 341
+        },
+        "web/src/shared/sync/replica-mounted-runtime.ts": {
+          "sha256": "7caaaa829f37e7f393bd3f56f9de015ef6503acdd5536cbca4e9f2f9d37756c0",
+          "bytes": 11193,
+          "lines": 355
+        },
+        "web/src/shared/sync/replica-mounted.integration.test.ts": {
+          "sha256": "5e394e3e505b7f6cb9daf32ba8dd8c61a4398e94457325f18f42c52470c93849",
+          "bytes": 20873,
+          "lines": 449
+        },
+        "web/src/shared/sync/replica-owner.ts": {
+          "sha256": "4352138b06c24f55e6cfad5a0ada89ba04636e0e9657c3ccb494d14af39ab670",
+          "bytes": 6973,
+          "lines": 199
+        },
+        "web/src/shared/sync/replica-rebuild.ts": {
+          "sha256": "fe79cfc4573d9af144c20293e08e8dcb3e490a1c1ecd2988abd2d17273cdb76a",
+          "bytes": 4300,
+          "lines": 102
+        },
+        "web/src/shared/sync/replica-runtime.ts": {
+          "sha256": "97a8180893f0039ecb2e23ca2a1b86ca5d3d6a2432d50f5ae0d430d808a5e5fb",
+          "bytes": 17374,
+          "lines": 524
+        },
+        "web/src/shared/sync/replica-wiring.ts": {
+          "sha256": "ce52c79d4e2c113084913e9df34e1b2502b5c20838a0df748c22f1382e45484b",
+          "bytes": 5040,
+          "lines": 129
+        },
+        "web/src/shared/sync/replica-worker-owner.ts": {
+          "sha256": "616a71b27e461954efb701dc18f686dce81e818edd5ef0ff2f23076f96063f5b",
+          "bytes": 15889,
+          "lines": 494
+        },
+        "web/src/shared/sync/storage-policy.ts": {
+          "sha256": "74ebfba4eb1ad96efc032de39f3f3715ad5f861a0a776af3a6b2ed8b78bd58a0",
+          "bytes": 3705,
+          "lines": 93
+        },
+        "web/vite.config.ts": {
+          "sha256": "89da9c620bb5d18f0b8eaf8d4fba7805bac56dcd23ffc87e0cce2e17ad01d8fd",
+          "bytes": 1991,
+          "lines": 57
+        }
+      },
+      "executedInputFingerprints": {
+        "before": {
+          "aggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd",
+          "files": {
+            "docker-compose.ra05.yaml": {
+              "bytes": 6131,
+              "sha256": "1815b800b226a0b356d903062f172d9377108194fa5bbf9f1b18cdd9687a50bc"
+            },
+            "docker-compose.yaml": {
+              "bytes": 9907,
+              "sha256": "6f642f9f561b78a46fae7f1f3863dcdcd633c9dd2730954a58ee87b1bbda7e8b"
+            },
+            "docker/flint-gate/config.ra05.yaml": {
+              "bytes": 2843,
+              "sha256": "347d3dd0d30f2221fbbe39237f967b0511e703ab5ecee8e327a87b78ff3dafa1"
+            },
+            "docker/frf/shape-catalog.json": {
+              "bytes": 2460,
+              "sha256": "7c50cc69ff87cfd5db56fc847c17ac035f97bd900ae71a7eee286fca286ce453"
+            },
+            "scripts/ra05-stack.sh": {
+              "bytes": 922,
+              "sha256": "824377cc9561e71474da079219527a4b1846a02592653e5a5ec430a2fc7cf2f4"
+            },
+            "scripts/ra06c_campaign_config.py": {
+              "bytes": 4379,
+              "sha256": "cd99908ae918fb7a4d1eff48500aad329ac923ad477bb1f2bfb77e8706fa9b4e"
+            },
+            "scripts/test-authorized-shape-composition.py": {
+              "bytes": 16064,
+              "sha256": "bbac93420ab50c53624c3c06c9c27d61ef94ca2fa28dfeb4031cbe09346f09d7"
+            },
+            "scripts/test-ra11a-sync-conformance.py": {
+              "bytes": 33272,
+              "sha256": "b21d01815058e7307f30989b11ce35c3954e3910e50f47a2bc05158e6915261a"
+            },
+            "scripts/test-ra11c-browser-memory.py": {
+              "bytes": 13301,
+              "sha256": "10e3c049d5c4299e34bb1024377d06912a4fb5ff05b5f4de3ea4860fc1b24205"
+            },
+            "scripts/test-ra11c-materialization.py": {
+              "bytes": 10019,
+              "sha256": "be8af39283fe56e1fac1c384a755986df5e10712770f96ca02962730f2b9bdf1"
+            },
+            "web/package.json": {
+              "bytes": 1928,
+              "sha256": "c8c7a697a514ddc18246f35e2c12db5eaa07bfa2f63ab131034b42c1c8be6641"
+            },
+            "web/pnpm-lock.yaml": {
+              "bytes": 315803,
+              "sha256": "fbe014d8cde45225e4c8884edd5193ddcd387295f065fbbb27690fd0269c2547"
+            },
+            "web/public/pglite-base.tgz": {
+              "bytes": 4529203,
+              "sha256": "f4818a049c2e017209433b00518760dbd8694d20c88fdc59b3bc2aea299f635f"
+            },
+            "web/ra11c-browser-memory.html": {
+              "bytes": 366,
+              "sha256": "4a26bd7963b6efb023a4a5f152170a9e350e9737a18f982b97b449e17662dd72"
+            },
+            "web/src/shared/session-revocation-events.ts": {
+              "bytes": 1035,
+              "sha256": "e6c691d5b611aa9e8add31d3995d60529aa274b132e3ef67d357a93580ca6850"
+            },
+            "web/src/shared/sync/chunk-writer.ts": {
+              "bytes": 9375,
+              "sha256": "e3b25011f44d25b969759599c0abd90664ea873cc0996da454572f6c4815826e"
+            },
+            "web/src/shared/sync/electric-shapes.ts": {
+              "bytes": 4440,
+              "sha256": "830e2540b6e03d5356243a390c622b467fde5e637ecdceb5030afc492be9944c"
+            },
+            "web/src/shared/sync/frf-shape-transport.ts": {
+              "bytes": 11521,
+              "sha256": "49751868d6d78da375c1750e6093e2c27e39403b48152f3de1d62fc1ed9e176c"
+            },
+            "web/src/shared/sync/migration-ledger.ts": {
+              "bytes": 10722,
+              "sha256": "206d0e3ce46181653db0b1b5d2c675c7a7018ae8e773c1d4c0c7d9da95567bc4"
+            },
+            "web/src/shared/sync/pglite-bootstrap.ts": {
+              "bytes": 1513,
+              "sha256": "5d7cf6b33bfae8c0c6e74287950575c10741c2aa3e07dddca2b69045a799b0c6"
+            },
+            "web/src/shared/sync/pglite-schema.ts": {
+              "bytes": 10640,
+              "sha256": "7754586386bbfd29144e7cb47f9f188a41bd8c6f17aa688dce48d6f4a0bf433e"
+            },
+            "web/src/shared/sync/replica-browser-memory.ts": {
+              "bytes": 10469,
+              "sha256": "a8d17a9a591b08cce218f843621b35cf9b9788320b241a0eb98bb4f6e56a2208"
+            },
+            "web/src/shared/sync/replica-mounted-runtime.ts": {
+              "bytes": 11193,
+              "sha256": "7caaaa829f37e7f393bd3f56f9de015ef6503acdd5536cbca4e9f2f9d37756c0"
+            },
+            "web/src/shared/sync/replica-mounted.integration.test.ts": {
+              "bytes": 20873,
+              "sha256": "5e394e3e505b7f6cb9daf32ba8dd8c61a4398e94457325f18f42c52470c93849"
+            },
+            "web/src/shared/sync/replica-owner.ts": {
+              "bytes": 6973,
+              "sha256": "4352138b06c24f55e6cfad5a0ada89ba04636e0e9657c3ccb494d14af39ab670"
+            },
+            "web/src/shared/sync/replica-rebuild.ts": {
+              "bytes": 4300,
+              "sha256": "fe79cfc4573d9af144c20293e08e8dcb3e490a1c1ecd2988abd2d17273cdb76a"
+            },
+            "web/src/shared/sync/replica-runtime.ts": {
+              "bytes": 17374,
+              "sha256": "97a8180893f0039ecb2e23ca2a1b86ca5d3d6a2432d50f5ae0d430d808a5e5fb"
+            },
+            "web/src/shared/sync/replica-wiring.ts": {
+              "bytes": 5040,
+              "sha256": "ce52c79d4e2c113084913e9df34e1b2502b5c20838a0df748c22f1382e45484b"
+            },
+            "web/src/shared/sync/replica-worker-owner.ts": {
+              "bytes": 15889,
+              "sha256": "616a71b27e461954efb701dc18f686dce81e818edd5ef0ff2f23076f96063f5b"
+            },
+            "web/src/shared/sync/storage-policy.ts": {
+              "bytes": 3705,
+              "sha256": "74ebfba4eb1ad96efc032de39f3f3715ad5f861a0a776af3a6b2ed8b78bd58a0"
+            },
+            "web/vite.config.ts": {
+              "bytes": 1991,
+              "sha256": "89da9c620bb5d18f0b8eaf8d4fba7805bac56dcd23ffc87e0cce2e17ad01d8fd"
+            }
+          }
+        },
+        "after": {
+          "aggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd",
+          "files": {
+            "docker-compose.ra05.yaml": {
+              "bytes": 6131,
+              "sha256": "1815b800b226a0b356d903062f172d9377108194fa5bbf9f1b18cdd9687a50bc"
+            },
+            "docker-compose.yaml": {
+              "bytes": 9907,
+              "sha256": "6f642f9f561b78a46fae7f1f3863dcdcd633c9dd2730954a58ee87b1bbda7e8b"
+            },
+            "docker/flint-gate/config.ra05.yaml": {
+              "bytes": 2843,
+              "sha256": "347d3dd0d30f2221fbbe39237f967b0511e703ab5ecee8e327a87b78ff3dafa1"
+            },
+            "docker/frf/shape-catalog.json": {
+              "bytes": 2460,
+              "sha256": "7c50cc69ff87cfd5db56fc847c17ac035f97bd900ae71a7eee286fca286ce453"
+            },
+            "scripts/ra05-stack.sh": {
+              "bytes": 922,
+              "sha256": "824377cc9561e71474da079219527a4b1846a02592653e5a5ec430a2fc7cf2f4"
+            },
+            "scripts/ra06c_campaign_config.py": {
+              "bytes": 4379,
+              "sha256": "cd99908ae918fb7a4d1eff48500aad329ac923ad477bb1f2bfb77e8706fa9b4e"
+            },
+            "scripts/test-authorized-shape-composition.py": {
+              "bytes": 16064,
+              "sha256": "bbac93420ab50c53624c3c06c9c27d61ef94ca2fa28dfeb4031cbe09346f09d7"
+            },
+            "scripts/test-ra11a-sync-conformance.py": {
+              "bytes": 33272,
+              "sha256": "b21d01815058e7307f30989b11ce35c3954e3910e50f47a2bc05158e6915261a"
+            },
+            "scripts/test-ra11c-browser-memory.py": {
+              "bytes": 13301,
+              "sha256": "10e3c049d5c4299e34bb1024377d06912a4fb5ff05b5f4de3ea4860fc1b24205"
+            },
+            "scripts/test-ra11c-materialization.py": {
+              "bytes": 10019,
+              "sha256": "be8af39283fe56e1fac1c384a755986df5e10712770f96ca02962730f2b9bdf1"
+            },
+            "web/package.json": {
+              "bytes": 1928,
+              "sha256": "c8c7a697a514ddc18246f35e2c12db5eaa07bfa2f63ab131034b42c1c8be6641"
+            },
+            "web/pnpm-lock.yaml": {
+              "bytes": 315803,
+              "sha256": "fbe014d8cde45225e4c8884edd5193ddcd387295f065fbbb27690fd0269c2547"
+            },
+            "web/public/pglite-base.tgz": {
+              "bytes": 4529203,
+              "sha256": "f4818a049c2e017209433b00518760dbd8694d20c88fdc59b3bc2aea299f635f"
+            },
+            "web/ra11c-browser-memory.html": {
+              "bytes": 366,
+              "sha256": "4a26bd7963b6efb023a4a5f152170a9e350e9737a18f982b97b449e17662dd72"
+            },
+            "web/src/shared/session-revocation-events.ts": {
+              "bytes": 1035,
+              "sha256": "e6c691d5b611aa9e8add31d3995d60529aa274b132e3ef67d357a93580ca6850"
+            },
+            "web/src/shared/sync/chunk-writer.ts": {
+              "bytes": 9375,
+              "sha256": "e3b25011f44d25b969759599c0abd90664ea873cc0996da454572f6c4815826e"
+            },
+            "web/src/shared/sync/electric-shapes.ts": {
+              "bytes": 4440,
+              "sha256": "830e2540b6e03d5356243a390c622b467fde5e637ecdceb5030afc492be9944c"
+            },
+            "web/src/shared/sync/frf-shape-transport.ts": {
+              "bytes": 11521,
+              "sha256": "49751868d6d78da375c1750e6093e2c27e39403b48152f3de1d62fc1ed9e176c"
+            },
+            "web/src/shared/sync/migration-ledger.ts": {
+              "bytes": 10722,
+              "sha256": "206d0e3ce46181653db0b1b5d2c675c7a7018ae8e773c1d4c0c7d9da95567bc4"
+            },
+            "web/src/shared/sync/pglite-bootstrap.ts": {
+              "bytes": 1513,
+              "sha256": "5d7cf6b33bfae8c0c6e74287950575c10741c2aa3e07dddca2b69045a799b0c6"
+            },
+            "web/src/shared/sync/pglite-schema.ts": {
+              "bytes": 10640,
+              "sha256": "7754586386bbfd29144e7cb47f9f188a41bd8c6f17aa688dce48d6f4a0bf433e"
+            },
+            "web/src/shared/sync/replica-browser-memory.ts": {
+              "bytes": 10469,
+              "sha256": "a8d17a9a591b08cce218f843621b35cf9b9788320b241a0eb98bb4f6e56a2208"
+            },
+            "web/src/shared/sync/replica-mounted-runtime.ts": {
+              "bytes": 11193,
+              "sha256": "7caaaa829f37e7f393bd3f56f9de015ef6503acdd5536cbca4e9f2f9d37756c0"
+            },
+            "web/src/shared/sync/replica-mounted.integration.test.ts": {
+              "bytes": 20873,
+              "sha256": "5e394e3e505b7f6cb9daf32ba8dd8c61a4398e94457325f18f42c52470c93849"
+            },
+            "web/src/shared/sync/replica-owner.ts": {
+              "bytes": 6973,
+              "sha256": "4352138b06c24f55e6cfad5a0ada89ba04636e0e9657c3ccb494d14af39ab670"
+            },
+            "web/src/shared/sync/replica-rebuild.ts": {
+              "bytes": 4300,
+              "sha256": "fe79cfc4573d9af144c20293e08e8dcb3e490a1c1ecd2988abd2d17273cdb76a"
+            },
+            "web/src/shared/sync/replica-runtime.ts": {
+              "bytes": 17374,
+              "sha256": "97a8180893f0039ecb2e23ca2a1b86ca5d3d6a2432d50f5ae0d430d808a5e5fb"
+            },
+            "web/src/shared/sync/replica-wiring.ts": {
+              "bytes": 5040,
+              "sha256": "ce52c79d4e2c113084913e9df34e1b2502b5c20838a0df748c22f1382e45484b"
+            },
+            "web/src/shared/sync/replica-worker-owner.ts": {
+              "bytes": 15889,
+              "sha256": "616a71b27e461954efb701dc18f686dce81e818edd5ef0ff2f23076f96063f5b"
+            },
+            "web/src/shared/sync/storage-policy.ts": {
+              "bytes": 3705,
+              "sha256": "74ebfba4eb1ad96efc032de39f3f3715ad5f861a0a776af3a6b2ed8b78bd58a0"
+            },
+            "web/vite.config.ts": {
+              "bytes": 1991,
+              "sha256": "89da9c620bb5d18f0b8eaf8d4fba7805bac56dcd23ffc87e0cce2e17ad01d8fd"
+            }
+          }
+        }
+      },
+      "modifiedFileLines": {
+        "web/ra11c-browser-memory.html": 12,
+        "web/src/shared/sync/replica-browser-memory.ts": 341,
+        "web/src/shared/sync/replica-mounted.integration.test.ts": 449,
+        "web/src/shared/sync/replica-mounted-runtime.ts": 355,
+        "web/src/shared/sync/pglite-bootstrap.ts": 45,
+        "scripts/test-ra11c-browser-memory.py": 346,
+        "scripts/test-ra11c-materialization.py": 259
+      },
+      "untouchedOversizedFiles": {
+        "web/src/shared/sync/replica-runtime.ts": 524,
+        "web/src/shared/sync/replica-runtime.test.ts": 659
+      },
+      "adoptedDelta": {
+        "originalScenarioSha256": "6aaa3a9c35b42b80cacecc11f26e3326fa05a25fa0acec76c4105ed32dea8005",
+        "pgliteBootstrapBeforeOptimizationSha256": "baf3de1af7911e37c6d6e35d52467d671fd762db4a78479521db3fa4d5a5f128",
+        "patch": "source-delta.patch",
+        "patchSha256": "fc7caadd22b9c03a9e248a0e99cd99e2ab0285a1dd37d35bb358c652916be41e"
+      }
+    },
+    "fabric": {
+      "repository": "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric",
+      "branch": "codex/production-readiness-integration",
+      "head": "ae26f45d8afa037677004cd118b0571b8b552131",
+      "changeSpecSha256": "eb7341fed7c1274dcc7fd387e76ee559241f69727e8ed7706da3e49982e3b9c9",
+      "tasksSha256": "ab0f68f7d8d8973934067a705a39b15e6b0c766e4ce2c1eb8233d889c9736085"
+    }
+  },
+  "acceptance": {
+    "browserMemory": "Passed",
+    "behaviorPreservation": "Passed",
+    "strictOpenSpec": "Passed",
+    "qualityChecks": "Passed",
+    "incrementalRssBytes": 387547136,
+    "aggregateIncrementalRssBytes": 371605504,
+    "incrementalHeapBytes": 142408106,
+    "targetRendererRssWithinBudget": true,
+    "aggregateRssWithinBudget": true,
+    "heapWithinBudget": true,
+    "rssLimitBytes": 536870912,
+    "heapLimitBytes": 268435456
+  },
+  "commands": [
+    {
+      "name": "aso-typecheck",
+      "command": "pnpm --dir web typecheck",
+      "cwd": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "$ tsc --noEmit\n"
+    },
+    {
+      "name": "aso-lint",
+      "command": "pnpm --dir web lint",
+      "cwd": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "$ oxlint\n"
+    },
+    {
+      "name": "aso-build",
+      "command": "pnpm --dir web build",
+      "cwd": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth",
+      "exitCode": 0,
+      "stdout": "vite v7.1.5 building for production...\ntransforming...\n\u2713 2351 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                                                 0.46 kB \u2502 gzip:     0.30 kB\ndist/assets/geist-cyrillic-ext-wght-normal-DjL33-gN.woff2       7.42 kB\ndist/assets/geist-vietnamese-wght-normal-6IgcOCM7.woff2         8.00 kB\ndist/assets/geist-cyrillic-wght-normal-BEAKL7Jp.woff2          15.08 kB\ndist/assets/geist-latin-ext-wght-normal-DC-KSUi6.woff2         16.51 kB\ndist/assets/geist-latin-wght-normal-BgDaEnEv.woff2             29.40 kB\ndist/assets/initdb-DwLcS450.wasm                              395.24 kB \u2502 gzip:   147.20 kB\ndist/assets/pglite-n8RDJ3Sw.data                            6,295.32 kB\ndist/assets/pglite-DgipwPsY.wasm                           10,088.16 kB \u2502 gzip: 3,443.92 kB\ndist/assets/index-SjNwl_k5.css                                253.57 kB \u2502 gzip:    37.52 kB\ndist/assets/__vite-browser-external-BIHI7g3E.js                 0.03 kB \u2502 gzip:     0.05 kB\ndist/assets/settings-profile-route-Bqnw8GNQ.js                  0.21 kB \u2502 gzip:     0.18 kB\ndist/assets/case-queue-route-5PgyrTjg.js                        0.21 kB \u2502 gzip:     0.18 kB\ndist/assets/settings-integrations-route-D39PVKW_.js             0.22 kB \u2502 gzip:     0.20 kB\ndist/assets/surgeon-gate-route-CtJykJvk.js                      0.23 kB \u2502 gzip:     0.19 kB\ndist/assets/peer-to-peer-route-DR6Gumy4.js                      0.23 kB \u2502 gzip:     0.19 kB\ndist/assets/admin-console-route-poQEGwHT.js                     0.23 kB \u2502 gzip:     0.20 kB\ndist/assets/policy-panel-route-DpdXwZOQ.js                      0.23 kB \u2502 gzip:     0.20 kB\ndist/assets/submission-packet-route-DCEeBqj5.js                 0.23 kB \u2502 gzip:     0.20 kB\ndist/assets/pathway-comparison-route-xIpQqFsy.js                0.23 kB \u2502 gzip:     0.20 kB\ndist/assets/receipt-verification-route-vPy9PdAN.js              0.24 kB \u2502 gzip:     0.20 kB\ndist/assets/nodefs-CFu3GUBS.js                                  0.42 kB \u2502 gzip:     0.29 kB\ndist/assets/route-placeholder-CV5yCuuX.js                       0.51 kB \u2502 gzip:     0.32 kB\ndist/assets/textarea-Sz4JQIOi.js                                0.70 kB \u2502 gzip:     0.38 kB\ndist/assets/use-scoped-view-store-BcK6_CDM.js                   1.40 kB \u2502 gzip:     0.70 kB\ndist/assets/badge-CtzOOG-h.js                                   1.43 kB \u2502 gzip:     0.66 kB\ndist/assets/intake-checklist-route-DhjPhiu8.js                  4.74 kB \u2502 gzip:     2.03 kB\ndist/assets/letter-composer-route-q33Nwp8c.js                   9.73 kB \u2502 gzip:     3.43 kB\ndist/assets/opfs-ahp-DeeLu6NQ.js                               10.02 kB \u2502 gzip:     3.06 kB\ndist/assets/case-detail-route-D1zt5ibX.js                      18.08 kB \u2502 gzip:     5.27 kB\ndist/assets/case-queue-DJq6fNCl.js                             20.79 kB \u2502 gzip:     6.47 kB\ndist/assets/evidence-timeline-route-C702Wf7K.js               105.70 kB \u2502 gzip:    34.45 kB\ndist/assets/index-9WExih_1.js                               1,062.04 kB \u2502 gzip:   291.34 kB\n\u2713 built in 3.16s\n",
+      "stderr": "$ tsc -b && vite build\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js (1:227): \"resolve\" is not exported by \"__vite-browser-external\", imported by \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js\".\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js (1:240): \"existsSync\" is not exported by \"__vite-browser-external\", imported by \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js\".\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js (1:253): \"join\" is not exported by \"__vite-browser-external\", imported by \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js\".\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js (1:276): \"mkdirSync\" is not exported by \"__vite-browser-external\", imported by \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js\".\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/chunk-DDJLRBDX.js (1:26769): Use of eval in \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/chunk-DDJLRBDX.js\" is strongly discouraged as it poses security risks and may cause issues with minification.\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/chunk-DDJLRBDX.js (1:27247): Use of eval in \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/chunk-DDJLRBDX.js\" is strongly discouraged as it poses security risks and may cause issues with minification.\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/index.js (1:89303): Use of eval in \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/index.js\" is strongly discouraged as it poses security risks and may cause issues with minification.\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/index.js (1:89781): Use of eval in \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/index.js\" is strongly discouraged as it poses security risks and may cause issues with minification.\n\n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n"
+    },
+    {
+      "name": "aso-architecture-audit",
+      "command": "bash scripts/audit.sh",
+      "cwd": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth",
+      "exitCode": 0,
+      "stdout": "\u2500\u2500 1. React filenames are kebab-case \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  \u2713 all filenames kebab-case\n\u2500\u2500 2. No query cache \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nquery-cache audit: Passed (manifest and transitive pnpm lock graph)\n  \u2713 no direct or transitive query cache dependency\n\u2500\u2500 3. Components do not call the network directly \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  \u2713 no direct network calls in components\n\u2500\u2500 4. The host crate names no shell \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  \u2713 aso-host is host-neutral\n\u2500\u2500 5. Generated theme files are not hand-edited \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  \u2713 generated files carry their banner\n\u2500\u2500 6. Three evidence states, never two \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  \u2713 the void state survives on both surfaces\n\naudit: PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "python-compile",
+      "command": "python3 -m py_compile scripts/test-ra11c-browser-memory.py scripts/test-ra11c-materialization.py",
+      "cwd": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "openspec-strict",
+      "command": "openspec validate pri-c014-aso-memory --strict --no-interactive",
+      "cwd": "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric",
+      "exitCode": 0,
+      "stdout": "Change 'pri-c014-aso-memory' is valid\n",
+      "stderr": ""
+    }
+  ],
+  "campaign": {
+    "command": "python3 scripts/test-ra11c-materialization.py --output /Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c014-aso-memory/browser-campaign.json --timeout-seconds 180",
+    "effectiveArguments": {
+      "callbackPort": 8788,
+      "campaignSecrets": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra06c/campaign-secrets.json",
+      "dataDir": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra11a-data/ra11c-materialization",
+      "output": "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c014-aso-memory/browser-campaign.json",
+      "timeoutSeconds": 180
+    },
+    "receipt": "browser-campaign.json",
+    "receiptSha256": "fff597119fce523e633b7030138159f758fa622e4e520776693c0d658e8f31ac",
+    "browser": "Google Chrome 152.0.7977.84",
+    "dataset": {
+      "counts": {
+        "cases": 360,
+        "case_evidence": 4320,
+        "documents": 2880,
+        "evidence_citations": 8640,
+        "evidence_states": 3
+      },
+      "total_rows": 16203
+    },
+    "checks": {
+      "gate_ready": {
+        "result": "Passed"
+      },
+      "realtime_fabric_ready": {
+        "result": "Passed"
+      },
+      "ra11a_identity_created": {
+        "result": "Passed",
+        "status": 201
+      },
+      "ra11a_login_flow_created": {
+        "result": "Passed",
+        "status": 200
+      },
+      "ra11a_login_completed": {
+        "result": "Passed",
+        "status": 200
+      },
+      "ra11a_session_is_authoritative": {
+        "result": "Passed",
+        "status": 200,
+        "identity_match": true
+      },
+      "representative_dataset_committed": {
+        "result": "Passed",
+        "observed": "360,4320,2880,8640"
+      },
+      "mounted_materializer_passed": {
+        "result": "Passed",
+        "exit_code": 0
+      },
+      "browser_memory_passed": {
+        "result": "Passed",
+        "exit_code": 0
+      },
+      "campaign_inputs_unchanged": {
+        "result": "Passed",
+        "beforeAggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd",
+        "afterAggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd"
+      }
+    },
+    "cleanup": {
+      "synthetic_relational_rows": "Passed",
+      "isolated_pglite_store": "Passed",
+      "campaign_services": "Passed",
+      "grant_callback": "Passed",
+      "synthetic_identities": "Passed",
+      "deleted_identity_count": 1
+    },
+    "campaignInputCount": 31,
+    "campaignInputAggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd",
+    "campaignInputsUnchanged": true
+  },
+  "serviceImages": {
+    "db": {
+      "image": "aso-prior-auth-db",
+      "imageDigest": "sha256:259ae7e1210e94d2bbe2ce31294d418fb9da7f71a5b8fa6ee23624376bb705a2",
+      "configHash": "71024bd8a4842bd8338381850243e2f5576471e6445bce9c934bb192164cdbf1"
+    },
+    "electric": {
+      "image": "electricsql/electric:1.8.0",
+      "imageDigest": "sha256:9644bb77f2476f827e393d50d472615f82479edd44593b7edfe71e6b4e0433bd",
+      "configHash": "d60cb6ff8b1bd5260add277927b5aa3d941d8305591ee08d56d4870e8820bda7"
+    },
+    "flint-gate": {
+      "image": "aso-prior-auth-flint-gate",
+      "imageDigest": "sha256:5ad074b3c4861b99411997e8e1731980f6e9b2da85068ec3a313f1d7aeea4f50",
+      "configHash": "da4702acb811331d841af5d054d16f528bcf2914b6eaaaa4c991c1bacaaafdb0"
+    },
+    "flint-gate-init": {
+      "image": "aso-prior-auth-flint-gate-init",
+      "imageDigest": "sha256:565e7065581ea6dbf4541e1f2949976e36d5234806d3b1735c658bb013d6d8e9",
+      "configHash": "6fcb990e3fe55f7e784d8ecb7408fa44a4a3d77dfdd312a91f55a130ff027365"
+    },
+    "iggy-server": {
+      "image": "iggyrs/iggy@sha256:68a314c1380be5a792a134f3bd346ded42bd49d9f7114c86f70b48fc85bc5272",
+      "imageDigest": "sha256:f7c54e3042254f26665400b6e62a4f8317d90671b5750f8a281bee52f0b16978",
+      "configHash": "1d22f5e5430f49f6c068461421480c5209ae09f3364cd26fa9d5fc40ec522e5b"
+    },
+    "kratos": {
+      "image": "oryd/kratos:v26.2.0",
+      "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+      "configHash": "5dc669aa48d19b70c18f8f21c4ae1f669d442b8cc0c6cae5ea6393831ed70637"
+    },
+    "kratos-migrate": {
+      "image": "oryd/kratos:v26.2.0",
+      "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+      "configHash": "6b8c7662f7f0ab711311bed097e55d91c234f5454c912a9fd22745584dadb4cb"
+    },
+    "realtime-fabric": {
+      "image": "aso-prior-auth-realtime-fabric",
+      "imageDigest": "sha256:b362432ea841b468c87348a8be75426a523834bd525d2bcaa8a36683f78385a6",
+      "configHash": "22e4c9bf35e31c039cd958e8fcbd8f57ab50a8a9848ec5ebf6c8f831a3353bc1"
+    },
+    "redis": {
+      "image": "redis@sha256:becdda6c7f4b3fb42e42fd7f120bbf5c54c4caaaf16f26da24e4563d2c1f0576",
+      "imageDigest": "sha256:59c08762bdbcf53fa132aa0bae464a57a1309dc3fff8a034bb3e16d7a0b30ec5",
+      "configHash": "add989d567706c819b26efe4d3c28d70cac1c8bd686619cdafeed9558b774e39"
+    }
+  },
+  "fixtureLimitations": [
+    "The local mounted database received a fixture-only aso.cases.revision bigint NOT NULL DEFAULT 1 compatibility column because the dirty ASO SQLx migration chain cannot be applied wholesale to this pre-existing stack; its SQLx ledger was not changed.",
+    "Browser qualification covers the accepted memory-only experimental materializer profile. Persistent clinical storage remains gated.",
+    "The final stricter RSS measurement has only 149323776 bytes of headroom; later capacity qualification must treat this as a release risk."
+  ],
+  "reviewResolutions": {
+    "actualBrowserCampaign": "Resolved by isolated Google Chrome campaign using production browser modules.",
+    "staleSourceHashes": "Resolved by regenerating every primary artifact against final hashes.",
+    "allocationAttribution": "Resolved as browser stage-associated net boundaries and explicit upper bounds; no allocator-specific claim remains.",
+    "continuationPeakStage": "Resolved by advancing the active stage on labeled samples.",
+    "obsoleteNodeBrowserGate": "Removed from the authoritative campaign; Node processes retain durability behavior checks only.",
+    "derivedMaterializerVerdict": "Resolved by deriving the receipt result from thirteen observed durability and final-state checks.",
+    "staleDefaultOutput": "Resolved by requiring an explicit --output path.",
+    "untrackedCampaignInputs": "Resolved by recursively recording SHA-256 for all 31 executed/imported source and configuration inputs before import and after cleanup, and failing the campaign if they differ.",
+    "aggregateRssGate": "Resolved by requiring both target-renderer and aggregate isolated Chrome process-tree RSS growth to remain within 512 MiB.",
+    "exactCampaignCommand": "Resolved by recording the literal invocation and every effective path, port, and timeout argument in the authoritative campaign receipt.",
+    "postgresBufferTuning": "Reduced the bounded replica shared, maintenance, work, and temporary PostgreSQL buffers while preserving the required 128 MiB PGlite WASM minimum; two identical-source browser campaigns passed."
+  },
+  "evidence": {
+    "acceptance-a.json": {
+      "sha256": "ab280a0fb15f1badc630e5370cc07e5505fcadf8a133afd8b07dcca9be30181a",
+      "bytes": 9936
+    },
+    "acceptance-b.md": {
+      "sha256": "c7046817d4bad32d588a008be9c1a1e65f667504b35d1af4c9583da19dfef779",
+      "bytes": 7735
+    },
+    "allocation-analysis.json": {
+      "sha256": "73ba118a76c7ff7d04c5f546936f7a69117f795b488eeead0050e52a44e9bfdc",
+      "bytes": 8892
+    },
+    "browser-campaign.json": {
+      "sha256": "fff597119fce523e633b7030138159f758fa622e4e520776693c0d658e8f31ac",
+      "bytes": 39764
+    },
+    "quality-checks.json": {
+      "sha256": "3551ed7fb9286c01299df079b3b993012f7f3273e16bebaba9520c2c86b61f88",
+      "bytes": 9481
+    },
+    "source-manifest.json": {
+      "sha256": "696ee918fc4305d6734fbd4c7d5e7fde09408e7bca73c61b7b09e3d818416f5f",
+      "bytes": 17875
+    },
+    "source-delta.patch": {
+      "sha256": "fc7caadd22b9c03a9e248a0e99cd99e2ab0285a1dd37d35bb358c652916be41e",
+      "bytes": 75534
+    },
+    "openspec-validation.txt": {
+      "sha256": "cb0766bc856ecdf44abf291ab987f549897228ea5fd69ffeea423e03d776f96f",
+      "bytes": 116
+    }
+  }
+}

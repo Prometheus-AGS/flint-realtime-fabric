@@ -1,0 +1,11 @@
+{
+  "result": "Failed",
+  "verification_tier": 1,
+  "observed_at": "2026-09-17T15:05:13.993775+00:00",
+  "scope": "RA05 client segment, Gate, FRF facade, Electric backend, and loopback diagnostic",
+  "command": "python3 scripts/test-authorized-shape-topology.py --output /Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c015-aso-protected-proof/protected-topology.json",
+  "checks": {},
+  "prerequisites": {},
+  "certification": {},
+  "failure": "CalledProcessError: Command '['/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/scripts/ra05-stack.sh', '--profile', 'ra05-topology', 'config', '--format', 'json']' returned non-zero exit status 1."
+}

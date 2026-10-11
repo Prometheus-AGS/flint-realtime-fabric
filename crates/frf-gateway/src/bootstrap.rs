@@ -5,7 +5,6 @@
 //! are the same two functions, moved verbatim.
 
 use anyhow::{Context as _, Result};
-use frf_broker_iggy::IggyBroker;
 use frf_domain::{Channel, TenantId, ids::ChannelId};
 use frf_ports::LogBroker;
 use opentelemetry::KeyValue;
@@ -79,7 +78,7 @@ pub(crate) fn init_telemetry() -> Result<Option<TracerProvider>> {
 ///
 /// Returns an error if the channel cannot be created. This is deliberately fatal:
 /// a gateway that boots without the entities channel serves no events.
-pub(crate) async fn ensure_entities_channel(broker: &IggyBroker) -> Result<()> {
+pub(crate) async fn ensure_entities_channel(broker: &impl LogBroker) -> Result<()> {
     // Fixture tenant 00000000-0000-0000-0000-000000000001, built infallibly from its
     // integer value (no parse, no panic). The shared `1` with the channel id above is
     // coincidental — distinct types, unrelated meanings.

@@ -1,0 +1,48 @@
+{
+  "result": "Passed",
+  "observedAt": "2026-09-17T15:13:19.039985+00:00",
+  "command": [
+    "pnpm",
+    "--dir",
+    "web",
+    "exec",
+    "vitest",
+    "run",
+    "--no-file-parallelism",
+    "--maxWorkers=1",
+    "--testTimeout=30000",
+    "src/app/providers/session-provider.test.tsx",
+    "src/app/providers/session-access-boundary.test.tsx",
+    "src/shared/sync/graph-session-manager.test.ts",
+    "src/shared/sync/runtime-quiescence.test.ts"
+  ],
+  "environment": {
+    "NODE_OPTIONS": "--max_old_space_size=4096 --localstorage-file=/tmp/aso-pri-c015-task3-localstorage.json",
+    "nodeVersion": "v26.5.0"
+  },
+  "exitCode": 0,
+  "sourceBefore": {
+    "web/src/app/providers/session-provider.tsx": "7f819b9d8a96872db23c746f286ac834ae15eb958e9239bedd9867b0cc44999f",
+    "web/src/app/providers/session-provider.test.tsx": "f6b83900f0e0b44e0b70b4c6aaae5394e4a3ebd51626579306020778d5309120",
+    "web/src/app/providers/session-access-boundary.test.tsx": "54510963dadd173d62a1b87e1f8e646d4cc5a72c07153e475cfcd2541aae3699",
+    "web/src/app/providers/graph-provider.tsx": "74e46d667204ee639f8c460ac8187a078688905a7f4fbfead0b01be211978d07",
+    "web/src/shared/sync/graph-session-manager.ts": "cd6f14a9fbe5e3d483ea020f739628d91a28ecd5d9224cbc28f547e01aa18f79",
+    "web/src/shared/sync/graph-session-manager.test.ts": "cf39d361f316fe476c1ddb7909526d40a6d2d08031d6b3e69d0b3860c3194df7",
+    "web/src/shared/sync/runtime-quiescence.ts": "a9857aa502dd186050557b5b2313aaac862ba50c564d20a03fd3eb4b21c9aee7",
+    "web/src/shared/sync/runtime-quiescence.test.ts": "e451eb6275832d515ecad856d3a5620f64cbbac20043f9e7d5e0c07680c54249"
+  },
+  "sourceAfter": {
+    "web/src/app/providers/session-provider.tsx": "7f819b9d8a96872db23c746f286ac834ae15eb958e9239bedd9867b0cc44999f",
+    "web/src/app/providers/session-provider.test.tsx": "f6b83900f0e0b44e0b70b4c6aaae5394e4a3ebd51626579306020778d5309120",
+    "web/src/app/providers/session-access-boundary.test.tsx": "54510963dadd173d62a1b87e1f8e646d4cc5a72c07153e475cfcd2541aae3699",
+    "web/src/app/providers/graph-provider.tsx": "74e46d667204ee639f8c460ac8187a078688905a7f4fbfead0b01be211978d07",
+    "web/src/shared/sync/graph-session-manager.ts": "cd6f14a9fbe5e3d483ea020f739628d91a28ecd5d9224cbc28f547e01aa18f79",
+    "web/src/shared/sync/graph-session-manager.test.ts": "cf39d361f316fe476c1ddb7909526d40a6d2d08031d6b3e69d0b3860c3194df7",
+    "web/src/shared/sync/runtime-quiescence.ts": "a9857aa502dd186050557b5b2313aaac862ba50c564d20a03fd3eb4b21c9aee7",
+    "web/src/shared/sync/runtime-quiescence.test.ts": "e451eb6275832d515ecad856d3a5620f64cbbac20043f9e7d5e0c07680c54249"
+  },
+  "sourceUnchanged": true,
+  "temporaryLocalStorageRemoved": true,
+  "stdout": "\n RUN  v3.2.7 /Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web\n\n \u2713 src/app/providers/session-access-boundary.test.tsx (6 tests) 163ms\n \u2713 src/app/providers/session-provider.test.tsx (8 tests) 138ms\n \u2713 src/shared/sync/graph-session-manager.test.ts (11 tests) 5ms\n \u2713 src/shared/sync/runtime-quiescence.test.ts (1 test) 2ms\n\n Test Files  4 passed (4)\n      Tests  26 passed (26)\n   Start at  10:13:20\n   Duration  4.76s (transform 278ms, setup 0ms, collect 685ms, tests 308ms, environment 2.55s, prepare 314ms)\n\n",
+  "stderr": "(node:47665) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.\n(Use `node --trace-deprecation ...` to show where the warning was created)\n"
+}

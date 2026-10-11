@@ -47,6 +47,9 @@ impl<U: ElectricUpstream> ElectricShapeFacade<U> {
                 query.push(("offset".to_owned(), offset.clone()));
             }
         }
+        if let Some(log) = &request.protocol.log {
+            query.push(("log".to_owned(), log.clone()));
+        }
         if let Some(live) = &request.protocol.live {
             query.push(("live".to_owned(), live.clone()));
         }
@@ -189,6 +192,7 @@ mod tests {
         let facade = ElectricShapeFacade::new(upstream);
         let mut request = request(Cursor::Initial);
         request.protocol = ShapeProtocol {
+            log: Some("full".to_owned()),
             live: Some("true".to_owned()),
             cursor: Some("1720000000000".to_owned()),
             if_none_match: Some("shape:1".to_owned()),
@@ -196,6 +200,7 @@ mod tests {
         let response = facade.fetch(&request).await.expect("ok");
         let seen = facade.upstream.seen.lock().expect("lock").clone();
 
+        assert_eq!(value(&seen, "log"), Some("full"));
         assert_eq!(value(&seen, "live"), Some("true"));
         assert_eq!(value(&seen, "cursor"), Some("1720000000000"));
         assert_eq!(

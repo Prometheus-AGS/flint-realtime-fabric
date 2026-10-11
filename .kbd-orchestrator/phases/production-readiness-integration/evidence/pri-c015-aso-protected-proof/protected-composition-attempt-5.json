@@ -1,0 +1,51 @@
+{
+  "result": "Passed",
+  "observedAt": "2026-09-17T15:05:09.125202+00:00",
+  "scope": "Live Kratos to Gate to FRF to Electric protected shape composition",
+  "checks": {
+    "initial_shape_is_authorized": {
+      "result": "Passed",
+      "status": 200,
+      "handlePresent": true,
+      "offsetPresent": true
+    },
+    "fresh_grant_continues_originating_handle": {
+      "result": "Passed",
+      "status": 200
+    },
+    "other_identity_cannot_reuse_handle": {
+      "result": "Passed",
+      "status": 403
+    },
+    "client_cannot_change_practice_scope": {
+      "result": "Passed",
+      "status": 403
+    },
+    "client_cannot_select_unapproved_projection": {
+      "result": "Passed",
+      "status": 403
+    },
+    "each_request_revalidated_the_session_grant": {
+      "result": "Passed",
+      "callbackCalls": 5
+    },
+    "expiring_handle_initial_request_is_allowed": {
+      "result": "Passed",
+      "status": 200
+    },
+    "expired_handle_forces_refetch_after_fresh_grant_resolution": {
+      "result": "Passed",
+      "status": 409
+    },
+    "cold_refetch_after_expiry_is_authorized": {
+      "result": "Passed",
+      "status": 200
+    },
+    "expired_handle_request_revalidated_the_session_grant": {
+      "result": "Passed",
+      "callbackCalls": 8,
+      "refreshedGrantTtlSeconds": 300
+    }
+  },
+  "callbackCalls": 8
+}

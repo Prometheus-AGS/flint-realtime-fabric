@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-gateway/src/config/validation.rs",
+      "line": 119,
+      "claim": "Gateway validation accepts malformed CDC source epochs even though the deployment/config gate is supposed to require a valid stable source epoch before enabling CDC.",
+      "evidence": "Acceptance criterion/task 2 and D require gateway/deployment to require a stable source epoch; `validate_cdc` only checks `cdc_source_epoch` is non-empty (`is_some_and(|value| !value.trim().is_empty())`) and never applies the adapter's safe-ASCII/length validation from `catalog_validation.rs` (`InvalidEpoch`).",
+      "suggested_fix": "Expose and call the same source-epoch validator from `frf-postgres-cdc` during `GatewayConfig::validate()`, and add a gateway config test rejecting invalid epochs."
+    },
+    {
+      "severity": "WARNING",
+      "file": "crates/frf-postgres-cdc/src/consumer.rs",
+      "line": 205,
+      "claim": "The CDC publisher logs stable source event identifiers and commit positions for every mutation, which creates an unnecessary observability trail of per-tenant mutation identities.",
+      "evidence": "The new debug log includes `event_id = %mutation.event_id`, `commit_lsn = mutation.source.commit_lsn`, and `transaction_index = mutation.source.transaction_index`; constraint S3 forbids sensitive logging and only explicitly allows tenant_id as a structured observability field.",
+      "suggested_fix": "Remove `event_id` from logs or log only aggregate commit counts/health metrics without stable replay identifiers."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

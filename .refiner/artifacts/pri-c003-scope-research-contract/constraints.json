@@ -1,0 +1,20 @@
+{
+  "artifact_type": "content",
+  "constraints": [
+    {"id":"A","description":"Release matrix covers profiles, clients, sources/keys/tenants, history/deletes, SLOs, ASO budgets and authorization lifetimes.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":false,"validation_method":"accepted contract checklist and independent review"}},
+    {"id":"B","description":"Every retained named dependency has exact local identity plus API, compatibility and current maintenance/security evidence; unsupported choices have revised owners.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"locked metadata, Context7, official sources and local audit scans"}},
+    {"id":"P1","description":"OpenSpec change validates strictly.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"openspec validate --strict --no-interactive"}},
+    {"id":"P2","description":"JSON artifacts are valid and touched files do not exceed 500 lines.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"jq, git diff --check and wc"}},
+    {"id":"P3","description":"Assess/Plan provenance findings receive a fresh independent review.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":false,"validation_method":"fresh-context cross-model focused review"}},
+    {"id":"S1","description":"The research makes no unsupported production-readiness or vulnerability-waiver claim.","severity":"high","type":"semantic","validation":{"requires_code_execution":false,"validation_method":"diff and evidence review"}}
+  ],
+  "global_rules": [
+    "Current source and lockfiles outrank historical receipts.",
+    "Testing is local only; c003 contains no product behavior change.",
+    "Blocked dependency audits remain blockers and are not converted into passing evidence."
+  ],
+  "termination_conditions": [
+    "All blocking c003 constraints pass.",
+    "The receipt identifies source drift and every later remediation owner."
+  ]
+}

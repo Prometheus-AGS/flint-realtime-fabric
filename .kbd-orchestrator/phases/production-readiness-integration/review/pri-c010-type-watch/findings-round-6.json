@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-projection-surreal/src/store.rs",
+      "line": 284,
+      "claim": "The Surreal projection snapshot code references a non-existent EntityRow field, so the workspace will not compile.",
+      "evidence": "In `crates/frf-projection-surreal/src/model.rs`, `EntityRow` fields are `entity_id`, `tenant_id`, `op`, `data_json`, `previous_json`, `timestamp`, `version`, and `typed_delivery_json`; the new `snapshot_entity_type` implementation in `crates/frf-projection-surreal/src/store.rs` checks `row.entity_type != entity_type.canonical_name()`, but `entity_type` is not a field on `EntityRow`. This violates R1 (`cargo check --workspace` is clean).",
+      "suggested_fix": "Either add and populate an `entity_type` field on `EntityRow`, or remove the row-level `row.entity_type` check and filter using the parsed `typed_delivery().mutation` fields after confirming the row tenant."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

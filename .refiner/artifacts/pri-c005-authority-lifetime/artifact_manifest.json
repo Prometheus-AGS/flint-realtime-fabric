@@ -1,0 +1,27 @@
+{
+  "artifact_type": "code",
+  "variants": [
+    {
+      "name": "bounded-authority-delivery",
+      "files": [
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-app/src/subscribe.rs",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-authz-keto/src/provider.rs",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-authz-keto/src/cache.rs",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-identity-ory/src/jwks.rs",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-gateway/tests/authority_lifetime.rs",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/scripts/run-authority-lifetime.sh",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c005-authority-lifetime/c005-authority-runtime.json"
+      ],
+      "format": "mixed-source",
+      "description": "Token-deadline and per-event authorization enforcement, age-bounded key and tuple caches, and the owned Gate/Keto/Fabric acceptance fixture."
+    }
+  ],
+  "preview": {"required": false, "runs": []},
+  "validation": {
+    "preview_status": "pass",
+    "has_console_errors": false,
+    "has_request_failures": false,
+    "notes": ["Local compiler, Clippy, 150 package tests, 10 protected-shape timing tests, 7 real Gate/Keto/Fabric scenarios, Shellcheck and strict OpenSpec validation passed. Independent adversarial review remains the final convergence gate."]
+  },
+  "generated_at": "2026-09-15T13:28:12Z"
+}

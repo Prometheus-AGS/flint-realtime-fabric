@@ -1,0 +1,200 @@
+syntax = "proto3";
+
+package flint.v2;
+
+option go_package = "github.com/prometheusags/frf/sdks/go/gen/flint/v2;flintv2";
+option csharp_namespace = "PrometheusAgs.Frf.Flint.V2";
+
+import "google/protobuf/timestamp.proto";
+
+// A server-approved source and projection. Clients cannot supply predicates,
+// columns, or authorization subjects.
+message EntityType {
+  string schema = 1;
+  string name = 2;
+  string projection = 3;
+}
+
+enum NullKind {
+  NULL_KIND_UNSPECIFIED = 0;
+  NULL_KIND_NULL = 1;
+}
+
+// Canonical scalar mapping shared by keys, tenant columns, and row fields.
+// Decimal/date/time/UUID text MUST use the forms fixed by ADR-010. JSON is
+// UTF-8 RFC 8785 JSON Canonicalization Scheme bytes.
+message CanonicalValue {
+  oneof kind {
+    NullKind null_value = 1;
+    bool bool_value = 2;
+    sint64 signed_integer = 3;
+    uint64 unsigned_integer = 4;
+    double float_value = 5;
+    string text_value = 6;
+    bytes bytes_value = 7;
+    string decimal_value = 8;
+    string uuid_value = 9;
+    google.protobuf.Timestamp timestamp_value = 10;
+    string date_value = 11;
+    string time_value = 12;
+    bytes json_value = 13;
+  }
+}
+
+message KeyPart {
+  // PostgreSQL column name in primary-key ordinal order.
+  string column = 1;
+  CanonicalValue value = 2;
+}
+
+message EntityKey {
+  // Non-empty, ordered by the source primary-key ordinal, and never null.
+  repeated KeyPart parts = 1;
+  // `frfkey:v1:` plus unpadded base64url of the ADR-010 canonical key bytes.
+  // Consumers use this stable value as an opaque entity identifier.
+  string canonical_id = 2;
+}
+
+message EntityField {
+  // Source column name. Fields are ordered by source column ordinal.
+  string column = 1;
+  CanonicalValue value = 2;
+}
+
+message EntityRecord {
+  // Only fields in the server-owned projection are present.
+  repeated EntityField fields = 1;
+}
+
+// The committed source location. `epoch` changes when the logical history is
+// recreated. Every mutation in one transaction shares `commit_lsn` and is
+// ordered by zero-based `transaction_index`.
+message SourcePosition {
+  string epoch = 1;
+  uint64 commit_lsn = 2;
+  uint32 transaction_index = 3;
+}
+
+// Durable log location. Ordering is guaranteed only within one partition.
+message BrokerPosition {
+  uint32 partition = 1;
+  uint64 offset = 2;
+}
+
+// Server-issued, authorization-bound resume state. Clients persist and echo
+// the opaque token; they do not construct source or broker positions.
+message ClientCheckpoint {
+  uint32 version = 1;
+  bytes token = 2;
+  uint64 generation = 3;
+}
+
+// Ask for an authorized snapshot followed by live committed mutations.
+message SnapshotStart {}
+
+// Ask for live mutations committed after stream admission, without a snapshot.
+message LiveStart {}
+
+message WatchEntityTypeRequest {
+  EntityType entity_type = 1;
+  // Derived from verified identity by trusted consumers and checked by FRF.
+  string tenant_id = 2;
+  oneof start {
+    SnapshotStart snapshot = 3;
+    LiveStart live = 4;
+    ClientCheckpoint resume = 5;
+  }
+}
+
+// The first response. In snapshot mode `snapshot_barrier` is present and all
+// later live mutations are strictly after it.
+message WatchAccepted {
+  string stream_id = 1;
+  EntityType entity_type = 2;
+  string tenant_id = 3;
+  uint64 retention_seconds = 4;
+  uint32 buffer_capacity = 5;
+  ClientCheckpoint start_checkpoint = 6;
+  SourcePosition snapshot_barrier = 7;
+}
+
+message SnapshotRow {
+  // Stable across retry of the same snapshot barrier and key.
+  string snapshot_id = 1;
+  EntityKey key = 2;
+  EntityRecord record = 3;
+}
+
+message SnapshotComplete {
+  SourcePosition barrier = 1;
+  ClientCheckpoint checkpoint = 2;
+  uint64 row_count = 3;
+}
+
+enum ChangeOp {
+  CHANGE_OP_UNSPECIFIED = 0;
+  CHANGE_OP_INSERT = 1;
+  CHANGE_OP_UPDATE = 2;
+  CHANGE_OP_DELETE = 3;
+  CHANGE_OP_UPSERT = 4;
+}
+
+message EntityMutation {
+  // Deterministic identity retained across broker or client redelivery.
+  string event_id = 1;
+  EntityKey key = 2;
+  ChangeOp op = 3;
+  // Required for insert/update/upsert. MUST be absent for delete so historical
+  // row contents cannot cross the authorization boundary.
+  EntityRecord record = 4;
+  SourcePosition source = 5;
+  BrokerPosition broker = 6;
+  ClientCheckpoint checkpoint = 7;
+  google.protobuf.Timestamp committed_at = 8;
+  // Repeated on every mutation so a persisted invalidation is self-describing
+  // without retaining the stream-admission frame.
+  EntityType entity_type = 9;
+  string tenant_id = 10;
+}
+
+// Progress over filtered history. This frame intentionally exposes no source
+// position, broker position, event identity, key, or payload.
+message CheckpointAdvanced {
+  ClientCheckpoint checkpoint = 1;
+}
+
+enum ResnapshotReason {
+  RESNAPSHOT_REASON_UNSPECIFIED = 0;
+  RESNAPSHOT_REASON_HISTORY_EXPIRED = 1;
+  RESNAPSHOT_REASON_SOURCE_EPOCH_CHANGED = 2;
+  RESNAPSHOT_REASON_CHECKPOINT_SCOPE_MISMATCH = 3;
+  RESNAPSHOT_REASON_CHECKPOINT_UNSUPPORTED = 4;
+}
+
+// Terminal control. The server closes the stream after this frame.
+message ResnapshotRequired {
+  ResnapshotReason reason = 1;
+  string message = 2;
+}
+
+// Terminal control emitted when the bounded subscriber buffer overflows.
+message Lagged {
+  bool checkpoint_resumable = 1;
+  ClientCheckpoint last_safe_checkpoint = 2;
+}
+
+message WatchEntityTypeResponse {
+  oneof frame {
+    WatchAccepted accepted = 1;
+    SnapshotRow snapshot_row = 2;
+    SnapshotComplete snapshot_complete = 3;
+    EntityMutation mutation = 4;
+    CheckpointAdvanced checkpoint_advanced = 5;
+    ResnapshotRequired resnapshot_required = 6;
+    Lagged lagged = 7;
+  }
+}
+
+service EntityService {
+  rpc WatchEntityType(WatchEntityTypeRequest) returns (stream WatchEntityTypeResponse);
+}

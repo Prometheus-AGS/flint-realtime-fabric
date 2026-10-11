@@ -19,6 +19,69 @@ fn valid_default_config_passes_validation() {
         .expect("default config should be valid");
 }
 
+#[test]
+fn broker_replay_retention_is_validated_when_cdc_is_disabled() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.entity_watch_retention_seconds = 1;
+    let error = cfg
+        .validate()
+        .expect_err("unsafe broker retention must fail");
+    assert!(error.to_string().contains("ENTITY_WATCH_RETENTION_SECONDS"));
+}
+
+#[test]
+fn empty_optional_cdc_tenant_is_unset() {
+    assert_eq!(
+        parse_optional_uuid("CDC_TENANT_ID", Some(String::new())).unwrap(),
+        None
+    );
+    assert_eq!(
+        parse_optional_uuid("CDC_TENANT_ID", Some("  ".to_owned())).unwrap(),
+        None
+    );
+}
+
+#[test]
+fn malformed_optional_cdc_tenant_is_rejected() {
+    let error = parse_optional_uuid("CDC_TENANT_ID", Some("not-a-uuid".to_owned()))
+        .expect_err("non-empty malformed UUID must fail");
+    assert!(error.to_string().contains("CDC_TENANT_ID"));
+}
+
+#[test]
+fn malformed_entity_watch_numbers_name_the_environment_variable() {
+    let generation: anyhow::Result<u64> = validation::parse_env_number(
+        "ENTITY_WATCH_CHECKPOINT_GENERATION",
+        Some("later".to_owned()),
+        1,
+    );
+    assert!(
+        generation
+            .unwrap_err()
+            .to_string()
+            .contains("ENTITY_WATCH_CHECKPOINT_GENERATION")
+    );
+    let retention: anyhow::Result<u64> = validation::parse_env_number(
+        "ENTITY_WATCH_RETENTION_SECONDS",
+        Some("one-day".to_owned()),
+        86_400,
+    );
+    assert!(
+        retention
+            .unwrap_err()
+            .to_string()
+            .contains("ENTITY_WATCH_RETENTION_SECONDS")
+    );
+    let capacity: anyhow::Result<usize> =
+        validation::parse_env_number("ENTITY_WATCH_BUFFER_CAPACITY", Some("many".to_owned()), 256);
+    assert!(
+        capacity
+            .unwrap_err()
+            .to_string()
+            .contains("ENTITY_WATCH_BUFFER_CAPACITY")
+    );
+}
+
 // The issuer-mandatory rule only exists in production (non-`dev-endpoints`) builds;
 // in dev builds a missing issuer is a warning, not a hard error (see `main.rs`).
 #[cfg(not(feature = "dev-endpoints"))]
@@ -52,14 +115,95 @@ fn cdc_enabled_without_replication_url_fails_fast() {
 }
 
 #[test]
+fn full_profile_without_broker_fails_fast() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.iggy_connection_string.clear();
+    let error = cfg.validate().expect_err("full profile requires a broker");
+    assert!(error.to_string().contains("IGGY_CONNECTION_STRING"));
+}
+
+#[test]
 fn cdc_enabled_with_all_fields_passes() {
     let mut cfg = GatewayConfig::test_default();
     cfg.cdc_enabled = true;
     cfg.cdc_replication_url = Some("postgres://x".to_owned());
     cfg.cdc_slot_name = Some("frf_slot".to_owned());
     cfg.cdc_publication_name = Some("frf_pub".to_owned());
+    cfg.cdc_tenant_id = Some(uuid::Uuid::nil());
+    cfg.cdc_channel_path = Some("entities".to_owned());
+    cfg.cdc_source_epoch = Some("test-epoch-1".to_owned());
+    cfg.cdc_enrollments_json = Some(
+        r#"[{"schema":"public","table":"items","projection":"default","columns":["id"],"tenant":{"mode":"fixed"}}]"#.to_owned(),
+    );
+    set_projection_config(&mut cfg);
     cfg.validate()
         .expect("CDC config with all fields should be valid");
+}
+
+#[test]
+fn cdc_enabled_without_explicit_enrollment_fails_fast() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.cdc_enabled = true;
+    cfg.cdc_replication_url = Some("postgres://x".to_owned());
+    cfg.cdc_slot_name = Some("frf_slot".to_owned());
+    cfg.cdc_publication_name = Some("frf_pub".to_owned());
+    cfg.cdc_tenant_id = Some(uuid::Uuid::nil());
+    cfg.cdc_channel_path = Some("entities".to_owned());
+    cfg.cdc_source_epoch = Some("epoch".to_owned());
+    let error = cfg.validate().expect_err("missing enrollment must fail");
+    assert!(error.to_string().contains("CDC_ENROLLMENTS_JSON"));
+}
+
+#[test]
+fn cdc_enabled_without_durable_projection_fails_fast() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.cdc_enabled = true;
+    cfg.cdc_replication_url = Some("postgres://x".to_owned());
+    cfg.cdc_slot_name = Some("frf_slot".to_owned());
+    cfg.cdc_publication_name = Some("frf_pub".to_owned());
+    cfg.cdc_tenant_id = Some(uuid::Uuid::nil());
+    cfg.cdc_channel_path = Some("entities".to_owned());
+    cfg.cdc_source_epoch = Some("epoch".to_owned());
+    cfg.cdc_enrollments_json = Some(
+        r#"[{"schema":"public","table":"items","projection":"default","columns":["id"],"tenant":{"mode":"fixed"}}]"#.to_owned(),
+    );
+    let error = cfg
+        .validate()
+        .expect_err("projection config must be required");
+    assert!(error.to_string().contains("ENTITY_PROJECTION_URL"));
+}
+
+#[test]
+fn cdc_enabled_without_watch_checkpoint_key_fails_fast() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.cdc_enabled = true;
+    cfg.cdc_replication_url = Some("postgres://x".to_owned());
+    cfg.cdc_slot_name = Some("frf_slot".to_owned());
+    cfg.cdc_publication_name = Some("frf_pub".to_owned());
+    cfg.cdc_tenant_id = Some(uuid::Uuid::nil());
+    cfg.cdc_channel_path = Some("entities".to_owned());
+    cfg.cdc_source_epoch = Some("epoch".to_owned());
+    cfg.cdc_enrollments_json = Some(
+        r#"[{"schema":"public","table":"items","projection":"default","columns":["id"],"tenant":{"mode":"fixed"}}]"#.to_owned(),
+    );
+    set_projection_config(&mut cfg);
+    cfg.entity_watch_checkpoint_key = None;
+    let error = cfg.validate().expect_err("checkpoint key must be required");
+    assert!(error.to_string().contains("ENTITY_WATCH_CHECKPOINT_KEY"));
+}
+
+#[test]
+fn cdc_enabled_with_invalid_source_epoch_fails_fast() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.cdc_enabled = true;
+    cfg.cdc_replication_url = Some("postgres://x".to_owned());
+    cfg.cdc_slot_name = Some("frf_slot".to_owned());
+    cfg.cdc_publication_name = Some("frf_pub".to_owned());
+    cfg.cdc_tenant_id = Some(uuid::Uuid::nil());
+    cfg.cdc_channel_path = Some("entities".to_owned());
+    cfg.cdc_source_epoch = Some("restore/2".to_owned());
+    let error = cfg.validate().expect_err("unsafe source epoch must fail");
+    assert!(error.to_string().contains("CDC_SOURCE_EPOCH"));
 }
 
 #[test]
@@ -133,6 +277,57 @@ fn hosted_sfu_without_livekit_creds_fails_fast() {
     }
     let mut cfg = GatewayConfig::test_default();
     cfg.sfu_mode = SfuMode::Hosted;
+    cfg.lanes.media = true;
     let err = cfg.validate().expect_err("expected validation to fail");
     assert!(err.to_string().contains("LIVEKIT_"));
+}
+
+#[test]
+#[cfg(feature = "shape-facade")]
+fn shape_only_rejects_event_spine_and_media_authority() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.profile = GatewayProfile::ShapeOnly;
+    cfg.shape_electric_url = Some("http://electric:3000".to_owned());
+    cfg.shape_catalog_path = Some("/run/config/shape-catalog.json".to_owned());
+    cfg.iggy_connection_string = "iggy://user:pass@iggy:8090".to_owned();
+    let error = cfg.validate().expect_err("shape-only must reject Iggy");
+    assert!(error.to_string().contains("IGGY_CONNECTION_STRING"));
+
+    cfg.iggy_connection_string.clear();
+    cfg.lanes.media = true;
+    let error = cfg.validate().expect_err("shape-only must reject media");
+    assert!(error.to_string().contains("MEDIA_ENABLED"));
+}
+
+#[test]
+#[cfg(feature = "shape-facade")]
+fn shape_only_requires_complete_shape_authority() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.profile = GatewayProfile::ShapeOnly;
+    cfg.iggy_connection_string.clear();
+    cfg.shape_electric_url = Some("http://electric:3000".to_owned());
+    let error = cfg
+        .validate()
+        .expect_err("shape-only must require a catalog with Electric");
+    assert!(error.to_string().contains("must be set together"));
+}
+
+#[test]
+fn full_profile_rejects_shape_only_endpoints() {
+    let mut cfg = GatewayConfig::test_default();
+    cfg.shape_electric_url = Some("http://electric:3000".to_owned());
+    cfg.shape_catalog_path = Some("/run/config/shape-catalog.json".to_owned());
+    let error = cfg
+        .validate()
+        .expect_err("full profile must reject the Electric facade");
+    assert!(error.to_string().contains("use the shape-only profile"));
+}
+
+fn set_projection_config(cfg: &mut GatewayConfig) {
+    cfg.entity_projection_url = Some("ws://surreal:8000".to_owned());
+    cfg.entity_projection_username = Some("root".to_owned());
+    cfg.entity_projection_password = Some("secret".to_owned());
+    cfg.entity_projection_namespace = Some("frf".to_owned());
+    cfg.entity_projection_database = Some("projection".to_owned());
+    cfg.entity_watch_checkpoint_key = Some("c010-test-checkpoint-key-32-bytes-minimum".to_owned());
 }

@@ -1335,9 +1335,9 @@ dependencies = [
 
 [[package]]
 name = "cedar-policy"
-version = "4.11.1"
+version = "4.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "716a5103f447735b4cef15df847dc2a7ed8752e8a95febab5a6bfe1812054e43"
+checksum = "1fdd98501120bc31fc09f92d3f58c489f4ee4b846904109ac63dd8256de7b84d"
 dependencies = [
  "cedar-policy-core",
  "cedar-policy-formatter",
@@ -1355,9 +1355,9 @@ dependencies = [
 
 [[package]]
 name = "cedar-policy-core"
-version = "4.11.1"
+version = "4.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7935861e764efcba26f73ac4d9d284e30b2b4a9a95d3c961e908e3ed7889e391"
+checksum = "d1d41088b497e39b6789e87e05ad6549b7f64a663a4d6ecd73a748dc3a9a98a9"
 dependencies = [
  "chrono",
  "educe",
@@ -1383,9 +1383,9 @@ dependencies = [
 
 [[package]]
 name = "cedar-policy-formatter"
-version = "4.11.1"
+version = "4.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ca436a4803977e69b12a8e0e7f5d7c648e578b59fa0f2ed3bbe3c0054b9e036"
+checksum = "fb6c28be47d77dcbc04c2a80181a2c0db9725ed60d24832c6401396cc2ae114b"
 dependencies = [
  "cedar-policy-core",
  "itertools 0.14.0",
@@ -2585,15 +2585,20 @@ dependencies = [
 name = "frf-app"
 version = "0.1.0"
 dependencies = [
+ "aes-gcm",
+ "async-stream",
  "async-trait",
  "bytes",
  "chrono",
  "frf-domain",
  "frf-ports",
  "futures-util",
+ "getrandom 0.3.4",
  "mockall",
  "serde",
  "serde_json",
+ "serde_json_canonicalizer",
+ "sha2 0.10.9",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -2659,7 +2664,6 @@ dependencies = [
 name = "frf-broker-iggy"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "async-stream",
  "async-trait",
  "bytes",
@@ -2761,6 +2765,7 @@ dependencies = [
  "async-trait",
  "axum 0.8.9",
  "axum-test",
+ "base64 0.22.1",
  "bytes",
  "chrono",
  "frf-agentproto",
@@ -2778,10 +2783,12 @@ dependencies = [
  "frf-policy-cedar",
  "frf-ports",
  "frf-postgres-cdc",
+ "frf-projection-surreal",
  "frf-proto",
  "frf-shape-electric",
  "frf-store-redb",
  "frf-store-surreal",
+ "frf-watch-broker",
  "futures-util",
  "metrics",
  "metrics-exporter-prometheus",
@@ -2794,9 +2801,11 @@ dependencies = [
  "rust-embed",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
  "str0m",
  "thiserror 2.0.18",
  "tokio",
+ "tokio-postgres",
  "tokio-stream",
  "tokio-tungstenite 0.26.2",
  "tonic 0.14.6",
@@ -2930,17 +2939,38 @@ dependencies = [
 name = "frf-postgres-cdc"
 version = "0.1.0"
 dependencies = [
- "anyhow",
- "async-trait",
+ "base64 0.22.1",
  "bytes",
  "chrono",
  "frf-domain",
  "frf-ports",
  "pg_walstream",
+ "serde",
  "serde_json",
+ "serde_json_canonicalizer",
+ "sha2 0.10.9",
  "thiserror 2.0.18",
  "tokio",
  "tokio-postgres",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "frf-projection-surreal"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "frf-domain",
+ "frf-ports",
+ "futures-util",
+ "serde",
+ "serde_json",
+ "surrealdb",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-stream",
  "tracing",
  "uuid",
 ]
@@ -2951,6 +2981,7 @@ version = "0.1.0"
 dependencies = [
  "prost 0.14.4",
  "prost-types 0.14.4",
+ "tokio",
  "tonic 0.14.6",
  "tonic-prost",
  "tonic-prost-build",
@@ -3053,6 +3084,18 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+]
+
+[[package]]
+name = "frf-watch-broker"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "frf-domain",
+ "frf-ports",
+ "futures-util",
+ "serde_json",
+ "tracing",
 ]
 
 [[package]]
@@ -8063,6 +8106,17 @@ dependencies = [
  "serde",
  "serde_core",
  "zmij",
+]
+
+[[package]]
+name = "serde_json_canonicalizer"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe52319a927259afbfa5180c5157cd8167edfd3e8c254f9558c7fef44c5649f2"
+dependencies = [
+ "ryu-js",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

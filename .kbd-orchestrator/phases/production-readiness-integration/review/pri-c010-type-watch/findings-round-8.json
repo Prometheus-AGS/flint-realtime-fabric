@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity_type_watch.rs",
+      "line": 223,
+      "claim": "Snapshot streams expose a resumable checkpoint in the Accepted frame before delivering the snapshot rows it covers, allowing a client that disconnects after Accepted to resume after the snapshot cursor and permanently miss the snapshot payload.",
+      "evidence": "In the Snapshot branch, `last_offset` is set from `snapshot.cursor.as_ref().map(|cursor| cursor.broker_offset)` and `initial` contains the snapshot rows plus SnapshotComplete; immediately afterwards `accepted_frame(&request, &scope, last_offset, &initial)` is pushed before `frames.extend(initial)`. `accepted_frame` issues `start_checkpoint` from that `last_offset`, so the first frame can contain a checkpoint at the snapshot barrier before any `SnapshotRow` has been delivered. Acceptance criterion 4 requires reconnect/resume to meet the contract.",
+      "suggested_fix": "Do not issue a barrier/resume checkpoint in `Accepted` for snapshot starts; either omit/zero the accepted checkpoint for snapshots or issue only a pre-snapshot checkpoint, and make the first resumable snapshot-barrier checkpoint appear in `SnapshotComplete` after all snapshot rows have been sent."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c010-type-watch/acceptance-a.md",
+      "line": 31,
+      "claim": "The recorded acceptance evidence is internally inconsistent about the test-log hash, so the source-bound runtime proof is not a matching receipt.",
+      "evidence": "`acceptance-a.md` records `Test-log SHA-256: 84f09dd5ab14ca51e843c15b3fc281edd41351b1e06dda6cddbf74c712836626`, while `runtime-receipt.json` for the same run `20260916201305-51548` records `sha256.testLog` as `796320f9a409d6fe0d18dae53cace55bbc223ec8d57236be9d460bb28c29b9ab`. Acceptance criterion 5 requires a source-bound receipt, and the spec scenario says missing or stale matching fingerprints keep the gate open.",
+      "suggested_fix": "Regenerate or correct the evidence so all files for run `20260916201305-51548` reference the same test-log artifact hash, or include separate receipts if they are different artifacts."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

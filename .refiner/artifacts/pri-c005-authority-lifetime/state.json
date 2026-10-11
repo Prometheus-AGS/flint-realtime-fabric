@@ -1,0 +1,68 @@
+{
+  "refinement_id": "79ff4279-655c-4a1a-ab21-c840d7a83703",
+  "artifact_name": "pri-c005-authority-lifetime",
+  "artifact_type": "code",
+  "content_type": "direct:code",
+  "started_at": "2026-09-15T13:28:12Z",
+  "updated_at": "2026-09-15T14:18:50Z",
+  "current_iteration": 4,
+  "max_iterations": 5,
+  "goals": [
+    "Enforce the accepted identity and authorization lifetime on generic and restricted protected streams"
+  ],
+  "constraints": [
+    {
+      "id": "A"
+    },
+    {
+      "id": "B"
+    },
+    {
+      "id": "C"
+    },
+    {
+      "id": "P1"
+    },
+    {
+      "id": "P2"
+    }
+  ],
+  "phases_completed": [
+    "specify",
+    "plan",
+    "execute",
+    "reflect",
+    "persist"
+  ],
+  "convergence_status": "converged",
+  "iteration_history": [
+    {
+      "iteration": 1,
+      "result": "DETERMINISTIC_PASS_REVIEW_PENDING",
+      "blocking_violations": 0,
+      "notes": "The local compiler, Clippy, focused and combined tests, real owned runtime, format, shell, size, diff and OpenSpec gates pass; independent review is pending."
+    },
+    {
+      "iteration": 2,
+      "result": "FINDINGS_RESOLVED_REVIEW_PENDING",
+      "blocking_violations": 0,
+      "notes": "The static fixture password and unencoded Keto deletion query are fixed with regression coverage; task 5 and its source-bound receipt are complete; the final owned runtime and deterministic gates pass."
+    },
+    {
+      "iteration": 3,
+      "result": "SECOND_FINDINGS_RESOLVED_REVIEW_PENDING",
+      "blocking_violations": 0,
+      "notes": "Keto cache identity now binds namespace, tenant and subject; JWKS compatibility impact and proposal status are accurate; final focused, lint, OpenSpec and owned-runtime gates pass."
+    },
+    {
+      "iteration": 4,
+      "result": "PASS",
+      "blocking_violations": 0,
+      "notes": "Only a valid Keto allowed=false document is accepted as a 403 denial; malformed and contradictory responses fail closed; the 12-test crate suite and owned runtime pass; final independent review passed 0/0/0."
+    }
+  ],
+  "workflow_triggers": [],
+  "checkpoints": [],
+  "prior_cycle_id": null,
+  "finalized_at": "2026-09-15T14:18:50Z"
+}

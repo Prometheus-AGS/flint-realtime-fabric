@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "runId": "c004-profile-boundary",
+  "sourceCommit": "4c2a8326c932ebe0f80799454b0cbbf378e53811",
+  "startedAt": "2026-09-15T12:14:44Z",
+  "finishedAt": "2026-09-15T12:15:14Z",
+  "exitStatus": 0,
+  "topology": {
+    "composeProject": "frf-pri-c004-profile-boundary",
+    "composeFile": "compose.integration.yml",
+    "iggyEndpoint": "127.0.0.1:32786",
+    "imageId": "sha256:f7c54e3042254f26665400b6e62a4f8317d90671b5750f8a281bee52f0b16978",
+    "imageDigest": "iggyrs/iggy@sha256:68a314c1380be5a792a134f3bd346ded42bd49d9f7114c86f70b48fc85bc5272"
+  },
+  "scenarios": {
+    "required": 2,
+    "completed": 2,
+    "disabledDeliveryExit": "101",
+    "restoredDeliveryExit": "0"
+  },
+  "cleanup": {
+    "status": "owned-resources-removed",
+    "scope": "containers and volumes labeled com.docker.compose.project=frf-pri-c004-profile-boundary"
+  },
+  "sha256": {
+    "compose": "13ab1dbccd210e21959d7c117fd4cfef9d57e9d61fb06f011a8c024214b7c5ec",
+    "test": "d77ad72c5692a28da13efe084d0224ac937b6da758c2230cc428a2131943f5d7",
+    "runner": "f54bd44d3ce83d2b1d54c43e1b8a53f873962b37827f551f3966035d20357988",
+    "disabledDeliveryLog": "8a21571bcb73ed774f046729d124c623cfe9046dd3f8b708c625fdfc95601c2d",
+    "restoredDeliveryLog": "acc6bc0c78bc189cf8f9c9b5c256d5bce289eba44fbe27f3144b63e0d1cdb5fa",
+    "composeLog": "26fee3691df9663f9fe487c65d5e39000ce2d268e0853b63734e312fe88a1dc6"
+  },
+  "credentials": "disposable Iggy credentials, RS256 keypair and JWT removed after cleanup"
+}

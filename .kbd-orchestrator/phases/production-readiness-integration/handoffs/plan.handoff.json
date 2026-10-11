@@ -1,0 +1,14 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-09-16T23:27:28Z",
+  "outputs": [
+    "plan.md",
+    "plan-revision-2.md",
+    "planned-changes.json",
+    "openspec-index.json"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "Plan revision 3 keeps 23 changes and 10 completed. The critical path is c011 Forge SQL-to-GraphQL realtime, c012 the runnable PGlite -> Forge -> PostgreSQL -> Electric/Fabric -> PGlite -> PEM loop, and c013 durable PGlite outbox/reconciliation. LISTEN remains a rollback source. Broad SDK and Fabric CRDT persistence work is deferred. Next action: continue pri-c011-forge-watch task 2; run behavioral tests only after the complete user flow is functional.",
+  "skipped": false,
+  "skipReason": null
+}

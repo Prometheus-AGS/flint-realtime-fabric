@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "Cargo.lock",
+      "line": 3105,
+      "claim": "The change touches a file far over the repository's 500-line limit.",
+      "evidence": "Constraint R5 states \"No file over 500 lines (any language)\"; the diff modifies Cargo.lock at lines 3105, 3238, 8606, and 8870, proving the touched file is well over 500 lines.",
+      "suggested_fix": "Do not include Cargo.lock in this change unless the project exempts lockfiles from R5, or update the constraint/evidence to explicitly exempt generated lockfiles before touching it."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

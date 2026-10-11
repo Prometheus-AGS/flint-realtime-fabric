@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "crates/frf-gateway/src/main.rs",
+      "line": 170,
+      "claim": "The watch-specific retention setting still reconfigures the full Iggy broker even when CDC and the v2 watch service are disabled.",
+      "evidence": "`build_broker` unconditionally passes `config.entity_watch_retention_seconds` into `ConfiguredLogBroker::for_full`, while `GatewayConfig::validate` only enforces the >=86400 watch-retention invariant inside `if self.cdc_enabled` in `crates/frf-gateway/src/config/validation.rs`; the prior resolution states that when CDC is off the runtime should disable v2 watch and omit that service.",
+      "suggested_fix": "Either validate `ENTITY_WATCH_RETENTION_SECONDS` unconditionally because it is used as broker replay retention, or only pass/apply this watch-specific retention when CDC/v2 watch is enabled and keep the default broker replay retention otherwise."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-identity-ory/src/jwks.rs",
+      "line": 13,
+      "claim": "The public `JwksCache` API is a breaking source change, not the additive compatibility change claimed by the receipt.",
+      "evidence": "The diff replaces `pub type JwksCache = Arc<RwLock<Option<JwkSet>>>;` with `pub struct JwksCache { state: RwLock<Option<CachedJwks>>, refresh: Mutex<()>, max_age: Duration }`, and changes `new_cache()` from returning an `Arc<RwLock<...>>` to returning this struct; acceptance notes say public type edits require semver impact, while `receipt.md` claims only an additive public API.",
+      "suggested_fix": "Either preserve the existing public alias/API and wrap the new internals behind an additive type, or explicitly document and version this as a breaking public API change in the change evidence."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-authz-keto/src/cache.rs",
+      "line": 7,
+      "claim": "The authorization decision cache still omits tenant identity from its key, allowing a cached allow for one tenant to be reused for another tenant with the same subject/relation/object tuple.",
+      "evidence": "`CacheKey` is documented and defined as only `(subject, relation, object)` in `crates/frf-authz-keto/src/cache.rs`, while the acceptance criteria require tenant/subject/object authorization and constraint S4 requires tenant isolation at Keto plus the app-layer tenant guard.",
+      "suggested_fix": "Include `tenant_id` and any effective namespace in `CacheKey`, and add a regression test proving identical subject/relation/object values in different tenants do not share cached decisions."
+    },
+    {
+      "severity": "WARNING",
+      "file": "openspec/changes/pri-c005-authority-lifetime/proposal.md",
+      "line": 17,
+      "claim": "The proposal document contradicts the completed task state by saying all implementation tasks are unchecked.",
+      "evidence": "`proposal.md` says `Status: proposal only; all implementation tasks are unchecked`, but `openspec/changes/pri-c005-authority-lifetime/tasks.md` marks tasks 1 through 5 as `[x]` and the acceptance packet treats them as completed.",
+      "suggested_fix": "Update the proposal status to match the checked tasks, or uncheck the tasks if this is still proposal-only."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

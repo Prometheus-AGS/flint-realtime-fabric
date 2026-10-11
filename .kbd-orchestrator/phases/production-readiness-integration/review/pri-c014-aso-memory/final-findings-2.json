@@ -1,0 +1,26 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "web/src/shared/sync/replica-mounted.integration.test.ts",
+      "line": 350,
+      "claim": "The mounted materializer receipt is forced to \"Passed\" instead of being derived from the recorded checks or final materialized state, masking silent acceptance failures.",
+      "evidence": "The continuation hunk replaces `result: withinMemoryBudget ? \"Passed\" : \"Failed\"` with `result: \"Passed\"` while still emitting counts and hard-coded check booleans; acceptance requires preserving SQL/checkpoint atomicity, owner fencing, and behavior preservation rather than unconditional success.",
+      "suggested_fix": "Compute `result` from explicit boolean checks, including final SQL counts/evidence states/checkpoint shapes and any required durability/fencing assertions, and write `Failed` when any check is false."
+    },
+    {
+      "severity": "WARNING",
+      "file": "scripts/test-ra11c-materialization.py",
+      "line": 18,
+      "claim": "The new materialization runner defaults its receipt path to the old runtime-architecture RA11c location instead of the pri-c014 production-readiness evidence directory.",
+      "evidence": "`DEFAULT_OUTPUT` is `.kbd-orchestrator/phases/runtime-architecture/evidence/ra-11c-sql-materialization/task-4-mounted-acceptance.json`, while acceptance task 5 requires saving the source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c014-aso-memory/`.",
+      "suggested_fix": "Change the default output to `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c014-aso-memory/browser-campaign.json` or require `--output` with no stale default."
+    }
+  ]
+}

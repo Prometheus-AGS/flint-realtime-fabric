@@ -1,0 +1,30 @@
+[
+  {
+    "name": "gate",
+    "root": "/Users/gqadonis/Projects/prometheus/flint-gate",
+    "command": [
+      "cargo",
+      "check",
+      "--workspace",
+      "--locked",
+      "--offline"
+    ],
+    "exitCode": 0,
+    "seconds": 62.52,
+    "log": "gate-build.log"
+  },
+  {
+    "name": "forge",
+    "root": "/Users/gqadonis/Projects/prometheus/flint-forge",
+    "command": [
+      "cargo",
+      "check",
+      "--workspace",
+      "--locked",
+      "--offline"
+    ],
+    "exitCode": 0,
+    "seconds": 6.65,
+    "log": "forge-build.log"
+  }
+]

@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "mode": "post-qa-resolution-review",
+  "target": "pri-c004-deployment-profiles",
+  "verdict": "PASS",
+  "producer_model": "gpt-6",
+  "judge_model": "gpt-5.5",
+  "review_time_utc": "2026-09-15T12:23:21Z",
+  "counts": {
+    "critical": 0,
+    "warning": 0,
+    "suggestion": 0
+  },
+  "initial_findings_reviewed": {
+    "critical": 1,
+    "warning": 2,
+    "suggestion": 0
+  },
+  "original_findings_resolution": {
+    "critical_cdc_readiness": "RESOLVED by cdc-readiness-fail-closed check",
+    "warning_ssr_tls": "RESOLVED by ssr-tls-ingress check",
+    "warning_archive_gate": "NONBLOCKING after this artifact; OpenSpec task 5 remains owner-open until archive"
+  },
+  "resolution_checks": [
+    {
+      "id": "cdc-readiness-fail-closed",
+      "status": "PASS",
+      "evidence": [
+        "crates/frf-gateway/src/main.rs:250-257 initializes CDC readiness false when CDC_ENABLED=true and wires the consumer watch receiver",
+        "crates/frf-postgres-cdc/src/consumer.rs:121-126 marks ready only after LogicalReplicationStream.start(None) succeeds; consumer.rs:268-285 sets false on guard creation/drop",
+        "crates/frf-gateway/src/routes/health.rs:77-108 includes cdc.ok in all_ok and returns 503 when false",
+        "crates/frf-gateway/tests/deployment_profiles.rs:266-285 asserts /readyz 503 with detail logical replication stream inactive"
+      ]
+    },
+    {
+      "id": "gate-asymmetric-keypair-and-jwks",
+      "status": "PASS",
+      "evidence": [
+        "scripts/render-deployment-profile.sh:62-64 requires Gate config/private/public key files; :83-92 validates matching PEM keypair; :101-107 rejects HS* and requires RS*/ES*",
+        "compose.yml:114-142 and compose.shape-only.yml:60-88 gate runtime waits on flint-gate-db-init and passes FLINT_GATE_JWT_PUBLIC_KEY_PATH for seeding",
+        "../flint-gate/crates/flint-gate/src/main.rs:111-114 and :330-364 require/read public key during --database-init-only and insert signing key material",
+        "../flint-gate/crates/flint-gate-core/src/auth/jwks_publish.rs:1-18 and :119-132 publish GET /.well-known/jwks.json from public key rows"
+      ]
+    },
+    {
+      "id": "ssr-tls-secret-and-gate-ingress",
+      "status": "PASS",
+      "evidence": [
+        "k8s/overlays/ssr/render-profile.sh:5-24 requires image, DNS host, TLS Secret name, cert, key and CA; :25-30 rejects cert/key mismatch; :36-47 binds host/Secret and emits kubernetes.io/tls Secret",
+        "k8s/overlays/ssr/ingress.yaml:10-12 uses the rendered TLS Secret and :20-25 targets service flint-gate-proxy port 4456",
+        "k8s/overlays/ssr/network-policy.yaml:20-35 admits frf-gateway ingress only from flint-gate and lets gateway egress to flint-gate JWKS",
+        "scripts/test-deployment-profiles.sh:209-225 proves SSR rendered Secret/host binding and missing-Secret/mismatched-key negative cases"
+      ]
+    },
+    {
+      "id": "c004-boundary-local-policy-c003-regression",
+      "status": "PASS",
+      "evidence": [
+        "openspec/changes/pri-c004-deployment-profiles/specs/production-readiness-integration/spec.md:10-21 defines semantic readiness, TLS, immutable images and no stale evidence; validate strict passed",
+        ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c004-deployment-profiles/receipt.md:59-74 records 16 local gates passing, including cargo tests, local integration, profile matrix and OpenSpec validate",
+        "AGENTS.md:14-25 and CLAUDE.md:323-328 ban CI test evidence; no reviewed evidence relies on CI",
+        ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/release-contract.md:21-29 keeps full=Postgres CDC/durable Iggy and shape-only=no CDC/event/media; current profiles match that boundary"
+      ]
+    }
+  ],
+  "findings": []
+}

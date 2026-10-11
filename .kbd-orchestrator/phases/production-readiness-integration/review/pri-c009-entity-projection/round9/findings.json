@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-gateway/src/entity_projection_runtime.rs",
+      "line": 15,
+      "claim": "The new projection runtime uses `Arc<dyn EntityStore>`, but `EntityStore` contains `async fn` methods and is not dyn-compatible, so the workspace will not compile.",
+      "evidence": "The diff adds `pub store: Arc<dyn EntityStore>` and `let store: Arc<dyn EntityStore> = projection;` in `crates/frf-gateway/src/entity_projection_runtime.rs`, while `crates/frf-ports/src/entity_store.rs` defines `pub trait EntityStore` with async methods such as `async fn get_entity`, `async fn watch_entity`, `async fn apply_projection`, `async fn install_projection_snapshot`, and `async fn projection_checkpoint`; constraint R1 requires `cargo check --workspace` to be clean.",
+      "suggested_fix": "Make `EntityStore` object-safe, e.g. apply `#[async_trait::async_trait]` to the trait definition as well as its impls, or avoid `dyn EntityStore` by keeping the store type concrete/generic through gateway composition."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

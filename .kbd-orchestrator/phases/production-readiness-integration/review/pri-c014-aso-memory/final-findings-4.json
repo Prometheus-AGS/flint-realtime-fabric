@@ -1,0 +1,26 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "scripts/test-ra11c-browser-memory.py",
+      "line": 281,
+      "claim": "The browser memory gate can pass even when total isolated Chromium RSS growth exceeds the acceptance limit because it enforces only the single target renderer delta.",
+      "evidence": "Acceptance A requires the browser campaign to measure incremental RSS at or below 536870912 bytes; the script computes both `rss_delta` and `aggregate_rss_delta = peak_rss - baseline_rss` but sets `rss_within_budget = rss_delta <= RSS_LIMIT` and `passed = browser_result.get(\"result\") == \"Passed\" and rss_within_budget and heap_within_budget`, leaving `aggregate_rss_delta` report-only.",
+      "suggested_fix": "Fail the campaign when aggregate browser-process-tree RSS growth exceeds `RSS_LIMIT`, or change the acceptance contract and receipt schema to explicitly define the limit as target-renderer-only."
+    },
+    {
+      "severity": "WARNING",
+      "file": "scripts/test-ra11c-materialization.py",
+      "line": 119,
+      "claim": "The generated report records a non-runnable command instead of the exact local command used for the runtime proof.",
+      "evidence": "Execution notes require: \"Runtime proof must name and run the exact local command against owned fixtures\"; the script writes `\"command\": \"python3 scripts/test-ra11c-materialization.py\"` even though its parser requires `--output` and the campaign depends on the selected timeout/data-dir arguments.",
+      "suggested_fix": "Populate the report command from `sys.argv` or include all effective arguments such as `--output`, `--timeout-seconds`, `--data-dir`, `--callback-port`, and `--campaign-secrets`."
+    }
+  ]
+}

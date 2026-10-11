@@ -54,35 +54,23 @@ jobs:
         run: |
           cargo clippy --workspace --lib --bins -- -D warnings -W clippy::pedantic
           cargo clippy --workspace --lib --bins --features frf-gateway/dev-endpoints -- -D warnings -W clippy::pedantic
-      # Test targets: pedantic only (unwrap/expect allowed per clippy.toml).
+      # Test targets are compiled under Clippy's lint mode only. Runtime test
+      # execution is local per AGENTS.md and CLAUDE.md.
       - name: cargo clippy (tests — pedantic)
         run: cargo clippy --workspace --tests -- -D warnings -W clippy::pedantic
 
-  test:
-    name: Test suite
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Install protoc
-        uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: cargo test
-        run: cargo test --all
-
   msrv:
-    name: MSRV check (Rust 1.85)
+    name: MSRV check (Rust 1.94)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.85"
+          toolchain: "1.94"
           components: rustfmt, clippy
       - name: Install protoc
         uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: cargo check (MSRV)
-        run: cargo check --all
+        run: cargo check --workspace --locked

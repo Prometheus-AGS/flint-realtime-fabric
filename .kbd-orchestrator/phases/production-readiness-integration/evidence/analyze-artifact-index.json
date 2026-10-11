@@ -1,0 +1,33 @@
+{
+  "captured_at": "2026-09-15T07:24:59.208980+00:00",
+  "files": [
+    {
+      "path": "analysis.md",
+      "sha256": "676746bcff906c0e3055199c00e058e71d1d124eecfb7302ca8908fe9288d9c8"
+    },
+    {
+      "path": "library-candidates.json",
+      "sha256": "d847bf7bd2c23eba8fbc94d8f0189b2c73f987d6d29e0816809aa5abc312d75c"
+    },
+    {
+      "path": "decision-log.md",
+      "sha256": "46e44d693f2c11d46977464bf379818734edab91392a2f96e84b9192d73cf3ca"
+    },
+    {
+      "path": "evidence/analyze-research.json",
+      "sha256": "2780c50c1f696a9f741971e86f6ff20d23e141fcf3a91c94afac9a1a493dd4fd"
+    },
+    {
+      "path": "evidence/analyze-source-excerpts.json",
+      "sha256": "a8e0cba270bbbac8d4efe7b110694fdd04e5e0163e4fd12a14ffd6c660c92867"
+    },
+    {
+      "path": "review/analyze/round-2-packet.json",
+      "sha256": "b479c6dd48c12701436f1d097c829ee7c0421a9d1a347d5711858a28c2170228"
+    },
+    {
+      "path": "review/analyze/round-2-findings.json",
+      "sha256": "1b96e239d577f4bf9b05d5071bb25bfaaf6ee201a3d6afe524118b8c81423d42"
+    }
+  ]
+}

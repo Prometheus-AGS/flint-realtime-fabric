@@ -1,0 +1,209 @@
+{
+  "schemaVersion": 2,
+  "change": "pri-c014-aso-memory",
+  "task": 3,
+  "acceptance": "A",
+  "result": "Passed",
+  "observedAt": "2026-09-17T14:18:18.911268+00:00",
+  "contract": {
+    "datasetRows": 16203,
+    "maximumIncrementalRssBytes": 536870912,
+    "maximumIncrementalHeapBytes": 268435456,
+    "operatorApprovedReplacement": null
+  },
+  "measurement": {
+    "incrementalRssBytes": 387547136,
+    "incrementalHeapBytes": 142408106,
+    "aggregateIncrementalRssBytes": 371605504,
+    "rssHeadroomBytes": 149323776,
+    "aggregateRssHeadroomBytes": 165265408,
+    "heapHeadroomBytes": 126027350,
+    "targetRendererRssWithinBudget": true,
+    "aggregateRssWithinBudget": true,
+    "heapWithinBudget": true,
+    "targetRenderer": {
+      "pid": 11406,
+      "baselineRssBytes": 167395328,
+      "peakRssBytes": 554942464,
+      "incrementalRssBytes": 387547136
+    },
+    "targetRendererStageRssBytes": {
+      "baseline": 167395328,
+      "pglite-opening": 167821312,
+      "cold-fold": 546996224,
+      "complete": 554942464
+    },
+    "browserHeap": {
+      "baseline": {
+        "totalBytes": 9113557,
+        "usedBytes": 7268561
+      },
+      "peak": {
+        "totalBytes": 156666835,
+        "usedBytes": 149676667
+      },
+      "deltaBytes": 142408106,
+      "peakStage": "pglite-open",
+      "stages": {
+        "baseline": {
+          "totalBytes": 9113557,
+          "usedBytes": 7268561
+        },
+        "pglite-opening": {
+          "totalBytes": 23602421,
+          "usedBytes": 18051905
+        },
+        "pglite-open": {
+          "totalBytes": 156666835,
+          "usedBytes": 149676667
+        },
+        "schema-ready": {
+          "totalBytes": 72959853,
+          "usedBytes": 63042313
+        },
+        "graph-ready": {
+          "totalBytes": 73109358,
+          "usedBytes": 63526590
+        },
+        "projector-ready": {
+          "totalBytes": 73110357,
+          "usedBytes": 63652857
+        },
+        "cold-fold": {
+          "totalBytes": 85672626,
+          "usedBytes": 67854186
+        },
+        "cold-fold-complete": {
+          "totalBytes": 85672626,
+          "usedBytes": 67858698
+        },
+        "sql-checkpoint-graph": {
+          "totalBytes": 85672626,
+          "usedBytes": 67858982
+        },
+        "revision-1": {
+          "totalBytes": 160239995,
+          "usedBytes": 125735011
+        },
+        "materialized": {
+          "totalBytes": 160239995,
+          "usedBytes": 125736647
+        },
+        "final": {
+          "totalBytes": 157868941,
+          "usedBytes": 123396549
+        }
+      }
+    }
+  },
+  "repeatMeasurements": [
+    {
+      "receipt": "browser-campaign-pre-final-source.json",
+      "receiptSha256": "4fc3a26490c55743a6827849931af81ef82df3f31a979dacc599616c6f82235d",
+      "incrementalRssBytes": 438796288,
+      "aggregateIncrementalRssBytes": 437485568,
+      "incrementalHeapBytes": 118559785,
+      "result": "Passed",
+      "sourceStatus": "pre-final browser source"
+    },
+    {
+      "receipt": "browser-campaign-pre-allocation-boundaries.json",
+      "receiptSha256": "0069b1b3052391c5f6fc22d7ac9a826aa24a208208fc5072c62e7d68ffe116d5",
+      "incrementalRssBytes": 520339456,
+      "aggregateIncrementalRssBytes": 347963392,
+      "incrementalHeapBytes": 187990079,
+      "result": "Passed",
+      "sourceStatus": "pre-final attribution boundaries"
+    },
+    {
+      "receipt": "browser-campaign-buffer-tuned-pass-1.json",
+      "receiptSha256": "ea284738c82cb974a11fd8707ae0bc76bbe42eed94bcacf0159c72743036ba6f",
+      "incrementalRssBytes": 517881856,
+      "aggregateIncrementalRssBytes": 524926976,
+      "incrementalHeapBytes": 179428619,
+      "result": "Passed",
+      "sourceStatus": "final source repeat 1"
+    },
+    {
+      "receipt": "browser-campaign-aggregate-gate-pass-1.json",
+      "receiptSha256": "4c3666b2beeef3a46ce7f32a76d01fca1341ad9cacd75efd2d9ce30207a907a7",
+      "incrementalRssBytes": 406781952,
+      "aggregateIncrementalRssBytes": 172949504,
+      "incrementalHeapBytes": 185001736,
+      "result": "Passed",
+      "sourceStatus": "strict aggregate-gated final source repeat 1"
+    },
+    {
+      "receipt": "browser-campaign.json",
+      "receiptSha256": "fff597119fce523e633b7030138159f758fa622e4e520776693c0d658e8f31ac",
+      "incrementalRssBytes": 387547136,
+      "aggregateIncrementalRssBytes": 371605504,
+      "incrementalHeapBytes": 142408106,
+      "result": "Passed",
+      "sourceStatus": "final reviewed source"
+    }
+  ],
+  "environment": {
+    "runtime": "Google Chrome 152.0.7977.84",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+    "browserPage": "web/ra11c-browser-memory.html",
+    "rssMethod": "RSS growth of the isolated Chromium renderer with the greatest campaign-time growth, sampled from macOS ps",
+    "heapMethod": "Chromium performance.memory.usedJSHeapSize with --enable-precise-memory-info",
+    "fixturePath": "synthetic PostgreSQL -> Kratos -> Gate -> Fabric -> Electric -> production browser PGlite -> PEM",
+    "requiredTestsSkipped": 0,
+    "cleanup": "Passed"
+  },
+  "command": "python3 scripts/test-ra11c-materialization.py --output /Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c014-aso-memory/browser-campaign.json --timeout-seconds 180",
+  "effectiveArguments": {
+    "callbackPort": 8788,
+    "campaignSecrets": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra06c/campaign-secrets.json",
+    "dataDir": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra11a-data/ra11c-materialization",
+    "output": "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c014-aso-memory/browser-campaign.json",
+    "timeoutSeconds": 180
+  },
+  "source": {
+    "repository": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth",
+    "head": "d95242542060d1e19a6efe9143f57c015d6162f4",
+    "files": {
+      "docker-compose.ra05.yaml": "1815b800b226a0b356d903062f172d9377108194fa5bbf9f1b18cdd9687a50bc",
+      "docker-compose.yaml": "6f642f9f561b78a46fae7f1f3863dcdcd633c9dd2730954a58ee87b1bbda7e8b",
+      "docker/flint-gate/config.ra05.yaml": "347d3dd0d30f2221fbbe39237f967b0511e703ab5ecee8e327a87b78ff3dafa1",
+      "docker/frf/shape-catalog.json": "7c50cc69ff87cfd5db56fc847c17ac035f97bd900ae71a7eee286fca286ce453",
+      "scripts/ra05-stack.sh": "824377cc9561e71474da079219527a4b1846a02592653e5a5ec430a2fc7cf2f4",
+      "scripts/ra06c_campaign_config.py": "cd99908ae918fb7a4d1eff48500aad329ac923ad477bb1f2bfb77e8706fa9b4e",
+      "scripts/test-authorized-shape-composition.py": "bbac93420ab50c53624c3c06c9c27d61ef94ca2fa28dfeb4031cbe09346f09d7",
+      "scripts/test-ra11a-sync-conformance.py": "b21d01815058e7307f30989b11ce35c3954e3910e50f47a2bc05158e6915261a",
+      "scripts/test-ra11c-browser-memory.py": "10e3c049d5c4299e34bb1024377d06912a4fb5ff05b5f4de3ea4860fc1b24205",
+      "scripts/test-ra11c-materialization.py": "be8af39283fe56e1fac1c384a755986df5e10712770f96ca02962730f2b9bdf1",
+      "web/package.json": "c8c7a697a514ddc18246f35e2c12db5eaa07bfa2f63ab131034b42c1c8be6641",
+      "web/pnpm-lock.yaml": "fbe014d8cde45225e4c8884edd5193ddcd387295f065fbbb27690fd0269c2547",
+      "web/public/pglite-base.tgz": "f4818a049c2e017209433b00518760dbd8694d20c88fdc59b3bc2aea299f635f",
+      "web/ra11c-browser-memory.html": "4a26bd7963b6efb023a4a5f152170a9e350e9737a18f982b97b449e17662dd72",
+      "web/src/shared/session-revocation-events.ts": "e6c691d5b611aa9e8add31d3995d60529aa274b132e3ef67d357a93580ca6850",
+      "web/src/shared/sync/chunk-writer.ts": "e3b25011f44d25b969759599c0abd90664ea873cc0996da454572f6c4815826e",
+      "web/src/shared/sync/electric-shapes.ts": "830e2540b6e03d5356243a390c622b467fde5e637ecdceb5030afc492be9944c",
+      "web/src/shared/sync/frf-shape-transport.ts": "49751868d6d78da375c1750e6093e2c27e39403b48152f3de1d62fc1ed9e176c",
+      "web/src/shared/sync/migration-ledger.ts": "206d0e3ce46181653db0b1b5d2c675c7a7018ae8e773c1d4c0c7d9da95567bc4",
+      "web/src/shared/sync/pglite-bootstrap.ts": "5d7cf6b33bfae8c0c6e74287950575c10741c2aa3e07dddca2b69045a799b0c6",
+      "web/src/shared/sync/pglite-schema.ts": "7754586386bbfd29144e7cb47f9f188a41bd8c6f17aa688dce48d6f4a0bf433e",
+      "web/src/shared/sync/replica-browser-memory.ts": "a8d17a9a591b08cce218f843621b35cf9b9788320b241a0eb98bb4f6e56a2208",
+      "web/src/shared/sync/replica-mounted-runtime.ts": "7caaaa829f37e7f393bd3f56f9de015ef6503acdd5536cbca4e9f2f9d37756c0",
+      "web/src/shared/sync/replica-mounted.integration.test.ts": "5e394e3e505b7f6cb9daf32ba8dd8c61a4398e94457325f18f42c52470c93849",
+      "web/src/shared/sync/replica-owner.ts": "4352138b06c24f55e6cfad5a0ada89ba04636e0e9657c3ccb494d14af39ab670",
+      "web/src/shared/sync/replica-rebuild.ts": "fe79cfc4573d9af144c20293e08e8dcb3e490a1c1ecd2988abd2d17273cdb76a",
+      "web/src/shared/sync/replica-runtime.ts": "97a8180893f0039ecb2e23ca2a1b86ca5d3d6a2432d50f5ae0d430d808a5e5fb",
+      "web/src/shared/sync/replica-wiring.ts": "ce52c79d4e2c113084913e9df34e1b2502b5c20838a0df748c22f1382e45484b",
+      "web/src/shared/sync/replica-worker-owner.ts": "616a71b27e461954efb701dc18f686dce81e818edd5ef0ff2f23076f96063f5b",
+      "web/src/shared/sync/storage-policy.ts": "74ebfba4eb1ad96efc032de39f3f3715ad5f861a0a776af3a6b2ed8b78bd58a0",
+      "web/vite.config.ts": "89da9c620bb5d18f0b8eaf8d4fba7805bac56dcd23ffc87e0cce2e17ad01d8fd"
+    },
+    "campaignInputAggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd"
+  },
+  "evidence": {
+    "campaignReceipt": "browser-campaign.json",
+    "campaignReceiptSha256": "fff597119fce523e633b7030138159f758fa622e4e520776693c0d658e8f31ac",
+    "allBehaviorChecksPassed": true,
+    "allCleanupChecksPassed": true,
+    "campaignInputsUnchanged": true
+  }
+}

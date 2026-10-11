@@ -1,0 +1,31 @@
+{
+  "phase": "production-readiness-integration",
+  "proposal_count": 23,
+  "completed_implementations": 0,
+  "review_status": "BLOCK: final corrections await focused independent re-review",
+  "changes": [
+    "openspec/changes/pri-c001-build-policy",
+    "openspec/changes/pri-c002-local-fixtures",
+    "openspec/changes/pri-c003-scope-research-contract",
+    "openspec/changes/pri-c004-deployment-profiles",
+    "openspec/changes/pri-c005-authority-lifetime",
+    "openspec/changes/pri-c006-watch-contract",
+    "openspec/changes/pri-c007-broker-replay",
+    "openspec/changes/pri-c008-cdc-commit-mapping",
+    "openspec/changes/pri-c009-entity-projection",
+    "openspec/changes/pri-c010-type-watch",
+    "openspec/changes/pri-c011-forge-watch",
+    "openspec/changes/pri-c012-sdk-pem-network",
+    "openspec/changes/pri-c013-sync-persistence",
+    "openspec/changes/pri-c014-aso-memory",
+    "openspec/changes/pri-c015-aso-protected-proof",
+    "openspec/changes/pri-c017-hosted-media",
+    "openspec/changes/pri-c018-matrix-recovery",
+    "openspec/changes/pri-c019-atproto-recovery",
+    "openspec/changes/pri-c020-sovereign-decode",
+    "openspec/changes/pri-c021-admin-auth",
+    "openspec/changes/pri-c022-platform-parity",
+    "openspec/changes/pri-c016-operations-recovery",
+    "openspec/changes/pri-c023-release-signoff"
+  ]
+}

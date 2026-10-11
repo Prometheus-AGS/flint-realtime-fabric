@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/pri-c015-aso-protected-proof/tasks.md",
+      "line": 5,
+      "claim": "The protected-proof tasks are marked complete without adding the required current-source proof or source-bound evidence for those acceptance outcomes.",
+      "evidence": "Acceptance criteria state tasks 2-4 must prove protected replication and establish/record crash, recovery, revocation, isolation, and egress outcomes, while the diff only changes checklist state to `[x]` in `openspec/changes/pri-c015-aso-protected-proof/tasks.md` and `.kbd-orchestrator/.../tasks.md`; no receipt or evidence file is added under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c015-aso-protected-proof/`.",
+      "suggested_fix": "Add source-bound evidence artifacts for the completed proof tasks, including exact commands, source revisions, outputs, and verification results, or leave the tasks unchecked until that evidence exists."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-ports/src/identity.rs",
+      "line": 29,
+      "claim": "The public port contract revision is changed without the required semver-impact documentation.",
+      "evidence": "The diff changes `pub const ASO_PROJECTION_REVISION: u32 = 3;` to `4;` in `crates/frf-ports/src/identity.rs`, while the acceptance criteria execution notes require: `Public type/port edits require semver impact`.",
+      "suggested_fix": "Record the semver impact for the `frf-ports` public contract change in the change documentation or appropriate release/spec artifact before accepting the port edit."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

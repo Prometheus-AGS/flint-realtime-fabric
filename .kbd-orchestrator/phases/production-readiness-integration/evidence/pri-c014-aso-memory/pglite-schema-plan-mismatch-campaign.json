@@ -1,0 +1,351 @@
+{
+  "result": "Failed",
+  "verification_tier": 1,
+  "observed_at": "2026-09-17T12:33:36.468967+00:00",
+  "scope": "Synthetic Postgres through real Kratos, Gate, FRF and Electric into the production SQL materializer and PEM projector",
+  "command": "python3 scripts/test-ra11c-materialization.py",
+  "checks": {
+    "gate_ready": {
+      "result": "Passed"
+    },
+    "realtime_fabric_ready": {
+      "result": "Passed"
+    },
+    "ra11a_identity_created": {
+      "result": "Passed",
+      "status": 201
+    },
+    "ra11a_login_flow_created": {
+      "result": "Passed",
+      "status": 200
+    },
+    "ra11a_login_completed": {
+      "result": "Passed",
+      "status": 200
+    },
+    "ra11a_session_is_authoritative": {
+      "result": "Passed",
+      "status": 200,
+      "identity_match": true
+    },
+    "representative_dataset_committed": {
+      "result": "Passed",
+      "observed": "360,4320,2880,8640"
+    },
+    "mounted_materializer_passed": {
+      "result": "Failed",
+      "exit_code": 1
+    }
+  },
+  "cleanup": {
+    "synthetic_relational_rows": "Passed",
+    "isolated_pglite_store": "Passed",
+    "campaign_services": "Passed",
+    "grant_callback": "Passed",
+    "synthetic_identities": "Passed",
+    "deleted_identity_count": 1
+  },
+  "dataset": {
+    "counts": {
+      "cases": 360,
+      "case_evidence": 4320,
+      "documents": 2880,
+      "evidence_citations": 8640,
+      "evidence_states": 3
+    },
+    "total_rows": 16203
+  },
+  "isolated_data_dir": ".runtime/ra11a-data/c014-baseline",
+  "materializer_runs": [
+    {
+      "phase": "memory",
+      "exit_code": 1,
+      "stdout": "\n RUN  v3.2.7 /Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web\n\n \u276f src/shared/sync/replica-mounted.integration.test.ts (3 tests | 1 failed | 2 skipped) 712ms\n   \u00d7 mounted RA11c SQL materialization > materializes the representative browser baseline within its memory budget 712ms\n     \u2192 column \"case_number\" of relation \"cases\" does not exist\n   \u2193 mounted RA11c SQL materialization > commits the initial graph and rolls back a captured revision before process restart\n   \u2193 mounted RA11c SQL materialization > reopens durable SQL in a new process and fences owner disposal through replacement\n\n Test Files  1 failed (1)\n      Tests  1 failed | 2 skipped (3)\n   Start at  07:33:27\n   Duration  1.21s (transform 85ms, setup 0ms, collect 127ms, tests 712ms, environment 0ms, prepare 71ms)\n\n",
+      "stderr": "(node:40783) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.\n(Use `node --trace-deprecation ...` to show where the warning was created)\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  src/shared/sync/replica-mounted.integration.test.ts > mounted RA11c SQL materialization > materializes the representative browser baseline within its memory budget\nerror: column \"case_number\" of relation \"cases\" does not exist\n \u276f pe.Ue node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pg-protocol/src/parser.ts:442:11\n \u276f pe.tt node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pg-protocol/src/parser.ts:220:16\n \u276f pe.parse node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pg-protocol/src/parser.ts:104:21\n \u276f N.qe node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/src/pglite.ts:753:26\n \u276f node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/src/pglite.ts:706:14\n \u276f null.<anonymous> wasm:/wasm/0267bb86:1:5922000\n \u276f null.<anonymous> wasm:/wasm/0267bb86:1:2616044\n \u276f null.<anonymous> wasm:/wasm/0267bb86:1:2648530\n \u276f null.<anonymous> wasm:/wasm/0267bb86:1:2649134\n \u276f null.<anonymous> wasm:/wasm/0267bb86:1:5569870\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n"
+    },
+    {
+      "phase": "initial",
+      "exit_code": 1,
+      "stdout": "\n RUN  v3.2.7 /Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web\n\n \u276f src/shared/sync/replica-mounted.integration.test.ts (3 tests | 1 failed | 2 skipped) 715ms\n   \u2193 mounted RA11c SQL materialization > materializes the representative browser baseline within its memory budget\n   \u00d7 mounted RA11c SQL materialization > commits the initial graph and rolls back a captured revision before process restart 715ms\n     \u2192 expected [Function] to throw error including 'synthetic crash before cold checkpoin\u2026' but got 'column \"case_number\" of relation \"cas\u2026'\n   \u2193 mounted RA11c SQL materialization > reopens durable SQL in a new process and fences owner disposal through replacement\n\n Test Files  1 failed (1)\n      Tests  1 failed | 2 skipped (3)\n   Start at  07:33:29\n   Duration  1.08s (transform 80ms, setup 0ms, collect 115ms, tests 715ms, environment 0ms, prepare 75ms)\n\n",
+      "stderr": "(node:40818) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.\n(Use `node --trace-deprecation ...` to show where the warning was created)\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  src/shared/sync/replica-mounted.integration.test.ts > mounted RA11c SQL materialization > commits the initial graph and rolls back a captured revision before process restart\nAssertionError: expected [Function] to throw error including 'synthetic crash before cold checkpoin\u2026' but got 'column \"case_number\" of relation \"cas\u2026'\n\nExpected: \"synthetic crash before cold checkpoint commit\"\nReceived: \"column \"case_number\" of relation \"cases\" does not exist\"\n\n \u276f src/shared/sync/replica-mounted.integration.test.ts:376:5\n    374|     expect(coldRevision).not.toBeNull();\n    375|     expect(coldRevision?.mustRefetch).not.toBe(true);\n    376|     await expect(startReplicaRuntime({\n       |     ^\n    377|       client: runtime.client,\n    378|       transport: { async fetch() { return coldRevision; } },\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n"
+    },
+    {
+      "phase": "continuation",
+      "exit_code": 1,
+      "stdout": "\n RUN  v3.2.7 /Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web\n\n \u276f src/shared/sync/replica-mounted.integration.test.ts (3 tests | 1 failed | 2 skipped) 5ms\n   \u2193 mounted RA11c SQL materialization > materializes the representative browser baseline within its memory budget\n   \u2193 mounted RA11c SQL materialization > commits the initial graph and rolls back a captured revision before process restart\n   \u00d7 mounted RA11c SQL materialization > reopens durable SQL in a new process and fences owner disposal through replacement 4ms\n     \u2192 ENOENT: no such file or directory, open '/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c014-aso-memory/task-4-mounted-materializer.json.state.json'\n\n Test Files  1 failed (1)\n      Tests  1 failed | 2 skipped (3)\n   Start at  07:33:31\n   Duration  456ms (transform 86ms, setup 0ms, collect 125ms, tests 5ms, environment 0ms, prepare 48ms)\n\n",
+      "stderr": "(node:40856) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.\n(Use `node --trace-deprecation ...` to show where the warning was created)\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  src/shared/sync/replica-mounted.integration.test.ts > mounted RA11c SQL materialization > reopens durable SQL in a new process and fences owner disposal through replacement\nError: ENOENT: no such file or directory, open '/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c014-aso-memory/task-4-mounted-materializer.json.state.json'\n \u276f src/shared/sync/replica-mounted.integration.test.ts:511:30\n    509|   continuationIt(\"reopens durable SQL in a new process and fences owne\u2026\n    510|     const memory = trackProcessMemory();\n    511|     const state = JSON.parse(await readFile(restartStatePath(), \"utf8\"\u2026\n       |                              ^\n    512|     const baselineState = JSON.parse(await readFile(memoryStatePath(),\u2026\n    513|     const runtime = await openRuntime();\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n"
+    }
+  ],
+  "materializer_exit_code": 1,
+  "materializer": {
+    "result": "Failed"
+  },
+  "failure": "AssertionError: mounted_materializer_passed",
+  "remaining_relational_rows": {
+    "cases": 0,
+    "case_evidence": 0,
+    "documents": 0,
+    "evidence_citations": 0,
+    "patients": 0,
+    "users": 0,
+    "practices": 0,
+    "policy_criteria": 0,
+    "policies": 0,
+    "policy_types": 0,
+    "document_types": 0,
+    "payers": 0
+  },
+  "role_state": {
+    "post": {
+      "bypassRls": false,
+      "canLogin": true,
+      "createDb": false,
+      "createRole": false,
+      "inherit": true,
+      "memberships": [
+        "aso_authority_event_reader"
+      ],
+      "replication": false,
+      "superuser": false
+    },
+    "pre": {
+      "bypassRls": false,
+      "canLogin": true,
+      "createDb": false,
+      "createRole": false,
+      "inherit": true,
+      "memberships": [
+        "aso_authority_event_reader"
+      ],
+      "replication": false,
+      "superuser": false
+    },
+    "restored": true
+  },
+  "service_state": {
+    "managed": [
+      "db",
+      "electric",
+      "flint-gate",
+      "flint-gate-init",
+      "iggy-server",
+      "kratos",
+      "kratos-migrate",
+      "realtime-fabric",
+      "redis"
+    ],
+    "preExisting": [
+      "db",
+      "electric",
+      "flint-gate",
+      "flint-gate-init",
+      "iggy-server",
+      "kratos",
+      "kratos-migrate",
+      "realtime-fabric",
+      "redis"
+    ],
+    "preRunning": [
+      "db",
+      "electric",
+      "flint-gate",
+      "iggy-server",
+      "kratos",
+      "realtime-fabric",
+      "redis"
+    ],
+    "preContainers": {
+      "db": {
+        "configHash": "71024bd8a4842bd8338381850243e2f5576471e6445bce9c934bb192164cdbf1",
+        "containerId": "6a53297ab4b164d4cca7731ae7c316c8b1215789dd60a281e19cccf9565c00dc",
+        "image": "aso-prior-auth-db",
+        "imageDigest": "sha256:259ae7e1210e94d2bbe2ce31294d418fb9da7f71a5b8fa6ee23624376bb705a2",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/bootstrap,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docs/design/schema,aso-prior-auth_db_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "electric": {
+        "configHash": "d60cb6ff8b1bd5260add277927b5aa3d941d8305591ee08d56d4870e8820bda7",
+        "containerId": "acc8b14d3b6a995571a6076cd09e89997a9b83c9b09f63152aeb70e01c801396",
+        "image": "electricsql/electric:1.8.0",
+        "imageDigest": "sha256:9644bb77f2476f827e393d50d472615f82479edd44593b7edfe71e6b4e0433bd",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "flint-gate": {
+        "configHash": "da4702acb811331d841af5d054d16f528bcf2914b6eaaaa4c991c1bacaaafdb0",
+        "containerId": "559f04241f24bdde951ffc20924e9c75638e6daec349883680bf6d1df6604413",
+        "image": "aso-prior-auth-flint-gate",
+        "imageDigest": "sha256:5ad074b3c4861b99411997e8e1731980f6e9b2da85068ec3a313f1d7aeea4f50",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml",
+        "networks": "aso-prior-auth_ra05-backend,aso-prior-auth_ra05-client",
+        "state": "running"
+      },
+      "flint-gate-init": {
+        "configHash": "6fcb990e3fe55f7e784d8ecb7408fa44a4a3d77dfdd312a91f55a130ff027365",
+        "containerId": "28ef0e6d3dd045ee94fd81c891ade3d00cd52d3a100855ee565232da78a50cc9",
+        "image": "aso-prior-auth-flint-gate-init",
+        "imageDigest": "sha256:565e7065581ea6dbf4541e1f2949976e36d5234806d3b1735c658bb013d6d8e9",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml,92ce6cd5919a7252dbc8b077f4e0818edcae130278b2e33a6c44ae531ea2ac5f",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "iggy-server": {
+        "configHash": "1d22f5e5430f49f6c068461421480c5209ae09f3364cd26fa9d5fc40ec522e5b",
+        "containerId": "3935f5dc9884c1d76a462ecfecac489a01dc3bfc2a9310377311792a088f5c88",
+        "image": "iggyrs/iggy@sha256:68a314c1380be5a792a134f3bd346ded42bd49d9f7114c86f70b48fc85bc5272",
+        "imageDigest": "sha256:f7c54e3042254f26665400b6e62a4f8317d90671b5750f8a281bee52f0b16978",
+        "mounts": "aso-prior-auth_iggy_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos": {
+        "configHash": "5dc669aa48d19b70c18f8f21c4ae1f669d442b8cc0c6cae5ea6393831ed70637",
+        "containerId": "8ffb8f9c43eb71baae5615838f0a7c52b605035e0eef827469edc22425812fc1",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/kratos,1df237fbb2898958c7e1d1a8514ccd3b70dae427f207616ac40293db6af290aa,ce597b8bbf4de5eaabe9494d19e77869a572677cbae8edaa1b12e5f4ee486750",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos-migrate": {
+        "configHash": "6b8c7662f7f0ab711311bed097e55d91c234f5454c912a9fd22745584dadb4cb",
+        "containerId": "86500451cbf55720eed5e2e353131e8745f56ae4682048e2fb703a53d5fc2767",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "7af22d63ebf7d088083c40d1b8a2563b521b211e5dcff719ec2f495eb78b1715,acf23160aad4dbc661cad1e0e1227dcb6bcc2983b4248bd4f77b05d3f70d18d9",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "realtime-fabric": {
+        "configHash": "22e4c9bf35e31c039cd958e8fcbd8f57ab50a8a9848ec5ebf6c8f831a3353bc1",
+        "containerId": "43dae7528fa7862b17d6999a4e2f8ba7e2184428511797216cccd0091eb85c3e",
+        "image": "aso-prior-auth-realtime-fabric",
+        "imageDigest": "sha256:b362432ea841b468c87348a8be75426a523834bd525d2bcaa8a36683f78385a6",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/frf/shape-catalog.json",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "redis": {
+        "configHash": "add989d567706c819b26efe4d3c28d70cac1c8bd686619cdafeed9558b774e39",
+        "containerId": "2e7beec436b3a70869050290bb9685945514d11fe517c4b4d5a4ecbf0eeeb2bc",
+        "image": "redis@sha256:becdda6c7f4b3fb42e42fd7f120bbf5c54c4caaaf16f26da24e4563d2c1f0576",
+        "imageDigest": "sha256:59c08762bdbcf53fa132aa0bae464a57a1309dc3fff8a034bb3e16d7a0b30ec5",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      }
+    },
+    "postContainers": {
+      "db": {
+        "configHash": "71024bd8a4842bd8338381850243e2f5576471e6445bce9c934bb192164cdbf1",
+        "containerId": "6a53297ab4b164d4cca7731ae7c316c8b1215789dd60a281e19cccf9565c00dc",
+        "image": "aso-prior-auth-db",
+        "imageDigest": "sha256:259ae7e1210e94d2bbe2ce31294d418fb9da7f71a5b8fa6ee23624376bb705a2",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/bootstrap,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docs/design/schema,aso-prior-auth_db_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "electric": {
+        "configHash": "d60cb6ff8b1bd5260add277927b5aa3d941d8305591ee08d56d4870e8820bda7",
+        "containerId": "acc8b14d3b6a995571a6076cd09e89997a9b83c9b09f63152aeb70e01c801396",
+        "image": "electricsql/electric:1.8.0",
+        "imageDigest": "sha256:9644bb77f2476f827e393d50d472615f82479edd44593b7edfe71e6b4e0433bd",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "flint-gate": {
+        "configHash": "da4702acb811331d841af5d054d16f528bcf2914b6eaaaa4c991c1bacaaafdb0",
+        "containerId": "559f04241f24bdde951ffc20924e9c75638e6daec349883680bf6d1df6604413",
+        "image": "aso-prior-auth-flint-gate",
+        "imageDigest": "sha256:5ad074b3c4861b99411997e8e1731980f6e9b2da85068ec3a313f1d7aeea4f50",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml",
+        "networks": "aso-prior-auth_ra05-backend,aso-prior-auth_ra05-client",
+        "state": "running"
+      },
+      "flint-gate-init": {
+        "configHash": "6fcb990e3fe55f7e784d8ecb7408fa44a4a3d77dfdd312a91f55a130ff027365",
+        "containerId": "28ef0e6d3dd045ee94fd81c891ade3d00cd52d3a100855ee565232da78a50cc9",
+        "image": "aso-prior-auth-flint-gate-init",
+        "imageDigest": "sha256:565e7065581ea6dbf4541e1f2949976e36d5234806d3b1735c658bb013d6d8e9",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml,92ce6cd5919a7252dbc8b077f4e0818edcae130278b2e33a6c44ae531ea2ac5f",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "iggy-server": {
+        "configHash": "1d22f5e5430f49f6c068461421480c5209ae09f3364cd26fa9d5fc40ec522e5b",
+        "containerId": "3935f5dc9884c1d76a462ecfecac489a01dc3bfc2a9310377311792a088f5c88",
+        "image": "iggyrs/iggy@sha256:68a314c1380be5a792a134f3bd346ded42bd49d9f7114c86f70b48fc85bc5272",
+        "imageDigest": "sha256:f7c54e3042254f26665400b6e62a4f8317d90671b5750f8a281bee52f0b16978",
+        "mounts": "aso-prior-auth_iggy_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos": {
+        "configHash": "5dc669aa48d19b70c18f8f21c4ae1f669d442b8cc0c6cae5ea6393831ed70637",
+        "containerId": "8ffb8f9c43eb71baae5615838f0a7c52b605035e0eef827469edc22425812fc1",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/kratos,1df237fbb2898958c7e1d1a8514ccd3b70dae427f207616ac40293db6af290aa,ce597b8bbf4de5eaabe9494d19e77869a572677cbae8edaa1b12e5f4ee486750",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos-migrate": {
+        "configHash": "6b8c7662f7f0ab711311bed097e55d91c234f5454c912a9fd22745584dadb4cb",
+        "containerId": "86500451cbf55720eed5e2e353131e8745f56ae4682048e2fb703a53d5fc2767",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "7af22d63ebf7d088083c40d1b8a2563b521b211e5dcff719ec2f495eb78b1715,acf23160aad4dbc661cad1e0e1227dcb6bcc2983b4248bd4f77b05d3f70d18d9",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "realtime-fabric": {
+        "configHash": "22e4c9bf35e31c039cd958e8fcbd8f57ab50a8a9848ec5ebf6c8f831a3353bc1",
+        "containerId": "43dae7528fa7862b17d6999a4e2f8ba7e2184428511797216cccd0091eb85c3e",
+        "image": "aso-prior-auth-realtime-fabric",
+        "imageDigest": "sha256:b362432ea841b468c87348a8be75426a523834bd525d2bcaa8a36683f78385a6",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/frf/shape-catalog.json",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "redis": {
+        "configHash": "add989d567706c819b26efe4d3c28d70cac1c8bd686619cdafeed9558b774e39",
+        "containerId": "2e7beec436b3a70869050290bb9685945514d11fe517c4b4d5a4ecbf0eeeb2bc",
+        "image": "redis@sha256:becdda6c7f4b3fb42e42fd7f120bbf5c54c4caaaf16f26da24e4563d2c1f0576",
+        "imageDigest": "sha256:59c08762bdbcf53fa132aa0bae464a57a1309dc3fff8a034bb3e16d7a0b30ec5",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      }
+    },
+    "postExisting": [
+      "db",
+      "electric",
+      "flint-gate",
+      "flint-gate-init",
+      "iggy-server",
+      "kratos",
+      "kratos-migrate",
+      "realtime-fabric",
+      "redis"
+    ],
+    "postRunning": [
+      "db",
+      "electric",
+      "flint-gate",
+      "iggy-server",
+      "kratos",
+      "realtime-fabric",
+      "redis"
+    ],
+    "removed": [],
+    "restarted": [
+      "flint-gate",
+      "realtime-fabric"
+    ],
+    "restored": true,
+    "stopped": []
+  }
+}

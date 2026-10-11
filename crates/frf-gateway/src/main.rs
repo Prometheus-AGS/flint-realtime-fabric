@@ -4,42 +4,34 @@
 use std::sync::Arc;
 
 use anyhow::{Context as _, Result};
-use frf_app::SyncUseCase;
-use frf_app::{AuthzUseCase, EntityUseCase, PublishUseCase, SubscribePipeline};
-use frf_broker_iggy::IggyBroker;
-use frf_crdt::{InMemoryCrdtStore, LoroDeltaApplier};
+use frf_app::{PublishUseCase, SubscribePipeline};
 use frf_domain::TenantId;
 use frf_gateway::authz_backend::ConfiguredAuthzProvider;
 use frf_gateway::config::{AuthzBackend, GatewayProfile, PolicyEngineMode};
-use frf_gateway::{
-    AppState, GatewayConfig, agent_grpc_service::AgentGrpcService,
-    authz_grpc_service::AuthzGrpcService, entity_grpc_service::EntityGrpcService,
-    entity_store_mem::InMemoryEntityStore, grpc_service::SpineGrpcService,
-    signal_service::SpineSignalService, sync_grpc_service::SyncGrpcService,
-};
+use frf_gateway::{AppState, GatewayConfig};
 use frf_identity_ory::OryIdentityVerifier;
 use frf_librefang::LibreFangBus;
 use frf_policy_cedar::CedarPolicyEngine;
-use frf_ports::{
-    BoxedPolicyProvider, DynAgentEventBus, DynMediaSignaler, DynPolicyProvider, NoOpPolicyProvider,
-};
+use frf_ports::{BoxedPolicyProvider, DynAgentEventBus, DynPolicyProvider, NoOpPolicyProvider};
 use frf_postgres_cdc::{CdcConfig, PostgresCdcConsumer};
-use frf_store_redb::RedbOpStore;
 use opentelemetry_sdk::trace::TracerProvider;
 use tokio::net::TcpListener;
 use tokio::sync::watch;
 
 mod bootstrap;
+mod configured_broker;
+mod entity_projection_runtime;
 mod federation;
+mod grpc_runtime;
 mod inactive_lanes;
 
 use bootstrap::{ensure_entities_channel, init_telemetry};
+use configured_broker::ConfiguredLogBroker;
 use inactive_lanes::InactiveAgentBus;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let tracer_provider = init_telemetry()?;
-
     // Install the Prometheus recorder before any metric is recorded so the
     // /metrics endpoint has data. Non-fatal: a failure only disables metrics.
     if let Err(e) = frf_gateway::routes::metrics::install_recorder() {
@@ -50,10 +42,7 @@ async fn main() -> Result<()> {
     // Fail fast on semantically-invalid config (e.g. hosted SFU with empty
     // LiveKit creds) rather than booting into a silently-broken state.
     config.validate()?;
-    let broker = Arc::new(IggyBroker::new(&config.iggy_connection_string).await?);
-
-    ensure_entities_channel(&broker).await?;
-
+    let broker = build_broker(&config).await?;
     let authz = Arc::new(match config.authz_backend {
         AuthzBackend::VerifiedIdentity => ConfiguredAuthzProvider::verified_identity(),
         AuthzBackend::Keto => {
@@ -82,18 +71,21 @@ async fn main() -> Result<()> {
     ));
 
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
-    let cdc_task = spawn_cdc_consumer(&config, Arc::clone(&broker), shutdown_rx.clone())?;
+    let (cdc_task, projection_runtime) =
+        start_entity_pipeline(&config, Arc::clone(&broker), shutdown_rx.clone()).await?;
 
     let media_signaler = Arc::new(inactive_lanes::build_media_signaler(&config));
-    let agent_bus = Arc::new(if config.profile == GatewayProfile::ShapeOnly {
-        tracing::info!("agent event lane disabled for shape-only profile");
-        DynAgentEventBus::new(Arc::new(InactiveAgentBus))
-    } else {
-        DynAgentEventBus::new(Arc::new(LibreFangBus::start_with_config(
-            config.registry_idle_secs,
-            config.registry_sweep_interval_secs,
-        )?))
-    });
+    let agent_bus = Arc::new(
+        if config.profile == GatewayProfile::ShapeOnly || !config.lanes.agent {
+            tracing::info!("agent event lane disabled by deployment profile");
+            DynAgentEventBus::new(Arc::new(InactiveAgentBus))
+        } else {
+            DynAgentEventBus::new(Arc::new(LibreFangBus::start_with_config(
+                config.registry_idle_secs,
+                config.registry_sweep_interval_secs,
+            )?))
+        },
+    );
     let bind_addr = config.bind_addr;
 
     let federation_bridges = federation::build_federation_bridges(&config);
@@ -104,7 +96,8 @@ async fn main() -> Result<()> {
     // across the gRPC signal service and the /ws/v1/signal inbound path (p23-c003). Building it
     // here (not inline in the gRPC wiring) lets the WS route drive the same bridge. This does
     // NOT flip the gate — end-to-end media is unproven (deferred); hosted stays the media path.
-    let media_bridge = if config.profile != frf_gateway::GatewayProfile::ShapeOnly
+    let media_bridge = if config.lanes.media
+        && config.profile != frf_gateway::GatewayProfile::ShapeOnly
         && config.sfu_mode == frf_gateway::SfuMode::Sovereign
     {
         // p24-c001: for a real browser↔gateway ICE path the media socket must bind a
@@ -123,7 +116,7 @@ async fn main() -> Result<()> {
     };
 
     #[cfg(feature = "shape-facade")]
-    let shape_usecase = build_shape_usecase(&authz, config.profile)?;
+    let shape_usecase = build_shape_usecase(&authz, &config)?;
     let state = Arc::new(AppState {
         subscribe_pipeline,
         publish_usecase,
@@ -137,13 +130,14 @@ async fn main() -> Result<()> {
         media_bridge,
         #[cfg(feature = "shape-facade")]
         shape_usecase,
+        cdc_readiness: projection_runtime.readiness.clone(),
         config: Arc::new(config),
     });
 
     federation::spawn_federation_ingest_tasks(&state);
 
     let app = frf_gateway::build_router(Arc::clone(&state));
-    let grpc_task = spawn_grpc_server(Arc::clone(&state))?;
+    let grpc_task = grpc_runtime::spawn(Arc::clone(&state), projection_runtime.store)?;
 
     tracing::info!("frf-gateway listening on {bind_addr}");
     let listener = TcpListener::bind(bind_addr).await?;
@@ -156,9 +150,31 @@ async fn main() -> Result<()> {
         .await?;
     tracing::info!("HTTP server drained; shutting down background tasks");
 
-    drain_background_tasks(&shutdown_tx, cdc_task, grpc_task, tracer_provider).await;
+    drain_background_tasks(
+        &shutdown_tx,
+        cdc_task,
+        projection_runtime.tasks,
+        grpc_task,
+        tracer_provider,
+    )
+    .await;
 
     Ok(())
+}
+
+async fn build_broker(config: &GatewayConfig) -> Result<Arc<ConfiguredLogBroker>> {
+    if let Some(disabled) = ConfiguredLogBroker::for_profile(config.profile) {
+        tracing::info!("event spine disabled for shape-only profile");
+        Ok(Arc::new(disabled))
+    } else {
+        let broker = ConfiguredLogBroker::for_full(
+            &config.iggy_connection_string,
+            config.entity_watch_retention_seconds,
+        )
+        .await?;
+        ensure_entities_channel(&broker).await?;
+        Ok(Arc::new(broker))
+    }
 }
 
 /// Signal background tasks to stop, await the CDC task, abort the gRPC server and flush
@@ -166,12 +182,16 @@ async fn main() -> Result<()> {
 async fn drain_background_tasks(
     shutdown_tx: &tokio::sync::watch::Sender<bool>,
     cdc_task: Option<tokio::task::JoinHandle<()>>,
+    projection_tasks: Vec<tokio::task::JoinHandle<()>>,
     grpc_task: Option<tokio::task::JoinHandle<()>>,
     tracer_provider: Option<TracerProvider>,
 ) {
     let _ = shutdown_tx.send(true);
 
     if let Some(task) = cdc_task {
+        let _ = task.await;
+    }
+    for task in projection_tasks {
         let _ = task.await;
     }
     if let Some(task) = grpc_task {
@@ -187,8 +207,9 @@ async fn drain_background_tasks(
 
 fn spawn_cdc_consumer(
     config: &GatewayConfig,
-    broker: Arc<IggyBroker>,
+    broker: Arc<ConfiguredLogBroker>,
     shutdown_rx: watch::Receiver<bool>,
+    readiness: watch::Sender<bool>,
 ) -> Result<Option<tokio::task::JoinHandle<()>>> {
     if !config.cdc_enabled {
         return Ok(None);
@@ -213,6 +234,15 @@ fn spawn_cdc_consumer(
         .cdc_channel_path
         .clone()
         .context("CDC_CHANNEL_PATH must be set when CDC_ENABLED=true")?;
+    let source_epoch = config
+        .cdc_source_epoch
+        .clone()
+        .context("CDC_SOURCE_EPOCH must be set when CDC_ENABLED=true")?;
+    let enrollment_json = config
+        .cdc_enrollments_json
+        .as_deref()
+        .context("CDC_ENROLLMENTS_JSON must be set when CDC_ENABLED=true")?;
+    let enrollments = CdcConfig::parse_enrollments(enrollment_json)?;
 
     let cdc_config = CdcConfig::new(
         replication_url,
@@ -220,14 +250,43 @@ fn spawn_cdc_consumer(
         publication_name,
         TenantId::from_uuid(tenant_uuid),
         channel_path,
-    );
+    )
+    .with_source_epoch(source_epoch)
+    .with_enrollments(enrollments);
     let consumer = PostgresCdcConsumer::new(cdc_config, broker);
     tracing::info!("starting CDC consumer");
     Ok(Some(tokio::spawn(async move {
-        if let Err(e) = consumer.run_until_shutdown(shutdown_rx).await {
+        if let Err(e) = consumer
+            .run_until_shutdown_with_readiness(shutdown_rx, readiness)
+            .await
+        {
             tracing::error!(error = %e, "CDC consumer exited with error");
         }
     })))
+}
+
+fn start_cdc(
+    config: &GatewayConfig,
+    broker: Arc<ConfiguredLogBroker>,
+    shutdown_rx: watch::Receiver<bool>,
+) -> Result<(Option<tokio::task::JoinHandle<()>>, watch::Receiver<bool>)> {
+    let (readiness_tx, readiness_rx) = watch::channel(!config.cdc_enabled);
+    let task = spawn_cdc_consumer(config, broker, shutdown_rx, readiness_tx)?;
+    Ok((task, readiness_rx))
+}
+
+async fn start_entity_pipeline(
+    config: &GatewayConfig,
+    broker: Arc<ConfiguredLogBroker>,
+    shutdown: watch::Receiver<bool>,
+) -> Result<(
+    Option<tokio::task::JoinHandle<()>>,
+    entity_projection_runtime::ProjectionRuntime,
+)> {
+    let (cdc_task, cdc_readiness) = start_cdc(config, Arc::clone(&broker), shutdown.clone())?;
+    let projection =
+        entity_projection_runtime::start(config, broker, shutdown, cdc_readiness).await?;
+    Ok((cdc_task, projection))
 }
 
 fn build_policy_provider(config: &GatewayConfig) -> Result<BoxedPolicyProvider> {
@@ -247,97 +306,6 @@ fn build_policy_provider(config: &GatewayConfig) -> Result<BoxedPolicyProvider> 
     }
 }
 
-fn spawn_grpc_server(
-    state: Arc<
-        AppState<
-            IggyBroker,
-            ConfiguredAuthzProvider,
-            OryIdentityVerifier,
-            DynMediaSignaler,
-            DynAgentEventBus,
-            BoxedPolicyProvider,
-        >,
-    >,
-) -> Result<Option<tokio::task::JoinHandle<()>>> {
-    let Some(grpc_port) = state.config.grpc_port else {
-        tracing::info!("gRPC server disabled (GRPC_PORT=0)");
-        return Ok(None);
-    };
-
-    let grpc_addr: std::net::SocketAddr = format!("0.0.0.0:{grpc_port}").parse()?;
-
-    // Register every service that has a server implementation. SpineService is
-    // what the browser admin UI calls over Connect/gRPC-web (Subscribe/Publish).
-    // SyncService (CRDT sync) is wired here with an in-memory CRDT store + redb
-    // op-log + Loro applier. EntityService (read plane) is wired with an in-memory
-    // entity store. AuthzService uses the configured authorization adapter.
-    // All six proto services now have server implementations.
-    let spine_svc = SpineGrpcService::new(Arc::clone(&state)).into_server();
-    // For SFU_MODE=sovereign, compose the str0m media engine (StrOmTransport) alongside the
-    // signaling relay and drive it from the signal path via MediaTransportBridge. This does
-    // NOT flip the gate — end-to-end media is unproven (deferred); hosted stays the media path.
-    let signal_service = SpineSignalService::new(
-        Arc::clone(&state.media_signaler),
-        state.config.sfu_mode.into(),
-    );
-    let signal_service = match &state.media_bridge {
-        // Reuse the single sovereign bridge shared with the /ws/v1/signal inbound path (p23-c003)
-        // so both transports drive the same str0m engine + ADR-007 authz.
-        Some(bridge) => signal_service.with_media_bridge(Arc::clone(bridge)),
-        None => signal_service,
-    };
-    let signal_svc = signal_service.into_server();
-
-    // SyncService: CRDT sync over bidi streaming. In-memory stores are the
-    // default; persistent deployments swap in frf-store-surreal / a redb file.
-    let sync_use_case = Arc::new(SyncUseCase::new(
-        InMemoryCrdtStore::default(),
-        RedbOpStore::in_memory().context("initialize redb in-memory op-store")?,
-        LoroDeltaApplier,
-    ));
-    let sync_svc = SyncGrpcService::new(sync_use_case).into_server();
-
-    // EntityService: read side of the entity plane. In-memory store is the default;
-    // reads are auth-guarded (identity + tenant-equality + Keto `view`) in the use-case.
-    // Built before `agent_svc` because that call consumes `state`.
-    let entity_use_case = Arc::new(EntityUseCase::new(
-        Arc::new(InMemoryEntityStore::new()),
-        Arc::clone(&state.authz),
-        Arc::clone(&state.identity),
-    ));
-    let entity_svc = EntityGrpcService::new(entity_use_case).into_server();
-
-    // AuthzService: check/write/delete relation tuples against Keto. Each op verifies the
-    // caller's token and enforces tenant-equality before delegating to the provider.
-    let authz_use_case = Arc::new(AuthzUseCase::new(
-        Arc::clone(&state.authz),
-        Arc::clone(&state.identity),
-    ));
-    let authz_svc = AuthzGrpcService::new(authz_use_case).into_server();
-
-    let agent_svc = AgentGrpcService::new(state).into_server();
-    tracing::info!("frf-gateway gRPC (+gRPC-web) listening on {grpc_addr}");
-
-    Ok(Some(tokio::spawn(async move {
-        // `accept_http1(true)` + GrpcWebLayer lets browsers reach these services
-        // via Connect-Web / gRPC-web (HTTP/1.1), not just native HTTP/2 gRPC.
-        if let Err(e) = tonic::transport::Server::builder()
-            .accept_http1(true)
-            .layer(tonic_web::GrpcWebLayer::new())
-            .add_service(spine_svc)
-            .add_service(signal_svc)
-            .add_service(sync_svc)
-            .add_service(entity_svc)
-            .add_service(authz_svc)
-            .add_service(agent_svc)
-            .serve(grpc_addr)
-            .await
-        {
-            tracing::error!(error = %e, "gRPC server exited with error");
-        }
-    })))
-}
-
 /// Compose the ADR-009 relational replication lane from environment configuration.
 ///
 /// The `shape-only` profile requires both `SHAPE_ELECTRIC_URL` and `SHAPE_CATALOG_PATH` and
@@ -349,14 +317,14 @@ type ShapeLane = Option<Arc<frf_app::ShapeUseCase<ConfiguredAuthzProvider>>>;
 #[cfg(feature = "shape-facade")]
 fn build_shape_usecase(
     authz: &Arc<ConfiguredAuthzProvider>,
-    profile: GatewayProfile,
+    config: &GatewayConfig,
 ) -> anyhow::Result<ShapeLane> {
     use anyhow::Context as _;
 
     let Some((url, catalog_path)) = require_shape_config(
-        profile,
-        std::env::var("SHAPE_ELECTRIC_URL").ok(),
-        std::env::var("SHAPE_CATALOG_PATH").ok(),
+        config.profile,
+        config.shape_electric_url.clone(),
+        config.shape_catalog_path.clone(),
     )?
     else {
         tracing::info!(

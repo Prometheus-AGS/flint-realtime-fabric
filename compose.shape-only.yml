@@ -1,0 +1,131 @@
+name: flint-realtime-fabric-shape-only
+
+# Restricted ASO shape facade. Only the TLS edge is published to the host;
+# Gate, Electric, Postgres and the gateway remain on internal networks.
+services:
+  edge:
+    image: "${FRF_TLS_PROXY_IMAGE:?FRF_TLS_PROXY_IMAGE must be an image digest}"
+    ports:
+      - "${FRF_HTTPS_BIND_IP:-127.0.0.1}:${FRF_HTTPS_PORT:-8443}:8443"
+    volumes:
+      - ./deploy/profiles/nginx-shape-only.conf:/etc/nginx/nginx.conf:ro
+      - "${FRF_TLS_CERT_FILE:?FRF_TLS_CERT_FILE is required}:/run/tls/tls.crt:ro"
+      - "${FRF_TLS_KEY_FILE:?FRF_TLS_KEY_FILE is required}:/run/tls/tls.key:ro"
+      - "${FRF_TLS_CA_FILE:?FRF_TLS_CA_FILE is required}:/run/tls/ca.crt:ro"
+    depends_on:
+      gateway:
+        condition: service_healthy
+    read_only: true
+    tmpfs: [/var/cache/nginx, /var/run]
+    security_opt: [no-new-privileges:true]
+    networks: [edge]
+
+  gateway:
+    image: "${FRF_SHAPE_GATEWAY_IMAGE:?FRF_SHAPE_GATEWAY_IMAGE must be an image digest}"
+    expose: ["8080"]
+    environment:
+      GATEWAY_PROFILE: shape-only
+      BIND_ADDR: 0.0.0.0:8080
+      GRPC_PORT: "0"
+      AUTHZ_BACKEND: verified-identity
+      GATEWAY_JWKS_URL: http://flint-gate:4456/.well-known/jwks.json
+      JWT_AUDIENCE: "${FRF_JWT_AUDIENCE:?FRF_JWT_AUDIENCE is required}"
+      JWT_ISSUER: "${FRF_JWT_ISSUER:?FRF_JWT_ISSUER is required}"
+      SHAPE_ELECTRIC_URL: http://electric:3000
+      SHAPE_CATALOG_PATH: /run/config/shape-catalog.json
+      SHAPE_TIMEOUT_SECS: "${FRF_SHAPE_TIMEOUT_SECS:-30}"
+      MEDIA_ENABLED: "false"
+      AGENT_ENABLED: "false"
+      ADMIN_ENABLED: "false"
+      CDC_ENABLED: "false"
+      FEDERATION_ENABLED: "false"
+      POLICY_ENGINE: cedar
+      CORS_ALLOWED_ORIGINS: "${FRF_PUBLIC_ORIGIN:?FRF_PUBLIC_ORIGIN is required}"
+      RUST_LOG: "${RUST_LOG:-info}"
+    volumes:
+      - "${FRF_SHAPE_CATALOG_FILE:?FRF_SHAPE_CATALOG_FILE is required}:/run/config/shape-catalog.json:ro"
+    depends_on:
+      electric:
+        condition: service_started
+      flint-gate:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/readyz"]
+      interval: 5s
+      timeout: 4s
+      retries: 12
+      start_period: 20s
+    networks: [edge, control, data]
+
+  flint-gate:
+    image: "${FLINT_GATE_IMAGE:?FLINT_GATE_IMAGE must be an image digest}"
+    expose: ["4456", "4457"]
+    environment:
+      DATABASE_URL: "postgres://${FRF_POSTGRES_USER:?FRF_POSTGRES_USER is required}:${FRF_POSTGRES_PASSWORD:?FRF_POSTGRES_PASSWORD is required}@postgres:5432/${FRF_POSTGRES_DB:?FRF_POSTGRES_DB is required}"
+      FLINT_GATE_CONFIG: /run/config/flint-gate.yaml
+      FLINT_GATE_REQUIRE_DATABASE: "true"
+      FLINT_GATE_JWT_KEY_PATH: /run/secrets/flint-gate/private.pem
+      RUST_LOG: "${RUST_LOG:-info}"
+    volumes:
+      - "${FLINT_GATE_CONFIG_FILE:?FLINT_GATE_CONFIG_FILE is required}:/run/config/flint-gate.yaml:ro"
+      - "${FLINT_GATE_JWT_PRIVATE_KEY_FILE:?FLINT_GATE_JWT_PRIVATE_KEY_FILE is required}:/run/secrets/flint-gate/private.pem:ro"
+    depends_on:
+      flint-gate-db-init:
+        condition: service_completed_successfully
+    networks: [control, data]
+
+  flint-gate-db-init:
+    image: "${FLINT_GATE_IMAGE}"
+    command: ["--database-init-only"]
+    environment:
+      DATABASE_URL: "postgres://${FRF_POSTGRES_USER}:${FRF_POSTGRES_PASSWORD}@postgres:5432/${FRF_POSTGRES_DB}"
+      FLINT_GATE_CONFIG: /run/config/flint-gate.yaml
+      FLINT_GATE_JWT_KEY_PATH: /run/secrets/flint-gate/private.pem
+      FLINT_GATE_JWT_PUBLIC_KEY_PATH: /run/secrets/flint-gate/public.pem
+    volumes:
+      - "${FLINT_GATE_CONFIG_FILE}:/run/config/flint-gate.yaml:ro"
+      - "${FLINT_GATE_JWT_PRIVATE_KEY_FILE}:/run/secrets/flint-gate/private.pem:ro"
+      - "${FLINT_GATE_JWT_PUBLIC_KEY_FILE:?FLINT_GATE_JWT_PUBLIC_KEY_FILE is required}:/run/secrets/flint-gate/public.pem:ro"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    networks: [data]
+
+  electric:
+    image: "${FRF_ELECTRIC_IMAGE:?FRF_ELECTRIC_IMAGE must be an image digest}"
+    expose: ["3000"]
+    environment:
+      DATABASE_URL: "postgresql://${FRF_POSTGRES_USER}:${FRF_POSTGRES_PASSWORD}@postgres:5432/${FRF_POSTGRES_DB}?sslmode=disable"
+      ELECTRIC_PORT: "3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [data]
+
+  postgres:
+    image: "${FRF_POSTGRES_IMAGE:?FRF_POSTGRES_IMAGE must be an image digest}"
+    expose: ["5432"]
+    environment:
+      POSTGRES_USER: "${FRF_POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${FRF_POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${FRF_POSTGRES_DB}"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    networks: [control, data]
+
+networks:
+  edge: {}
+  control:
+    internal: true
+  data:
+    internal: true
+
+volumes:
+  postgres-data: {}

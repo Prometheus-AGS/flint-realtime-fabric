@@ -1,0 +1,389 @@
+{
+  "captured_at": "2026-09-15T07:39:24.339747+00:00",
+  "artifacts": [
+    {
+      "path": "openspec/changes/pri-c001-build-policy/tasks.md",
+      "sha256": "361d40268128b9b35898f0c6a35d6767bcfce51651bf8ed086fdd3791608edbd"
+    },
+    {
+      "path": "openspec/changes/pri-c001-build-policy/design.md",
+      "sha256": "b13cd1f4349a0e61fb37aa4b02222deac37a4185bfe6ad3049eae1e5358addc4"
+    },
+    {
+      "path": "openspec/changes/pri-c001-build-policy/proposal.md",
+      "sha256": "beaf493789b8edc684676f676bd2d7757aeca7e00d5f48f3048a59884e43d82f"
+    },
+    {
+      "path": "openspec/changes/pri-c001-build-policy/specs/production-readiness-integration/spec.md",
+      "sha256": "25cd0f56051a13824de942756f173bde25e66dcc940b6eaa9624adf0be90dade"
+    },
+    {
+      "path": "openspec/changes/pri-c002-local-fixtures/tasks.md",
+      "sha256": "c800f21057e313bc8e7cb37e64af39a1cd434ef968abe56e14cd840ddd89d481"
+    },
+    {
+      "path": "openspec/changes/pri-c002-local-fixtures/design.md",
+      "sha256": "2f68316997ef1afee0710833fc7a05d035c8de1d2a1f7670d4bae8cc56b0aba2"
+    },
+    {
+      "path": "openspec/changes/pri-c002-local-fixtures/proposal.md",
+      "sha256": "d10184d85ccf1be682cfb92561acd183f3c997dbe0381fb742507cd487111262"
+    },
+    {
+      "path": "openspec/changes/pri-c002-local-fixtures/specs/production-readiness-integration/spec.md",
+      "sha256": "c934cbfff5e02a6ff6d0ef5522e88854e92ea38cfc2a745da65b152e199b08b3"
+    },
+    {
+      "path": "openspec/changes/pri-c003-scope-research-contract/tasks.md",
+      "sha256": "922f86bea0008889fa84d1fcfe2e37fb24814b5b3d2993b879f7c8fda4f04ceb"
+    },
+    {
+      "path": "openspec/changes/pri-c003-scope-research-contract/design.md",
+      "sha256": "d65c0ff340eeb849a77a52b9faaf76c51516cbcb49991233c80f091cebe07c40"
+    },
+    {
+      "path": "openspec/changes/pri-c003-scope-research-contract/proposal.md",
+      "sha256": "31c2cb4191b7437b490d042d4d5d73a23e3a63b536a71d54a130e259dcd2f728"
+    },
+    {
+      "path": "openspec/changes/pri-c003-scope-research-contract/specs/production-readiness-integration/spec.md",
+      "sha256": "c1bb4c4cec42b7d21121cb27c2ab6d3b1ae8b29ebb5e571ff450bf4727574219"
+    },
+    {
+      "path": "openspec/changes/pri-c004-deployment-profiles/tasks.md",
+      "sha256": "290d1772e954931fc6bed5e62daaa60760000d6b87f506627773d0de13b2a872"
+    },
+    {
+      "path": "openspec/changes/pri-c004-deployment-profiles/design.md",
+      "sha256": "5377ca0c42584a884dcfc62dd1e8093591349af332831075f950b5602588000f"
+    },
+    {
+      "path": "openspec/changes/pri-c004-deployment-profiles/proposal.md",
+      "sha256": "dad879813e747810423ae4d8ecef0dede41f29b23e8851481ebafaf05a56b0bb"
+    },
+    {
+      "path": "openspec/changes/pri-c004-deployment-profiles/specs/production-readiness-integration/spec.md",
+      "sha256": "c58539f651d7b082916fee32c45d7b8fe62bcca9530d41bcf04cb8f45b55d743"
+    },
+    {
+      "path": "openspec/changes/pri-c005-authority-lifetime/tasks.md",
+      "sha256": "190cf3525bbe85d659798fefdbb5ce78b9b35e39f99c96576ff3b2306e4b2170"
+    },
+    {
+      "path": "openspec/changes/pri-c005-authority-lifetime/design.md",
+      "sha256": "7118be4dc2dbdc026d945bff516c1bb46493905a9ad15b2da5f15dbcd3c8d0ca"
+    },
+    {
+      "path": "openspec/changes/pri-c005-authority-lifetime/proposal.md",
+      "sha256": "e2403b71f76fab90066ed7856659494f8b7284f3fccdff9246db73f4379be7f7"
+    },
+    {
+      "path": "openspec/changes/pri-c005-authority-lifetime/specs/production-readiness-integration/spec.md",
+      "sha256": "7fc9889e17ec2dfef99f393e40622d3ad03563a762d30469cc8dc11f734a99b4"
+    },
+    {
+      "path": "openspec/changes/pri-c006-watch-contract/tasks.md",
+      "sha256": "fe2030fd75f3c29289cacda596614f8e89f542d68c4bcda301952a1dd66063f5"
+    },
+    {
+      "path": "openspec/changes/pri-c006-watch-contract/design.md",
+      "sha256": "91b526bbf3f7591f7ee10848ade364849166a0b9eb2f3c9a1a8ea97cac027227"
+    },
+    {
+      "path": "openspec/changes/pri-c006-watch-contract/proposal.md",
+      "sha256": "f95e468c14bbe52a8a7c0ffd27b5408d18c5c4fcd34ac3d21417a60cfa64f271"
+    },
+    {
+      "path": "openspec/changes/pri-c006-watch-contract/specs/production-readiness-integration/spec.md",
+      "sha256": "0897bfbe804c68e8aa365300ac33b50ac43bca6beb2eb4d545839bf1781545b9"
+    },
+    {
+      "path": "openspec/changes/pri-c007-broker-replay/tasks.md",
+      "sha256": "c2b970fcb1e155fa8996072adf286d78c56583d5d25d2beb38f8988ae8614ccb"
+    },
+    {
+      "path": "openspec/changes/pri-c007-broker-replay/design.md",
+      "sha256": "99818faf0f7ea23e707d5816910f683b6d4ba01e3dec8e9d3c7ce4f37c813296"
+    },
+    {
+      "path": "openspec/changes/pri-c007-broker-replay/proposal.md",
+      "sha256": "203dd5e92cefd6542321c32eeb880bac57aaae64e40dadb715a3463203c81292"
+    },
+    {
+      "path": "openspec/changes/pri-c007-broker-replay/specs/production-readiness-integration/spec.md",
+      "sha256": "475304133e053140c7b69a9b1a34caf7ab64d473436aaf6f30bb795af755a980"
+    },
+    {
+      "path": "openspec/changes/pri-c008-cdc-commit-mapping/tasks.md",
+      "sha256": "3bc8e3a5e38ca719586b3f8036d469f20dd6e5df29a48c1a4851c47335b5c983"
+    },
+    {
+      "path": "openspec/changes/pri-c008-cdc-commit-mapping/design.md",
+      "sha256": "4ba60dd7995bc34dbbcbe477a71a4f5bbf9bd891d8a32ca8d49896300b86850a"
+    },
+    {
+      "path": "openspec/changes/pri-c008-cdc-commit-mapping/proposal.md",
+      "sha256": "76b3b162e831379fd5bd4adeded1e7c882b24e2f3619860b30ef43e4801dbc59"
+    },
+    {
+      "path": "openspec/changes/pri-c008-cdc-commit-mapping/specs/production-readiness-integration/spec.md",
+      "sha256": "1a58bdaa10f3449792c4b91fa9275a0d161177c25c78d52c31a5268ddae1e134"
+    },
+    {
+      "path": "openspec/changes/pri-c009-entity-projection/tasks.md",
+      "sha256": "ed39e008c2954b8b350f65aeb4fb1563bfdd413e2e494f3b896c2f0046fbf6b0"
+    },
+    {
+      "path": "openspec/changes/pri-c009-entity-projection/design.md",
+      "sha256": "f2024c0635f7107cac4967ef41f6ef71954de366f3e4cc259b2ed88780fa2f7b"
+    },
+    {
+      "path": "openspec/changes/pri-c009-entity-projection/proposal.md",
+      "sha256": "cbbcbb4268d19c9bb284c0df3e179d815ede42fc1910834d99eee242f9952f37"
+    },
+    {
+      "path": "openspec/changes/pri-c009-entity-projection/specs/production-readiness-integration/spec.md",
+      "sha256": "0e5a374ce57db56285d7a1f3ffb52977917c7a4f489d64c81378403e0c8cadfa"
+    },
+    {
+      "path": "openspec/changes/pri-c010-type-watch/tasks.md",
+      "sha256": "35e5f5dd93424875aaac23a3493787f135dd8564be765fb750358818177327e0"
+    },
+    {
+      "path": "openspec/changes/pri-c010-type-watch/design.md",
+      "sha256": "239c7f18b62c1393da1d0f1a831408f7bdf50106463bbc60ac7d61c55bc6f832"
+    },
+    {
+      "path": "openspec/changes/pri-c010-type-watch/proposal.md",
+      "sha256": "a4af629a6bec147e0a47e5966f746336d79e29f439b8d070a29d9528a562333c"
+    },
+    {
+      "path": "openspec/changes/pri-c010-type-watch/specs/production-readiness-integration/spec.md",
+      "sha256": "8e54ffa7d2d54209c6de1e162d4859689cb50f9d32526e6339e17b2a67cf2249"
+    },
+    {
+      "path": "openspec/changes/pri-c011-forge-watch/tasks.md",
+      "sha256": "d3f76da995da78beeebe7f79ce144c8468878c23ea0adb0d13d785cb3f249018"
+    },
+    {
+      "path": "openspec/changes/pri-c011-forge-watch/design.md",
+      "sha256": "6a759a03ab9ce7c3b40561cd1463a5bd0db68b8ccb40fb574b5de610f13f5ff1"
+    },
+    {
+      "path": "openspec/changes/pri-c011-forge-watch/proposal.md",
+      "sha256": "277ab8f4c1414a9d1e914109b3a050036e25ab7c79e9a864eaf3e7b1ca653b5b"
+    },
+    {
+      "path": "openspec/changes/pri-c011-forge-watch/specs/production-readiness-integration/spec.md",
+      "sha256": "5f07abf62d87281d2a12e7f1d281756cb645d00ca8fb6545a7361e3ea7a6609f"
+    },
+    {
+      "path": "openspec/changes/pri-c012-sdk-pem-network/tasks.md",
+      "sha256": "2060850c340854e461a35f16f14a429ca5d0de8f950fd3edf7aa66c369285b17"
+    },
+    {
+      "path": "openspec/changes/pri-c012-sdk-pem-network/design.md",
+      "sha256": "3c7bce401208a688f10f688c7a3c4671037f209981678650082ef04449cbbf85"
+    },
+    {
+      "path": "openspec/changes/pri-c012-sdk-pem-network/proposal.md",
+      "sha256": "badaa9246f75fd65e818f818f2d0a45406f42dc71c91ad33fdd12e3487073cb9"
+    },
+    {
+      "path": "openspec/changes/pri-c012-sdk-pem-network/specs/production-readiness-integration/spec.md",
+      "sha256": "2e965dec9885f68afa887def68e7b045e746b77ab1c6d7c271148af96afb6d37"
+    },
+    {
+      "path": "openspec/changes/pri-c013-sync-persistence/tasks.md",
+      "sha256": "4a72445e078efe50ccc5f4deece56fa18a752e296808795d100d293ae45822dc"
+    },
+    {
+      "path": "openspec/changes/pri-c013-sync-persistence/design.md",
+      "sha256": "fa4a78bd38fd416fa874276df55475ac046e5afb87fa43216a7af54bb1c39204"
+    },
+    {
+      "path": "openspec/changes/pri-c013-sync-persistence/proposal.md",
+      "sha256": "5e281e60514f826eb0d8a6b7934f7b70255a6666e12e85b5033ed5700417afad"
+    },
+    {
+      "path": "openspec/changes/pri-c013-sync-persistence/specs/production-readiness-integration/spec.md",
+      "sha256": "6651f95e6e02cc49bde5c27392b8125d2f9457fa585784c162b65a0b53897ac4"
+    },
+    {
+      "path": "openspec/changes/pri-c014-aso-memory/tasks.md",
+      "sha256": "d36f3ba4c3eefb379626ba143dcc18efcb65f42071d9481f5ccf5dd9635ebeba"
+    },
+    {
+      "path": "openspec/changes/pri-c014-aso-memory/design.md",
+      "sha256": "fc923b03ffa18fcc4b82280ac30e1b559148eaba4b9ff44f103792e6d6cce59b"
+    },
+    {
+      "path": "openspec/changes/pri-c014-aso-memory/proposal.md",
+      "sha256": "2a368c5f4cb712b3e1fcf690534798c317bcdb3f99570bafaee0486bd46d6431"
+    },
+    {
+      "path": "openspec/changes/pri-c014-aso-memory/specs/production-readiness-integration/spec.md",
+      "sha256": "eb7341fed7c1274dcc7fd387e76ee559241f69727e8ed7706da3e49982e3b9c9"
+    },
+    {
+      "path": "openspec/changes/pri-c015-aso-protected-proof/tasks.md",
+      "sha256": "a3b0e5e77db5f03b217c9d085b1a504412db112f72029b864305051970b64656"
+    },
+    {
+      "path": "openspec/changes/pri-c015-aso-protected-proof/design.md",
+      "sha256": "697884ff4d66e3f12bcb9cdcfe64857cb282a7b3c76674bbb47310fc6d8ac808"
+    },
+    {
+      "path": "openspec/changes/pri-c015-aso-protected-proof/proposal.md",
+      "sha256": "c79bf121ae4913df3db3222bdeefe97a337a2780b8552b3d0a14d6f6067a9bb6"
+    },
+    {
+      "path": "openspec/changes/pri-c015-aso-protected-proof/specs/production-readiness-integration/spec.md",
+      "sha256": "649237f55e7ea625ccc8dff69c2be3988911a123611299fe37dce01a93efd314"
+    },
+    {
+      "path": "openspec/changes/pri-c017-hosted-media/tasks.md",
+      "sha256": "a2ab3608b09302491685d5f0347ac3708f0e3f4232d79b7274125aa9c2b83bd7"
+    },
+    {
+      "path": "openspec/changes/pri-c017-hosted-media/design.md",
+      "sha256": "9602bb49af0d93b2d6fe7f30b8c6748a1f49492c9820dabe47dc02d571f95e29"
+    },
+    {
+      "path": "openspec/changes/pri-c017-hosted-media/proposal.md",
+      "sha256": "4cd5612501871ddff6a925438a8fdd4243e42f3f1a9b3632826b23821c2f834f"
+    },
+    {
+      "path": "openspec/changes/pri-c017-hosted-media/specs/production-readiness-integration/spec.md",
+      "sha256": "001253d04ea97c326b06b394ab0c06afb57f02c5253bf257a246557254355266"
+    },
+    {
+      "path": "openspec/changes/pri-c018-matrix-recovery/tasks.md",
+      "sha256": "dd17891c409cbc2f17de99c3bab12227ee8fef1db064b0029137c5387e4eba42"
+    },
+    {
+      "path": "openspec/changes/pri-c018-matrix-recovery/design.md",
+      "sha256": "46b935a57ee62858002a262dd4ca41f2728aeb6ffae4b04cb578ba5d5e37d98e"
+    },
+    {
+      "path": "openspec/changes/pri-c018-matrix-recovery/proposal.md",
+      "sha256": "1657ba3d3b51add222eede88965b9e22904bb824795d19253d360e6c3f1785c0"
+    },
+    {
+      "path": "openspec/changes/pri-c018-matrix-recovery/specs/production-readiness-integration/spec.md",
+      "sha256": "5ce311b818e83b283c369a4eb946159a868f066d92ba6209db971415f71bfa75"
+    },
+    {
+      "path": "openspec/changes/pri-c019-atproto-recovery/tasks.md",
+      "sha256": "0e61084ea39f48fdc44ef7fab66b4c57e0ecb88ad9f8ef9013ed15deb8bf1890"
+    },
+    {
+      "path": "openspec/changes/pri-c019-atproto-recovery/design.md",
+      "sha256": "563f78368a92f8e20c0c6c718bee4f40fc1ee8ef00809438ee752b18fd7eed58"
+    },
+    {
+      "path": "openspec/changes/pri-c019-atproto-recovery/proposal.md",
+      "sha256": "7cc292ec7fb931b1669de031b8452c1c21dc162795dbb3466d071cf44f2d59da"
+    },
+    {
+      "path": "openspec/changes/pri-c019-atproto-recovery/specs/production-readiness-integration/spec.md",
+      "sha256": "a38c5840f1cb97fbd28b9b7518741172687b0eba737a5c2752e21b0867f67c14"
+    },
+    {
+      "path": "openspec/changes/pri-c020-sovereign-decode/tasks.md",
+      "sha256": "bedd2988d17c97a501b49e7995793ecce96b2de278f335c73e3139055d91fa05"
+    },
+    {
+      "path": "openspec/changes/pri-c020-sovereign-decode/design.md",
+      "sha256": "9051c569d40e8c47041eecdf0d0660bcd37eecdabbceb5b265cf85bcbf93cae2"
+    },
+    {
+      "path": "openspec/changes/pri-c020-sovereign-decode/proposal.md",
+      "sha256": "b7c429293b89f960e3e6c23f365e5497d7c9af93dc881f89c77998e440a8d102"
+    },
+    {
+      "path": "openspec/changes/pri-c020-sovereign-decode/specs/production-readiness-integration/spec.md",
+      "sha256": "24232801fbb1cffe3d612418b5745a079d0ef97f083e626a9c919cfd1ba6cba2"
+    },
+    {
+      "path": "openspec/changes/pri-c021-admin-auth/tasks.md",
+      "sha256": "5d1c6654927e670b4d20053e76f6affca03de04fddef14b08ee19527602cfe9c"
+    },
+    {
+      "path": "openspec/changes/pri-c021-admin-auth/design.md",
+      "sha256": "1b438a739c09b1b5b6d21755b29cecbc38561d8217a609f0d154decd75f5f7e0"
+    },
+    {
+      "path": "openspec/changes/pri-c021-admin-auth/proposal.md",
+      "sha256": "a2e3a4857dcf4261b40137d8456f5506af84af346983a258a40fe2fc6ce716bd"
+    },
+    {
+      "path": "openspec/changes/pri-c021-admin-auth/specs/production-readiness-integration/spec.md",
+      "sha256": "5d1ea65dc4f0ba086644d8409ad82fd7ada73e2cced1de5649f0bc3d2887ae46"
+    },
+    {
+      "path": "openspec/changes/pri-c022-platform-parity/tasks.md",
+      "sha256": "dd3c8a694a54171203c4cc3e52da0cc12f4ca0f2397e6897ee05216d5ae69b2d"
+    },
+    {
+      "path": "openspec/changes/pri-c022-platform-parity/design.md",
+      "sha256": "1fd0cb0aed90f88d42f890249b3914abd13c7ea22b28288a5ca0f8a9742df453"
+    },
+    {
+      "path": "openspec/changes/pri-c022-platform-parity/proposal.md",
+      "sha256": "5f5df44f45f3af32d148c0877caf9a3a848f5c82508d0d7b49b2b77b0dabace0"
+    },
+    {
+      "path": "openspec/changes/pri-c022-platform-parity/specs/production-readiness-integration/spec.md",
+      "sha256": "eb48ddcefa5014ef7bc9c657cee4b88a09b45a641189f7456b0c211a7b603556"
+    },
+    {
+      "path": "openspec/changes/pri-c016-operations-recovery/tasks.md",
+      "sha256": "662fb3e4c703a5d2fba16f81d194b781e7cdde08956f1f77c8da105d62cdb338"
+    },
+    {
+      "path": "openspec/changes/pri-c016-operations-recovery/design.md",
+      "sha256": "3e77ebcdafe1b9d06d1326a7e588bfd519cf94f3df56b947e37a8113e6d77c4f"
+    },
+    {
+      "path": "openspec/changes/pri-c016-operations-recovery/proposal.md",
+      "sha256": "6bfc915559f80de42ef0ece6d5d0d93c2ec731a4f0242388825cb54a27ca593a"
+    },
+    {
+      "path": "openspec/changes/pri-c016-operations-recovery/specs/production-readiness-integration/spec.md",
+      "sha256": "8c36fcec045ec8400ade2289820c86f8e522f44369325e956ad5eb3fa47a1b02"
+    },
+    {
+      "path": "openspec/changes/pri-c023-release-signoff/tasks.md",
+      "sha256": "a008c162559701db42f1da2bfce9800d4606a55510b031e389a1f4aa20a4f6da"
+    },
+    {
+      "path": "openspec/changes/pri-c023-release-signoff/design.md",
+      "sha256": "782f5e2eb9a6766186e0eb81c1a102e6f5cd45637cec4eb08c95aaaee8058568"
+    },
+    {
+      "path": "openspec/changes/pri-c023-release-signoff/proposal.md",
+      "sha256": "2e799571f78c86acc46ee46fc6ebc86ffa2b3ce659f761001f4fdb0657b3f012"
+    },
+    {
+      "path": "openspec/changes/pri-c023-release-signoff/specs/production-readiness-integration/spec.md",
+      "sha256": "da4bc4d53231227d8746039190d0b4df462a24cd6051f48d4fea48f5267131c9"
+    },
+    {
+      "path": ".kbd-orchestrator/phases/production-readiness-integration/plan.md",
+      "sha256": "399d3f537a384f9b4fbbf0bcd760b3a9845f0666f02d3d2a4dd35ee0cb743e25"
+    },
+    {
+      "path": ".kbd-orchestrator/phases/production-readiness-integration/planned-changes.json",
+      "sha256": "6a90481c168075a495a8f1381e62762b9ded96b60030ef61fbc3a77241301ea9"
+    },
+    {
+      "path": ".kbd-orchestrator/phases/production-readiness-integration/openspec-index.json",
+      "sha256": "963aa0509158e3d7eeec7beecf30b3c1ef4cd8f005d54a993e4f91768b937b6a"
+    },
+    {
+      "path": ".kbd-orchestrator/phases/production-readiness-integration/handoffs/plan.handoff.json",
+      "sha256": "5547f4818bf1b6b3fb8b0f1e77b5813e9b6b422cf1864cb7fafc9283957a97d4"
+    }
+  ]
+}

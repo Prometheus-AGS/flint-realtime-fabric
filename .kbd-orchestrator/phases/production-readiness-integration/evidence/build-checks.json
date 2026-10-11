@@ -1,0 +1,43 @@
+[
+  {
+    "name": "frf-default",
+    "command": [
+      "cargo",
+      "check",
+      "--workspace",
+      "--locked"
+    ],
+    "exitCode": 0,
+    "seconds": 15.57,
+    "log": "frf-default.log"
+  },
+  {
+    "name": "frf-dev",
+    "command": [
+      "cargo",
+      "check",
+      "--workspace",
+      "--locked",
+      "--features",
+      "frf-gateway/dev-endpoints"
+    ],
+    "exitCode": 101,
+    "seconds": 3.95,
+    "log": "frf-dev.log"
+  },
+  {
+    "name": "frf-shape",
+    "command": [
+      "cargo",
+      "check",
+      "-p",
+      "frf-gateway",
+      "--locked",
+      "--features",
+      "shape-facade"
+    ],
+    "exitCode": 0,
+    "seconds": 7.24,
+    "log": "frf-shape.log"
+  }
+]

@@ -1,12 +1,13 @@
 use async_trait::async_trait;
 use frf_ports::{IdentityVerifier, PortError, VerifiedClaims};
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header};
+use std::time::Duration;
 use tracing::instrument;
 
 use crate::{
     claims::{FrfClaims, to_verified_claims},
     error::IdentityError,
-    jwks::{JwksCache, get_or_fetch, new_cache, refresh},
+    jwks::{DEFAULT_JWKS_MAX_AGE, JwksCache, get_or_fetch, new_cache_with_max_age, refresh},
 };
 
 pub struct OryIdentityVerifier {
@@ -27,13 +28,7 @@ impl OryIdentityVerifier {
     /// issuer means any `IdP` whose key resolves via the JWKS URL is trusted.
     #[must_use]
     pub fn new(jwks_url: impl Into<String>, audience: impl Into<String>) -> Self {
-        Self {
-            http: reqwest::Client::new(),
-            jwks_url: jwks_url.into(),
-            jwks_cache: new_cache(),
-            audience: audience.into(),
-            issuer: None,
-        }
+        Self::build(jwks_url, audience, None, DEFAULT_JWKS_MAX_AGE)
     }
 
     /// Construct a verifier that additionally validates the `iss` claim against
@@ -44,12 +39,40 @@ impl OryIdentityVerifier {
         audience: impl Into<String>,
         issuer: impl Into<String>,
     ) -> Self {
+        Self::build(
+            jwks_url,
+            audience,
+            Some(issuer.into()),
+            DEFAULT_JWKS_MAX_AGE,
+        )
+    }
+
+    /// Construct an issuer-validating verifier with an explicit JWKS cache age.
+    ///
+    /// This is useful for deployments whose signing-key revocation objective is
+    /// tighter than the default and for deterministic rotation tests.
+    #[must_use]
+    pub fn with_issuer_and_cache_ttl(
+        jwks_url: impl Into<String>,
+        audience: impl Into<String>,
+        issuer: impl Into<String>,
+        cache_ttl: Duration,
+    ) -> Self {
+        Self::build(jwks_url, audience, Some(issuer.into()), cache_ttl)
+    }
+
+    fn build(
+        jwks_url: impl Into<String>,
+        audience: impl Into<String>,
+        issuer: Option<String>,
+        cache_ttl: Duration,
+    ) -> Self {
         Self {
             http: reqwest::Client::new(),
             jwks_url: jwks_url.into(),
-            jwks_cache: new_cache(),
+            jwks_cache: new_cache_with_max_age(cache_ttl),
             audience: audience.into(),
-            issuer: Some(issuer.into()),
+            issuer,
         }
     }
 

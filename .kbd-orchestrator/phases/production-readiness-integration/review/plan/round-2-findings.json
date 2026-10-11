@@ -1,0 +1,31 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "pri-c003 is circularly blocked by the decisions it is supposed to resolve.",
+      "evidence": "The c003 entry says: \"Depends on: none. Decision inputs: Q1, Q2, Q3, Q4, Q5, Q6, Q7 via c003\" and its details say it will \"Resolve Q1\u2013Q7\"; later the execution rule says: \"No change may start implementation until its dependencies and decision inputs are satisfied.\" Under that rule c003 cannot start until Q1\u2013Q7 are already satisfied, but c003 is the planned work that satisfies them.",
+      "suggested_fix": "Treat Q1\u2013Q7 for c003 as closure criteria/outputs, not pre-start decision inputs, or amend the execution rule so c003 may start research/decision facilitation and may not close until Q1\u2013Q7 are resolved."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "pri-c011 may depend on client generation work that is scheduled later in pri-c012.",
+      "evidence": "c011 details require: \"Use the generated client and canonical payload mapping.\" c012, which is ordered after c011, says: \"Generate accepted v2 clients using ADR-003 and repair advertised package exports.\" c011 depends only on \"pri-c005, pri-c010\" and does not depend on c012.",
+      "suggested_fix": "Either move the required client generation/export work into c006/c010 and state that c011 consumes those generated artifacts, or add a dependency from c011 to c012 / split c012 so generation precedes Forge integration."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

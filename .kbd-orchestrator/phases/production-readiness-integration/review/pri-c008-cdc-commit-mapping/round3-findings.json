@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-postgres-cdc/src/catalog.rs",
+      "line": 218,
+      "claim": "Catalog enrollment mishandles normal publications that publish all columns because it decodes nullable `pg_publication_tables.attnames` as a non-null `Vec<String>`.",
+      "evidence": "The `load_relation` hunk selects `attnames, rowfilter FROM pg_catalog.pg_publication_tables` and immediately does `published.get::<_, Vec<String>>(0).into_iter().collect()`, while both the new fixture and deployment use publications without column lists (`CREATE PUBLICATION c008_publication FOR TABLE ...` in `crates/frf-gateway/tests/support/cdc/mod.rs` and `CREATE PUBLICATION frf_pub;` in `deploy/postgres/init.sql`), for which PostgreSQL reports `attnames` as NULL to mean all columns.",
+      "suggested_fix": "Read `attnames` as `Option<Vec<String>>`; treat `None` as all physical columns from `pg_attribute`, and only filter columns when it is `Some(list)`."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c008-cdc-commit-mapping/receipt.md",
+      "line": 3,
+      "claim": "Task 5 is marked complete even though the evidence says the required archive review is still pending.",
+      "evidence": "Acceptance criterion 5 requires: `Resolve required review findings before archive`; `openspec/changes/pri-c008-cdc-commit-mapping/tasks.md` marks task 5 `[x]`, but `receipt.md` says `Status: **PASS; ARCHIVE REVIEW PENDING**` and later `A fresh resolution review is still required before archive`, and `.refiner/artifacts/pri-c008-cdc-commit-mapping/state.json` has `convergence_status`: `running`.",
+      "suggested_fix": "Do not mark task 5 complete or archive-ready until the required independent resolution review has passed and the evidence/state files reflect a completed convergence state."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

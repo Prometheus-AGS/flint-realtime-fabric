@@ -1,0 +1,14 @@
+{
+  "stage": "analyze",
+  "completedAt": "2026-09-15T07:25:12Z",
+  "outputs": [
+    "analysis.md",
+    "library-candidates.json",
+    "decision-log.md",
+    "evidence/analyze-artifact-index.json"
+  ],
+  "nextStage": "spec",
+  "summaryForNext": "Bounded PARTIAL analysis written: four provisional adapt candidates (Iggy, pg_walstream, PGlite/materializer, Connect-ES). New static cursor-reset and polling-autocommit risks recorded. Documentation tier cap reached; WAL registry/API verification incomplete. Q1-Q8 pending; full-profile identity, persistence, media, federation, deployment and platform research explicitly remains required before full specification/plan freeze. Analyze review round 2 PASS with two warnings: CDC alternatives unevaluated and machine gap scope mismatch; final warning corrections recorded but not re-vetted. Assess review remains separately BLOCK. No source changes, runtime tests, migration or canonical completion mutation.",
+  "skipped": false,
+  "skipReason": null
+}

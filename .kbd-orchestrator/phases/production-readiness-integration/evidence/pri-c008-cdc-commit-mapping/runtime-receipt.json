@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "runId": "20260915202300-19992",
+  "source": {
+    "commit": "b60e15a31cfb54058f56e96b76fa4b48c5080172",
+    "candidateArtifactSetSha256": "9bd9c095a56ea4b3a93ddbf0f0d599c1f487ed165452bc96af36c3930527e02c"
+  },
+  "startedAt": "2026-09-15T20:23:00Z",
+  "finishedAt": "2026-09-15T20:23:22Z",
+  "exitStatus": 0,
+  "topology": {
+    "composeProject": "frf-cdc-20260915202300-19992",
+    "composeFiles": ["compose.integration.yml", "compose.cdc-integration.yml"],
+    "iggyEndpoint": "127.0.0.1:32889",
+    "postgresEndpoint": "127.0.0.1:32888",
+    "iggyImage": {
+      "reference": "iggyrs/iggy@sha256:2b2d79a5d58a35834cf69b1e2e05d2052c91d739d1d91449475bcd04de24cdc5",
+      "id": "sha256:5ed1de369f7d563d5da04093e2d04beb980d2ce965efaaa683bf9a3c72aa5c5f"
+    },
+    "postgresImage": {
+      "reference": "postgres@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73",
+      "id": "sha256:ff80089083d7365046af7f03d949a2defa14e0b09e14bd5b8f08a242291be8b2"
+    }
+  },
+  "scenarios": {
+    "committedInsertUpdateDelete": "pass",
+    "rollbackAndMultiRowAtomicity": "pass",
+    "compositeNonFirstNonUuidKey": "pass",
+    "columnAndFixedTenant": "pass",
+    "typedValuesAndUnchangedToast": "pass",
+    "unsupportedMappingAndReplicaIdentity": "pass",
+    "crashAfterPublishBeforeFeedback": "pass",
+    "stableIdBrokerDeduplication": "pass",
+    "poisonTransactionBlocksCheckpoint": "pass",
+    "schemaDriftBlocksCheckpoint": "pass"
+  },
+  "cleanup": {
+    "status": "owned-resources-removed",
+    "composeProject": "frf-cdc-20260915202300-19992"
+  },
+  "sha256": {
+    "sourceBinding": "9bd9c095a56ea4b3a93ddbf0f0d599c1f487ed165452bc96af36c3930527e02c",
+    "testLog": "03e60f471afe5139f10726083dfd5b81f3c0780df8b77175baa194727ed9c885",
+    "serverLog": "7fe2f3ea729046573c7c16e7678ed3f9d9f1974e0d4668d62061fe439a737662"
+  },
+  "credentials": "disposable fixture credentials removed with the owned Compose project"
+}

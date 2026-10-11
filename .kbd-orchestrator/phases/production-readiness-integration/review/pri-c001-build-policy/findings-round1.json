@@ -1,0 +1,37 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "dagger/codegen.ts",
+      "line": 223,
+      "claim": "The declared Dagger rust-build gate is no longer materialized, so `cargo build -p frf-ffi --release` can be skipped entirely.",
+      "evidence": "The pipeline header still declares stage 1 as `rust-build \u2014 cargo build -p frf-ffi --release`, and `dagger/README.md` lists `rust-build | cargo build -p frf-ffi --release | Must compile`, but the materialized `stages` array contains only `clippyCheck.sync()`, `swiftBindgen.sync()`, `kotlinBindgen.sync()`, `bufGen.sync()`, and `pnpmBuild.sync()`.",
+      "suggested_fix": "Add `rustBuild.sync()` to the `stages` array or make each dependent binding-generation stage explicitly derive from `rustBuild` so the release build is guaranteed to run."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c001-build-policy/",
+      "claim": "The required source-bound evidence receipt for this change is missing from the diff.",
+      "evidence": "Acceptance criterion 5 requires: `Save a source-bound receipt under .kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c001-build-policy/; run applicable local quality checks and openspec validate pri-c001-build-policy --strict --no-interactive`, but the diff adds no file under that evidence path.",
+      "suggested_fix": "Add the source-bound receipt under the specified evidence directory with the required local quality-check and OpenSpec validation results."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "Cargo.toml",
+      "claim": "The MSRV reconciliation is incomplete because the workspace manifest was not updated or shown to agree with the new CI MSRV.",
+      "evidence": "Acceptance criterion 2 requires `reconcile MSRV`, the Impact section lists `Cargo.toml` as an affected path, and constraint I4 requires `MSRV pinned in the workspace manifest`; however the diff only changes `.github/workflows/ci.yml` from Rust 1.85 to 1.94 and contains no `Cargo.toml` hunk.",
+      "suggested_fix": "Update the workspace manifest MSRV pin, or include a manifest hunk proving it already matches the CI MSRV."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

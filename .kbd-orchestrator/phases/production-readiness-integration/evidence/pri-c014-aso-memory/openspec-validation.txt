@@ -1,0 +1,3 @@
+$ openspec validate pri-c014-aso-memory --strict --no-interactive
+Change 'pri-c014-aso-memory' is valid
+exit_code=0

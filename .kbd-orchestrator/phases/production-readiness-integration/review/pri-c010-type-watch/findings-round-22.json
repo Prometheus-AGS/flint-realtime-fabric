@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity_type_watch/stream.rs",
+      "line": 181,
+      "claim": "Live mutation delivery can enqueue a protected payload after subscription authority is revoked during object authorization.",
+      "evidence": "Acceptance B requires revocation to stop delivery before another payload; `delivery_frame` checks `producer.authz.check(&producer.subscribe_tuple).await` before issuing the checkpoint, then awaits object authorization via `producer.authz.check(&tuple).await`, and `run_producer` immediately `tx.try_send(frame)` after `delivery_frame` returns without a second subscription-authority recheck.",
+      "suggested_fix": "Recheck identity and subscription authority after object authorization and immediately before enqueueing any live `Mutation` or `CheckpointAdvanced` frame; make revocation preempt the frame if it occurs during the awaited object check."
+    },
+    {
+      "severity": "WARNING",
+      "file": "docs/ENVIRONMENT.md",
+      "line": 100,
+      "claim": "The environment documentation understates the retention validation scope by saying values below 24 hours are rejected only when CDC is enabled.",
+      "evidence": "`docs/ENVIRONMENT.md` documents `ENTITY_WATCH_RETENTION_SECONDS` as 'startup rejects values below 24 hours when CDC is enabled', but `crates/frf-gateway/src/config/validation.rs` validates `self.entity_watch_retention_seconds >= 86_400` before the `if self.cdc_enabled` block, and the regression `broker_replay_retention_is_validated_when_cdc_is_disabled` asserts disabled-CDC rejection.",
+      "suggested_fix": "Update the documentation to state that `ENTITY_WATCH_RETENTION_SECONDS` is validated unconditionally because the full-profile broker retention is configured regardless of CDC state."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

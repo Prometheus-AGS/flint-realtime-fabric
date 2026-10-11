@@ -1,0 +1,18 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "scripts/test-ra11c-materialization.py",
+      "line": 29,
+      "claim": "The campaign source fingerprint list omits directly imported source files, so the source-bound receipt can pass with stale or changed executed code.",
+      "evidence": "CAMPAIGN_INPUT_PATHS hashes 26 paths but does not include files directly imported by the changed campaign code, e.g. replica-mounted.integration.test.ts imports \"../session-revocation-events\" and replica-mounted-runtime.ts/replica-browser-memory.ts import \"./replica-owner\"; acceptance criterion Task 5 and the 'Evidence is absent or stale' scenario require matching source/configuration fingerprints and say missing proof must keep the gate open.",
+      "suggested_fix": "Add every directly executed/imported local source file used by the browser and mounted materializer runs to CAMPAIGN_INPUT_PATHS, including web/src/shared/session-revocation-events.ts and web/src/shared/sync/replica-owner.ts, or replace the hand-maintained list with a dependency graph-derived manifest."
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity_type_watch/stream.rs",
+      "line": 94,
+      "claim": "Initial snapshot delivery can continue sending protected snapshot rows after subscription authority is revoked because revocation checks do not start until after all initial frames are enqueued.",
+      "evidence": "Acceptance criterion 4 requires revocation to meet the contract; `run_producer` calls `enqueue_initial(&tx, &terminal_tx, initial, producer.recheck).await` and returns/continues before creating the recheck interval, while `enqueue_initial` only times out `tx.send(frame)` and performs no `identity.verify` or `authz.check` before sending each initial `SnapshotRow`.",
+      "suggested_fix": "Apply the same identity/subscription-authority check during initial frame delivery, especially immediately before enqueuing protected snapshot rows, and terminate with `PermissionDenied` within the configured recheck interval."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity_type_watch/stream.rs",
+      "line": 307,
+      "claim": "A terminal `ResnapshotRequired` frame emitted via `Terminal::Frame` can be delivered more than once because the output state is not marked terminated after non-lag terminal frames.",
+      "evidence": "`next_output` may return `terminal_result(terminal)` from the `terminal_rx.changed()` branch, but after that only `output.is_err()` or `EntityTypeWatchFrame::Lagged` sets `state.terminated = true`; `Terminal::Frame` is used for `ResnapshotRequired` in `delivery_frame` on source epoch changes, so that terminal frame remains in `terminal_rx` and is returned again on the next poll.",
+      "suggested_fix": "Mark the stream terminated after any `Terminal::Frame` delivery, or make `terminal_result`/the select branch carry whether the result came from a terminal source rather than checking only errors and `Lagged`."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

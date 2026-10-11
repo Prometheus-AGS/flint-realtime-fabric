@@ -1,0 +1,118 @@
+{
+  "result": "Passed",
+  "counts": {
+    "annotation_types": 4,
+    "evidence_states": 3,
+    "cases": 360,
+    "documents": 2880,
+    "case_evidence": 4320,
+    "evidence_citations": 8639,
+    "annotations": 0
+  },
+  "evidenceStates": [
+    "gap",
+    "met",
+    "void"
+  ],
+  "checkpointShapes": [
+    "annotation_types",
+    "annotations",
+    "case_evidence",
+    "cases",
+    "documents",
+    "evidence_citations",
+    "evidence_states"
+  ],
+  "generation": 7,
+  "checks": {
+    "initialSqlGraphParity": true,
+    "completeShapeCheckpoint": true,
+    "gateSummaryUpdatedInSqlAndGraph": true,
+    "evidenceStateReferenceIdentitiesPreserved": true,
+    "coldCrashLeftNoPartialBatch": true,
+    "crashRolledBackRowAndCheckpoint": true,
+    "restartResumedWithoutSkip": true,
+    "deleteForcedReplacement": true,
+    "disposedOwnerFencedPendingRevision": true,
+    "replacementOwnerAppliedPendingRevision": true,
+    "authorityFailureEventPublishedAndFenced": true,
+    "finalSqlAndGraphCountsMatchExpected": true,
+    "finalGenerationMatchesCheckpoint": true
+  },
+  "memory": {
+    "durableInitialProcess": {
+      "baseline": {
+        "heapUsedBytes": 16377776,
+        "rssBytes": 99385344
+      },
+      "peak": {
+        "heapUsedBytes": 83624992,
+        "rssBytes": 531283968
+      },
+      "rssDeltaBytes": 431898624,
+      "heapDeltaBytes": 67247216,
+      "stages": {
+        "baseline": {
+          "heapUsedBytes": 16377776,
+          "rssBytes": 99385344
+        },
+        "open-runtime": {
+          "heapUsedBytes": 16384368,
+          "rssBytes": 99385344
+        },
+        "initial-sync": {
+          "heapUsedBytes": 81129456,
+          "rssBytes": 508575744
+        },
+        "capture-revision": {
+          "heapUsedBytes": 83455648,
+          "rssBytes": 474447872
+        },
+        "crash-rollback": {
+          "heapUsedBytes": 49221928,
+          "rssBytes": 472563712
+        },
+        "final": {
+          "heapUsedBytes": 49223848,
+          "rssBytes": 472580096
+        }
+      },
+      "peakStage": "initial-sync"
+    },
+    "durableContinuationProcess": {
+      "baseline": {
+        "heapUsedBytes": 16349272,
+        "rssBytes": 98893824
+      },
+      "peak": {
+        "heapUsedBytes": 96853888,
+        "rssBytes": 423084032
+      },
+      "rssDeltaBytes": 324190208,
+      "heapDeltaBytes": 80504616,
+      "stages": {
+        "baseline": {
+          "heapUsedBytes": 16349272,
+          "rssBytes": 98893824
+        },
+        "restart-update": {
+          "heapUsedBytes": 65022992,
+          "rssBytes": 372998144
+        },
+        "delete-replacement": {
+          "heapUsedBytes": 93108016,
+          "rssBytes": 417923072
+        },
+        "replacement-owner": {
+          "heapUsedBytes": 96852288,
+          "rssBytes": 423084032
+        },
+        "final": {
+          "heapUsedBytes": 96853888,
+          "rssBytes": 423084032
+        }
+      },
+      "peakStage": "final"
+    }
+  }
+}

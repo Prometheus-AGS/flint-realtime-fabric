@@ -1,0 +1,27 @@
+{
+  "artifact_type": "code",
+  "variants": [
+    {
+      "name": "validated-deployment-profiles",
+      "files": [
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/compose.yml",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/compose.shape-only.yml",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/scripts/render-deployment-profile.sh",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/scripts/test-deployment-profiles.sh",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-gateway/src/config/validation.rs",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-gateway/tests/deployment_profiles.rs",
+        "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c004-deployment-profiles/receipt.md"
+      ],
+      "format": "mixed-source",
+      "description": "The independent full and shape-only renderers, gateway authority boundaries, local acceptance harness and source-bound receipt."
+    }
+  ],
+  "preview": {"required": false, "runs": []},
+  "validation": {
+    "preview_status": "pass",
+    "has_console_errors": false,
+    "has_request_failures": false,
+    "notes": ["Compiler, CDC/gateway tests, profile render, live TLS, asymmetric Gate bootstrap, Kubernetes TLS Secret dry-run and real-Iggy gates passed locally; later data-path and release-image gates remain open."]
+  },
+  "generated_at": "2026-09-15T12:26:13Z"
+}

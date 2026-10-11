@@ -1,0 +1,36 @@
+{
+  "artifact_type": "code",
+  "variants": [
+    {
+      "name": "durable-entity-projection",
+      "files": [
+        "../../../crates/frf-ports/src/entity_store.rs",
+        "../../../crates/frf-ports/src/log_broker.rs",
+        "../../../crates/frf-app/src/entity.rs",
+        "../../../crates/frf-broker-iggy/src/broker.rs",
+        "../../../crates/frf-projection-surreal/src/store.rs",
+        "../../../crates/frf-gateway/src/configured_broker.rs",
+        "../../../crates/frf-gateway/src/entity_projector.rs",
+        "../../../crates/frf-gateway/src/entity_projection_runtime.rs",
+        "../../../crates/frf-gateway/src/entity_grpc_service.rs",
+        "../../../crates/frf-gateway/src/main.rs",
+        "../../../crates/frf-gateway/tests/entity_projection_integration.rs",
+        "../../../compose.entity-projection-integration.yml",
+        "../../../scripts/run-entity-projection-integration.sh",
+        "../../../compose.yml",
+        "../../../docs/ENVIRONMENT.md",
+        "../../../docs/RUNBOOK.md"
+      ],
+      "format": "mixed-source",
+      "description": "Transactional SurrealDB entity projection, gateway projector composition, per-event authorization, deployment wiring, and an owned PostgreSQL/Iggy/SurrealDB acceptance fixture."
+    }
+  ],
+  "preview": {"required": false, "runs": []},
+  "validation": {
+    "preview_status": "pass",
+    "has_console_errors": false,
+    "has_request_failures": false,
+    "notes": ["The finalized source passes formatting, diff hygiene, production-profile rendering, focused unit tests, all-target compilation, strict Clippy, strict OpenSpec validation, all eight real-adapter acceptance scenarios, and final fresh-context review with no critical findings."]
+  },
+  "generated_at": "2026-09-16T11:35:51Z"
+}

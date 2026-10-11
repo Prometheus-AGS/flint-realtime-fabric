@@ -1,0 +1,38 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-postgres-cdc/Cargo.toml",
+      "claim": "The Postgres CDC adapter now depends directly on the Iggy broker adapter, breaching the adapter dependency rule.",
+      "evidence": "The diff adds `frf-broker-iggy = { path = \"../frf-broker-iggy\" }` to `crates/frf-postgres-cdc/Cargo.toml`, while constraint A2 states each `frf-*` adapter \"does not reach into another adapter crate.\"",
+      "suggested_fix": "Move the Iggy-backed live fixture into a composition/integration-test location that is not the `frf-postgres-cdc` adapter crate, or test through the `LogBroker` port without depending on `frf-broker-iggy` from this adapter."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/pri-c008-cdc-commit-mapping/tasks.md",
+      "line": 9,
+      "claim": "The change leaves the required archive-quality gate incomplete.",
+      "evidence": "Acceptance criterion/task 5 requires saving the source-bound receipt, running applicable local quality checks, and `openspec validate pri-c008-cdc-commit-mapping --strict --no-interactive`, but the diff leaves task 5 unchecked as `- [ ] 5.`.",
+      "suggested_fix": "Run and record the required local quality checks and strict OpenSpec validation, then mark the task complete only with matching evidence."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-postgres-cdc/src/canonical.rs",
+      "line": 127,
+      "claim": "Timestamp-without-time-zone values are emitted as `CanonicalValue::Time`, losing their distinct source type.",
+      "evidence": "In `SourceType::TimestampWithoutZone`, the diff maps `NaiveDateTime::parse_from_str(...)` to `CanonicalValue::Time(...)`; acceptance requires supported typed values and schema-qualified typed CDC mapping, and `model.rs` has no distinct canonical variant for timestamp-without-zone.",
+      "suggested_fix": "Add a distinct canonical representation for timestamp-without-zone values, or explicitly reject that PostgreSQL type during enrollment instead of labeling it as `time`."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

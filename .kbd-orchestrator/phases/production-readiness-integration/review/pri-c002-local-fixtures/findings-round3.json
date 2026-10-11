@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "scripts/run-local-integration.sh",
+      "line": 184,
+      "claim": "The restored-delivery scenario does not actually force delivery back on, so an ambient FRF_DISABLE_DELIVERY=1 makes acceptance A fail even after the runner's intended restoration step.",
+      "evidence": "Acceptance criterion 3 requires \"disabling delivery makes that assertion fail before restoration passes,\" but run_required_test only sets FRF_DISABLE_DELIVERY=1 for mode disabled and runs the enabled branch as `\"${command[@]}\"`, inheriting any pre-existing FRF_DISABLE_DELIVERY from the caller.",
+      "suggested_fix": "Run the enabled scenario with FRF_DISABLE_DELIVERY explicitly unset, e.g. `env -u FRF_DISABLE_DELIVERY \"${command[@]}\"`, or reject caller-provided FRF_DISABLE_DELIVERY at startup."
+    },
+    {
+      "severity": "WARNING",
+      "file": "scripts/run-local-integration.sh",
+      "line": 70,
+      "claim": "The readiness check only verifies that the Iggy TCP port accepts connections, which can race the service becoming protocol-ready and make the integration runner flaky.",
+      "evidence": "wait_for_iggy uses a Node net.createConnection probe and exits on TCP connect, then main immediately runs the gateway test against Iggy; acceptance requires a reliable local fixture proving publish/subscription delivery.",
+      "suggested_fix": "Replace the raw TCP probe with an Iggy protocol/API readiness check or retry `IggyBroker::new`/channel creation until the existing deadline expires."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

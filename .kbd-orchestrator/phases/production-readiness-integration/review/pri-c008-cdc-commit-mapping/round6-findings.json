@@ -1,0 +1,39 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "Cargo.lock",
+      "line": 3105,
+      "claim": "The change touches a file far over the acceptance criterion's 500-line limit.",
+      "evidence": "Acceptance criteria execution note says \"touched files remain at most 500 lines\"; the diff modifies `Cargo.lock` at hunks beginning `@@ -3105`, `@@ -3238`, `@@ -8603`, and `@@ -8861`, proving the touched file exceeds 500 lines.",
+      "suggested_fix": "Either remove `Cargo.lock` from this change by regenerating dependency updates without touching it only if possible, or update the acceptance criterion itself to explicitly exempt generated lockfiles rather than relying on a changed project rule."
+    },
+    {
+      "severity": "WARNING",
+      "file": "crates/frf-postgres-cdc/src/canonical.rs",
+      "line": 36,
+      "claim": "Canonical decoding errors include raw source column values in their Display output, creating a sensitive-data logging risk when CDC errors are surfaced.",
+      "evidence": "`CanonicalError::Invalid` stores `value: String` and formats it as `#[error(\"column '{column}' contains invalid {kind}: {value}\")]`; constraint S3 says \"No sensitive logging\" and specifically prohibits logging relation tuples.",
+      "suggested_fix": "Remove raw source values from error messages, or redact/truncate with an explicit non-sensitive diagnostic token such as type/column only."
+    },
+    {
+      "severity": "WARNING",
+      "file": ".refiner/artifacts/pri-c008-cdc-commit-mapping/artifact_manifest.json",
+      "line": 7,
+      "claim": "The committed artifact manifest embeds absolute developer-local filesystem paths, making the artifact non-portable and unnecessarily exposing local environment details.",
+      "evidence": "The manifest lists files such as `/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-postgres-cdc/src/canonical.rs` instead of repository-relative paths.",
+      "suggested_fix": "Store only repository-relative paths in committed manifests."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

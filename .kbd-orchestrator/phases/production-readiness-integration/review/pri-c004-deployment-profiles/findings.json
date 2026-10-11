@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "mode": "post-qa-adversarial-review",
+  "target": "pri-c004-deployment-profiles",
+  "verdict": "FAIL",
+  "producer_model": "gpt-6",
+  "judge_model": "gpt-5.5",
+  "review_time_utc": "2026-09-15T10:31:10Z",
+  "counts": {
+    "critical": 1,
+    "warning": 2,
+    "suggestion": 0
+  },
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "title": "Full-profile readiness can stay green after the required CDC/Postgres lane is dead",
+      "claim": "The full deployment profile enables CDC and depends on Postgres, but /readyz only gates on authorization, JWKS, Iggy and Electric; the CDC task logs failure without changing readiness.",
+      "evidence": [
+        "openspec/changes/pri-c004-deployment-profiles/specs/production-readiness-integration/spec.md:10 requires semantic readiness with real dependency handshakes.",
+        ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/release-contract.md:21 defines full topology with Postgres CDC.",
+        "compose.yml:45 enables CDC and compose.yml:46 points CDC_REPLICATION_URL at postgres.",
+        "crates/frf-gateway/src/routes/health.rs:78 computes all_ok from authorization, jwks, iggy and electric only.",
+        "crates/frf-gateway/src/main.rs:237 logs CDC task errors and drops the task result while HTTP readiness continues."
+      ],
+      "impact": "A full-profile instance can be placed in rotation while it is no longer consuming committed source changes, contradicting c004 readiness truthfulness and c003's full-profile boundary.",
+      "suggested_fix": "Expose CDC/Postgres liveness to AppState readiness or supervise CDC as a fatal/NotReady component; add a negative test where CDC_ENABLED=true and Postgres/replication fails after startup, expecting /readyz 503."
+    },
+    {
+      "severity": "WARNING",
+      "title": "Kubernetes SSR TLS is declared but not fail-closed by the renderer or readiness evidence",
+      "claim": "Compose validates cert/key/CA material before render, but the SSR Kubernetes renderer only substitutes image and host; missing or invalid frf-shape-tls is delegated to the environment and is not proven to fail startup/readiness.",
+      "evidence": [
+        "openspec/changes/pri-c004-deployment-profiles/design.md:38 requires TLS sources and invalid or missing TLS inputs to fail startup/readiness.",
+        "k8s/overlays/ssr/ingress.yaml:10 declares TLS and ingress.yaml:12 hard-codes secretName frf-shape-tls.",
+        "k8s/overlays/ssr/render-profile.sh:5-12 validates only FRF_SHAPE_GATEWAY_IMAGE and FRF_PUBLIC_HOST.",
+        ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c004-deployment-profiles/acceptance-b.md:51-56 records dry-run plus image/host negatives only for SSR."
+      ],
+      "impact": "The Compose and Kubernetes profile gates are inconsistent; SSR can render a manifest whose TLS prerequisite is absent or wrong without the c004 evidence catching it.",
+      "suggested_fix": "Either make the SSR renderer take and verify a concrete TLS secret/cert source in a local kind fixture, or narrow c004 to a template declaration and move TLS fail-closed proof to a named environment release receipt."
+    },
+    {
+      "severity": "WARNING",
+      "title": "The OpenSpec archive gate remains open while required review resolution is pending",
+      "claim": "c004 has a receipt and local validation evidence, but its final task is still unchecked and now has a critical review finding to resolve.",
+      "evidence": [
+        "openspec/changes/pri-c004-deployment-profiles/tasks.md:9 leaves task 5 unchecked.",
+        ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c004-deployment-profiles/receipt.md:67 records openspec validate passing.",
+        "openspec instructions apply reported progress 4/5 during this review."
+      ],
+      "impact": "The change should not archive until the critical readiness finding is fixed and the final evidence/review task is updated.",
+      "suggested_fix": "After fixing readiness and re-running local checks, update task 5 and re-run this review or an equivalent fresh-context review."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [],
+  "checked_classes": [
+    "Spec violations \u2014 acceptance criteria have corresponding source changes, OpenSpec delta, and source-bound evidence in the diff",
+    "Correctness \u2014 reviewed subscription deadline handling, per-event auth checks, Keto cache invalidation/fencing, JWKS age bounding, and runtime harness paths; no concrete defect provable from the packet",
+    "Regressions \u2014 public JWKS cache type break is explicitly recorded as a compatibility impact, and no other dependent behavior in the packet is shown broken",
+    "Security \u2014 no committed secrets, production auth bypass, sensitive logging, or tenant-isolation bypass is evident in the touched files",
+    "Constraint breaches \u2014 no adapter dependency direction violation, proto edit, unwrap/expect in library code, hardcoded secret, or file-size breach is present in the diff",
+    "Silent failure \u2014 authority transport failures and malformed Keto denial responses fail closed in the changed code paths shown"
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

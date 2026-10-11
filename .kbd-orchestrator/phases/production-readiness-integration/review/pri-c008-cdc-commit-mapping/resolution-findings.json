@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "Cargo.lock",
+      "line": 3243,
+      "claim": "The `frf-postgres-cdc` library still depends on `anyhow`, violating the blocking rule that `anyhow` is only allowed at binary edges.",
+      "evidence": "Cargo.lock hunk for package `frf-postgres-cdc` lists `\"anyhow\"` in its dependencies, while constraint R3 states: \"`anyhow` only at binary edges (`frf-gateway`, `frf-cli`).\"",
+      "suggested_fix": "Remove `anyhow` from `crates/frf-postgres-cdc/Cargo.toml` and replace any remaining uses with typed errors in the adapter crate."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-postgres-cdc/src/consumer.rs",
+      "line": 178,
+      "claim": "All mutations from the same source commit are published with the same `EventEnvelope.offset`, which makes broker offsets non-unique within multi-row transactions.",
+      "evidence": "`publish_commit` constructs each envelope with `offset: Offset(mutation.source.commit_lsn)`, while `transaction.rs` sets the same `commit_lsn` for every mutation in a commit and only varies `transaction_index`; acceptance A requires multi-row transactions preserve source order and acceptance B requires replay without loss.",
+      "suggested_fix": "Use broker-assigned offsets or a monotonic per-event offset; keep `commit_lsn` and `transaction_index` only in the CDC source-position payload/correlation identity."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

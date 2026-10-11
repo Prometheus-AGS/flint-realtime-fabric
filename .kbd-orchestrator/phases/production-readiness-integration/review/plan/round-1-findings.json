@@ -1,0 +1,39 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "pri-c016 can close operations/load/recovery evidence before the profile implementations it is supposed to qualify, allowing stale production-readiness receipts.",
+      "evidence": "The plan says \"The dependency graph in planned-changes.json is authoritative for ordering\" and c016 depends only on \"pri-c003, pri-c004, pri-c005, pri-c007, pri-c008, pri-c013\". But the release gates require c016 for later compositions: \"Generic entity data: Forge + PEM | c001\u2013c012; c016 campaign for its current composition\", \"ASO protected replica | ... applicable c016 recovery/rotation proof\", and \"Hosted media ... applicable operations proof\" / \"Matrix / ATProto ... applicable operations proof\" / \"Sovereign media ... applicable operations proof\". Those later changes c009-c012, c014-c015, and c017-c020 are not dependencies of c016.",
+      "suggested_fix": "Split c016 into per-profile operations changes that depend on the profile implementation they qualify, or add explicit dependencies/rerun gates so generic c016 depends on c009-c012, ASO ops depends on c014-c015, and media/federation ops depend on c017-c020 before their receipts can close."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "The plan does not provide testable acceptance for the TLS portion of the production manifest goal.",
+      "evidence": "Goal G2 requires manifests with \"explicit identity, media, secrets, dependency health, TLS and network-boundary configuration.\" The relevant deployment change c004 only requires \"real dependency handshakes; missing issuer/keys/broker/auth authority fails visibly\" and \"Pinned images, declared secret sources, exposed ports and feature flags match the profile\"; TLS termination, certificate source, trust roots, and HTTP/HTTPS boundary behavior are not acceptance criteria. c016 mentions \"credential/certificate rotation\" but not bootstrapping or validating the selected TLS/network-boundary configuration.",
+      "suggested_fix": "Add c004 acceptance criteria that each selected profile declares and validates TLS mode, certificate/key/trust-source handling, external/internal network boundaries, and fails visibly on missing or mismatched TLS inputs."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "ASO changes target a directory containing a known over-500-line TypeScript file without making file-size remediation an acceptance requirement, risking a blocking QA failure.",
+      "evidence": "The constraints state \"R5 \u2014 File size. No file over 500 lines (any language).\" Source evidence shows `/prior-auth/web/src/shared/sync/replica-runtime.ts` has `totalLines: 524`. The planned ASO changes target `/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web/src/shared/sync/` in c014 and c015, but their acceptance criteria only cover memory, allocation explanation, checkpointing, fencing, and protected-path behavior; they do not require splitting or avoiding the over-limit file.",
+      "suggested_fix": "Add an explicit c014/c015 shared-file safety criterion to either avoid modifying the existing over-limit file or split it below 500 lines before/with any touch, subject to the owning repository\u2019s rules."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

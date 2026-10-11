@@ -1,0 +1,39 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-gateway/tests/subscribe_mux.rs",
+      "line": 189,
+      "claim": "The disabled-delivery scenario never publishes an event, so it proves timeout after no send rather than proving that disabling delivery makes the publish/subscribe assertion fail.",
+      "evidence": "Acceptance criterion 3 requires \"disabling delivery makes that assertion fail before restoration passes\", but the `FRF_DISABLE_DELIVERY` branch waits on `socket.next()` and returns/panics before the HTTP `/v1/publish` request is constructed later in the test.",
+      "suggested_fix": "In disabled mode, still perform the authenticated publish and disable/mutate only the delivery path under test, then assert that the subscribed client does not receive the published envelope."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "scripts/run-local-integration.sh",
+      "line": 247,
+      "claim": "The runner commits hardcoded Iggy credentials in the connection URL.",
+      "evidence": "Constraint S1 says \"No hardcoded secrets ... in any committed file. Secrets come from env / a secret manager\"; the script sets `FRF_TEST_IGGY_URL=\"iggy://iggy:iggy@127.0.0.1:$IGGY_PORT\"`.",
+      "suggested_fix": "Generate disposable Iggy credentials for the fixture or require them through environment variables/secrets, and avoid committing username/password literals."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/pri-c002-local-fixtures/tasks.md",
+      "line": 9,
+      "claim": "The verification/receipt task remains unchecked even though it is part of the acceptance criteria for this change.",
+      "evidence": "Acceptance criterion 5 requires saving the source-bound receipt and running applicable checks, but the diff commits `- [ ] 5. Save a source-bound receipt ... run applicable local quality checks and openspec validate ...`.",
+      "suggested_fix": "Complete the verification task and mark it checked, or do not claim the change satisfies the acceptance criteria."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

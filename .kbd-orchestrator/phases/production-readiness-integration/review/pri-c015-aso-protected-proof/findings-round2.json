@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": ".kbd-orchestrator/phases/production-readiness-integration/tasks.md",
+      "line": 116,
+      "claim": "The diff marks pri-c014 memory acceptance complete even though the attached current-source evidence records an RSS result above the required c014 threshold.",
+      "evidence": "The diff changes pri-c014 task 3 to `[x] ... Same-fixture browser campaign measures incremental RSS at or below 536870912 bytes... (COMPLETE)`, but the evidence supplement's acceptanceB states: `The current browser run recorded 591,396,864 bytes of renderer RSS growth, above c014's 512 MiB memory threshold.`",
+      "suggested_fix": "Do not archive/mark pri-c014 complete until the current-source campaign is at or below 536870912 bytes RSS or an explicit operator-approved replacement contract from c003 is recorded and cited."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-ports/src/identity.rs",
+      "line": 29,
+      "claim": "The Rust quality gates required for this Rust change are not satisfied by the recorded verification.",
+      "evidence": "Constraint R1 requires `cargo check --workspace` and R2 requires `cargo clippy --workspace --lib --bins -- -D warnings -W clippy::pedantic` plus feature/test passes; the evidence supplement's qualitySummary records only `cargo check -p frf-app -p frf-gateway` for Fabric and contains no workspace clippy run.",
+      "suggested_fix": "Run and record the full required workspace checks, including clippy with the specified flags/features/tests, or fix any resulting failures before archive."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

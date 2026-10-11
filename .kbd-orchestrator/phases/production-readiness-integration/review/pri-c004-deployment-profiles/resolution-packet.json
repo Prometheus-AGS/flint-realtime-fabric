@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "mode": "post-qa-resolution-review",
+  "target": "pri-c004-deployment-profiles",
+  "review_time_utc": "2026-09-15T12:23:21Z",
+  "producer_model": "gpt-6",
+  "judge_model": "gpt-5.5",
+  "isolation_mode": "fresh-context independent judge",
+  "scope": [
+    "current c004 candidate diff and c004 evidence",
+    "original packet.json/findings.json without overwrite",
+    "OpenSpec proposal/design/tasks/spec for pri-c004-deployment-profiles",
+    "CLAUDE.md/AGENTS.md local-only testing policy",
+    "prior pri-c003 deployment-profile boundary and sibling Gate key/JWKS source"
+  ],
+  "source_binding": {
+    "fabric_head": "4c2a8326c932ebe0f80799454b0cbbf378e53811",
+    "fabric_tracked_diff_paths_count": 23,
+    "candidate_status_sha256_from_receipt": "56f27a07ef58cbccf2ef4475d435dd8293ce851a8a18f9149b12c43d2cbc676a",
+    "gate_revision_from_receipt": "de88f40dbfe77bc03203bafc2b64de9815fe27b2"
+  },
+  "reviewed_artifact_hashes": {
+    "initial_packet.json": "6919d28c27f9655b2210b9d4c3ed22c4cc670f4cb0cacc02dac7e22ed0860b12",
+    "initial_findings.json": "6984d04c21f95cdb05405fff3f6f8dafa2adcd63b744791613a73ba35f47b63b",
+    "receipt.md": "337db5a76635e9c6932aa557d2d8c191f9b988f0ccb532354da789cac2c8b904",
+    "acceptance-a.md": "59316ce858d063c3992eb58c250c225acc69264589b219af46b3a476533e1feb",
+    "acceptance-b.md": "f95a7e3fdd405d712d153ae468a2ba5c9170cf783bd3907ac47a0b456662eced"
+  },
+  "key_candidate_hashes": {
+    "frf-postgres-cdc/src/consumer.rs": "25e3306ebfb1c551605d7f08a942d88964cc7f3f839fbde25740f0c2a7e471fa",
+    "frf-gateway/src/routes/health.rs": "e99966bb7efc4df5b4ba82bbad86466ddb3a6db6dc9f73404dc37a8f4e0d3dd3",
+    "scripts/render-deployment-profile.sh": "67ef9f3240ec9c7c9b38a8b12a3b55f64fbe4ecdc38e5f2f3e732af3026811b8",
+    "k8s/overlays/ssr/render-profile.sh": "0cf4694b424c32024babe7f837cd95db1006ef139234038772d634a17b8faba0",
+    "k8s/overlays/ssr/ingress.yaml": "88c3f5e5b592f12d350ecfa78c33b0eca2d7389a75a3c3e1a8087d69107b541d"
+  },
+  "openspec_state": {
+    "status": "planning complete and valid",
+    "validate_command": "openspec validate pri-c004-deployment-profiles --strict --no-interactive",
+    "validate_result": "PASS",
+    "tasks_complete": "4/5",
+    "remaining_task": "tasks.md:9 remains open until this resolution review is consumed before archive"
+  },
+  "constraints": {
+    "existing_packet_findings_overwritten": false,
+    "product_code_modified": false,
+    "ci_used_as_test_evidence": false
+  }
+}

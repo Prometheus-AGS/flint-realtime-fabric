@@ -1,0 +1,39 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "The assessment bases the ASO materializer readiness finding on files that the packet marks as missing.",
+      "evidence": "F07 claims: \"ASO `web/src/shared/sync/replica-runtime.ts`, publisher, continuation, graph-session owner and materializer implementations are present\" and \"`materializer-adoption.ts` only enables the exact value `experimental`\"; cited_paths says `MISSING  materializer-adoption.ts`, `MISSING  task-10-cold-fold-order-repair.md`, and `MISSING  web/src/shared/sync/replica-runtime.ts`.",
+      "suggested_fix": "Either provide provenance for the external ASO tree and these exact files, or downgrade F07 to an unverified external-evidence gap instead of asserting implementation and measured gate details."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "The assessment relies on a PEM integration test file that the packet marks as missing.",
+      "evidence": "F08 claims: \"PEM's `flint-live.integration.test.ts` now fails when real FRF build files are missing, but injects `createFlintLoopbackSpine` into the real adapter.\" cited_paths says `MISSING  flint-live.integration.test.ts`.",
+      "suggested_fix": "Add the missing PEM test source/provenance to the packet, or change the finding to state that PEM real-network proof is unknown because the asserted test file was not available."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "The assessment makes CI workflow findings against `.github/workflows/ci.yml`, but that path is unsupported by the packet file tree.",
+      "evidence": "F02 says: \"`.github/workflows/ci.yml` still installs Rust 1.85 for its MSRV check.\" F09 says: \"`.github/workflows/ci.yml:72` runs cargo test\"; the provided file_tree contains no `.github` directory or workflow path.",
+      "suggested_fix": "Include `.github/workflows/ci.yml` in the evidence packet or restate these as unverified workflow concerns rather than assessed codebase findings."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

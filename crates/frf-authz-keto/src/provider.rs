@@ -7,7 +7,8 @@ use tracing::instrument;
 use crate::cache::{CacheKey, CheckCache};
 use crate::types::{CheckResponse, RelationTupleBody};
 
-const DEFAULT_CHECK_TTL: u64 = 60;
+/// Cached decisions remain well inside the accepted five-second authority lifetime.
+const DEFAULT_CHECK_TTL: u64 = 1;
 
 pub struct KetoAuthzProvider {
     http: reqwest::Client,
@@ -37,6 +38,19 @@ impl KetoAuthzProvider {
             subject_id: tuple.subject.clone(),
         }
     }
+
+    fn cache_scope(&self, tuple: &RelationTuple) -> String {
+        // The namespace length makes this encoding unambiguous even when a
+        // configured namespace contains separators. Tenant IDs have a fixed
+        // canonical representation; the remainder is the opaque subject.
+        format!(
+            "{}:{}{}:{}",
+            self.namespace.len(),
+            self.namespace,
+            tuple.tenant_id,
+            tuple.subject
+        )
+    }
 }
 
 #[async_trait]
@@ -50,7 +64,7 @@ impl AuthzProvider for KetoAuthzProvider {
     #[instrument(name = "port::AuthzProvider::check", skip(self, tuple), fields(relation = %tuple.relation))]
     async fn check(&self, tuple: &RelationTuple) -> Result<bool, PortError> {
         let key = CacheKey(
-            tuple.subject.clone(),
+            self.cache_scope(tuple),
             tuple.relation.clone(),
             tuple.object.clone(),
         );
@@ -58,6 +72,8 @@ impl AuthzProvider for KetoAuthzProvider {
         if let Some(cached) = self.cache.get(&key) {
             return Ok(cached);
         }
+
+        let generation = self.cache.generation();
 
         let body = self.tuple_body(tuple);
         let url = format!("{}/relation-tuples/check", self.base_url);
@@ -70,12 +86,43 @@ impl AuthzProvider for KetoAuthzProvider {
             .await
             .map_err(|e| PortError::Transport(e.to_string()))?;
 
+        if resp.status() == reqwest::StatusCode::FORBIDDEN {
+            let check: CheckResponse = resp
+                .json()
+                .await
+                .map_err(|e| PortError::Serialization(e.to_string()))?;
+            if check.allowed {
+                return Err(PortError::Transport(
+                    "Keto returned HTTP 403 with allowed=true".to_owned(),
+                ));
+            }
+            if !self
+                .cache
+                .insert_if_current(key, false, self.check_ttl_secs, generation)
+            {
+                return Err(PortError::PermissionDenied(
+                    "authorization changed while the decision was in flight".to_owned(),
+                ));
+            }
+            return Ok(false);
+        }
+        let resp = resp
+            .error_for_status()
+            .map_err(|e| PortError::Transport(e.to_string()))?;
+
         let check: CheckResponse = resp
             .json()
             .await
             .map_err(|e| PortError::Serialization(e.to_string()))?;
 
-        self.cache.insert(key, check.allowed, self.check_ttl_secs);
+        if !self
+            .cache
+            .insert_if_current(key, check.allowed, self.check_ttl_secs, generation)
+        {
+            return Err(PortError::PermissionDenied(
+                "authorization changed while the decision was in flight".to_owned(),
+            ));
+        }
 
         Ok(check.allowed)
     }
@@ -88,7 +135,7 @@ impl AuthzProvider for KetoAuthzProvider {
     #[instrument(name = "port::AuthzProvider::write", skip(self, tuple), fields(relation = %tuple.relation))]
     async fn write(&self, tuple: RelationTuple) -> Result<(), PortError> {
         let body = self.tuple_body(&tuple);
-        let url = format!("{}/relation-tuples", self.base_url);
+        let url = format!("{}/admin/relation-tuples", self.base_url);
 
         let resp = self
             .http
@@ -105,6 +152,8 @@ impl AuthzProvider for KetoAuthzProvider {
             )));
         }
 
+        self.cache.invalidate_object(&tuple.relation, &tuple.object);
+
         Ok(())
     }
 
@@ -115,14 +164,17 @@ impl AuthzProvider for KetoAuthzProvider {
     /// Returns [`PortError::Transport`] if the HTTP request fails or returns a non-2xx status.
     #[instrument(name = "port::AuthzProvider::delete", skip(self, tuple), fields(relation = %tuple.relation))]
     async fn delete(&self, tuple: RelationTuple) -> Result<(), PortError> {
-        let url = format!(
-            "{}/relation-tuples?namespace={}&object={}&relation={}&subject_id={}",
-            self.base_url, self.namespace, tuple.object, tuple.relation, tuple.subject
-        );
+        let url = format!("{}/admin/relation-tuples", self.base_url);
 
         let resp = self
             .http
             .delete(&url)
+            .query(&[
+                ("namespace", self.namespace.as_str()),
+                ("object", tuple.object.as_str()),
+                ("relation", tuple.relation.as_str()),
+                ("subject_id", tuple.subject.as_str()),
+            ])
             .send()
             .await
             .map_err(|e| PortError::Transport(e.to_string()))?;

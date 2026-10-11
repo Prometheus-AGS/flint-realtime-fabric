@@ -15,6 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "flint/v1/signal.proto",
         "flint/v1/sync.proto",
         "flint/v1/authz.proto",
+        "flint/v2/entity.proto",
     ]
     .iter()
     .map(|p| proto_root.join(p))

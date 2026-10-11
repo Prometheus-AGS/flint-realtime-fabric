@@ -1,0 +1,31 @@
+{
+  "artifact_type": "code",
+  "variants": [
+    {
+      "name": "committed-cdc-mapping",
+      "files": [
+        "../../../crates/frf-postgres-cdc/src/canonical.rs",
+        "../../../crates/frf-postgres-cdc/src/catalog.rs",
+        "../../../crates/frf-postgres-cdc/src/catalog_validation.rs",
+        "../../../crates/frf-postgres-cdc/src/config.rs",
+        "../../../crates/frf-postgres-cdc/src/consumer.rs",
+        "../../../crates/frf-postgres-cdc/src/decode.rs",
+        "../../../crates/frf-postgres-cdc/src/model.rs",
+        "../../../crates/frf-postgres-cdc/src/transaction.rs",
+        "../../../crates/frf-gateway/tests/cdc_integration.rs",
+        "../../../compose.cdc-integration.yml",
+        "../../../scripts/run-cdc-integration.sh"
+      ],
+      "format": "mixed-source",
+      "description": "Catalog-validated committed PostgreSQL CDC plus an owned source-bound PostgreSQL/Iggy acceptance fixture."
+    }
+  ],
+  "preview": {"required": false, "runs": []},
+  "validation": {
+    "preview_status": "pass",
+    "has_console_errors": false,
+    "has_request_failures": false,
+    "notes": ["Owned live committed CRUD, rollback, distinct tenant routing, typed mapping, enrollment failure, crash/restart deduplication, poison and schema-drift scenarios pass; the final isolated cross-model review returned PASS with no findings."]
+  },
+  "generated_at": "2026-09-15T19:00:10Z"
+}

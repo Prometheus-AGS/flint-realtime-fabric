@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "entityTypes": [
+    {
+      "schema": "public",
+      "name": "orders",
+      "projection": "default",
+      "tenantId": "00000000-0000-0000-0000-000000000001"
+    },
+    {
+      "schema": "public",
+      "name": "order_lines",
+      "projection": "default",
+      "tenantId": "00000000-0000-0000-0000-000000000001"
+    },
+    {
+      "schema": "aso",
+      "name": "evidence_states",
+      "projection": "global-reference",
+      "tenantId": "global"
+    }
+  ],
+  "canonicalKeys": [
+    {
+      "name": "non-first-uuid-key",
+      "sourceColumnOrder": ["status", "id", "tenant_id"],
+      "primaryKeyOrder": ["id"],
+      "parts": [
+        {
+          "column": "id",
+          "kind": "uuid",
+          "value": "00000000-0000-0000-0000-000000000101"
+        }
+      ],
+      "canonicalId": "frfkey:v1:W3siY29sdW1uIjoiaWQiLCJraW5kIjoidXVpZCIsInZhbHVlIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMTAxIn1d"
+    },
+    {
+      "name": "composite-key",
+      "sourceColumnOrder": ["description", "sequence", "practice_id"],
+      "primaryKeyOrder": ["practice_id", "sequence"],
+      "parts": [
+        {
+          "column": "practice_id",
+          "kind": "uuid",
+          "value": "00000000-0000-0000-0000-000000000102"
+        },
+        {
+          "column": "sequence",
+          "kind": "signed_integer",
+          "value": "42"
+        }
+      ],
+      "canonicalId": "frfkey:v1:W3siY29sdW1uIjoicHJhY3RpY2VfaWQiLCJraW5kIjoidXVpZCIsInZhbHVlIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMTAyIn0seyJjb2x1bW4iOiJzZXF1ZW5jZSIsImtpbmQiOiJzaWduZWRfaW50ZWdlciIsInZhbHVlIjoiNDIifV0"
+    },
+    {
+      "name": "text-key",
+      "sourceColumnOrder": ["label", "key"],
+      "primaryKeyOrder": ["key"],
+      "parts": [
+        {
+          "column": "key",
+          "kind": "text",
+          "value": "policy:cardiology:v2"
+        }
+      ],
+      "canonicalId": "frfkey:v1:W3siY29sdW1uIjoia2V5Iiwia2luZCI6InRleHQiLCJ2YWx1ZSI6InBvbGljeTpjYXJkaW9sb2d5OnYyIn1d"
+    }
+  ],
+  "committedTransaction": {
+    "epoch": "epoch-a",
+    "commitLsn": "123456789",
+    "publishedBeforeCommit": false,
+    "poisonEventBlocksCheckpoint": true,
+    "events": [
+      {
+        "transactionIndex": 0,
+        "entityType": "public.orders@default",
+        "tenantId": "tenant-1",
+        "keyCase": "non-first-uuid-key",
+        "eventId": "frfevent:v1:238d9579c8c41b05e521885bd8be6984e0cef0ef0fc35d84f2d8080fdfc1d6be",
+        "op": "update",
+        "recordRequired": true
+      },
+      {
+        "transactionIndex": 1,
+        "entityType": "public.order_lines@default",
+        "tenantId": "tenant-1",
+        "keyCase": "composite-key",
+        "eventId": "frfevent:v1:781e20781ba15c10da6948bb2ee51aa6b90389f7ebaa4bd501d79f6f6fd4c6a8",
+        "op": "delete",
+        "recordRequired": false
+      }
+    ]
+  },
+  "snapshotToLive": {
+    "orderedFrames": [
+      "accepted-with-barrier",
+      "snapshot-row-zero-or-more",
+      "snapshot-complete-same-barrier",
+      "mutation-strictly-after-barrier"
+    ],
+    "duplicatesAllowed": true,
+    "deduplicateBy": "event_id"
+  },
+  "projection": {
+    "name": "default",
+    "sourceColumnOrder": ["status", "id", "tenant_id", "amount"],
+    "allowedFields": [
+      {"column": "status", "kind": "text", "value": "approved"},
+      {"column": "id", "kind": "uuid", "value": "00000000-0000-0000-0000-000000000101"},
+      {"column": "amount", "kind": "decimal", "value": "123.45"}
+    ],
+    "excludedFields": ["tenant_id", "internal_notes"],
+    "clientCanSelectFields": false
+  },
+  "authorizedDelete": {
+    "authorizationResource": "canonical-key",
+    "keyCase": "composite-key",
+    "recordPresent": false,
+    "previousRecordPresent": false,
+    "entityTypePresent": true,
+    "tenantIdPresent": true,
+    "checkpointAfterAuthorization": true
+  },
+  "resumeCases": [
+    {
+      "name": "valid-restart",
+      "condition": "scope-and-epoch-match-and-offset-retained",
+      "result": "accepted-after-checkpoint"
+    },
+    {
+      "name": "old-cursor",
+      "condition": "offset-before-retention-floor",
+      "result": "resnapshot_required:history_expired"
+    },
+    {
+      "name": "source-recreated",
+      "condition": "epoch-mismatch",
+      "result": "resnapshot_required:source_epoch_changed"
+    },
+    {
+      "name": "cross-tenant-cursor",
+      "condition": "checkpoint-tenant-does-not-match-authority",
+      "result": "resnapshot_required:checkpoint_scope_mismatch"
+    }
+  ],
+  "unauthorizedHistory": {
+    "dataFrames": 0,
+    "permittedProgressFrame": "checkpoint_advanced",
+    "forbiddenProgressFields": [
+      "event_id",
+      "entity_key",
+      "payload",
+      "source_position",
+      "broker_position"
+    ]
+  },
+  "lag": {
+    "bufferBounded": true,
+    "terminalFrame": "lagged",
+    "silentDrop": false
+  },
+  "cancellation": {
+    "releaseSubscription": true,
+    "framesProducedAfterObservation": 0
+  }
+}

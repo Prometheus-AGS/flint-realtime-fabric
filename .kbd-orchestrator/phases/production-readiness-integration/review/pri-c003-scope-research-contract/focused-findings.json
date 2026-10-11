@@ -1,0 +1,109 @@
+{
+  "mode": "focused-diff-review",
+  "target": "pri-c003-scope-research-contract",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "isolation_mode": "harness-native:fresh-context-subagent",
+  "producer_model": "gpt-6-recorded-by-prior-review-artifacts",
+  "cross_model_check": "fresh-context-independent; model distinct from gpt-6 producer",
+  "generated_at": "2026-09-15T09:09:02Z",
+  "summary": "No c003 archive-blocking defect found. Acceptance A is recorded by the accepted release contract, Q8 is explicitly isolated from this change, and Acceptance B records exact pins plus compatibility/security blockers as later change obligations instead of claiming production readiness.",
+  "counts": {
+    "critical": 0,
+    "warning": 1,
+    "suggestion": 0
+  },
+  "acceptance": {
+    "A": {
+      "status": "PASS",
+      "evidence": [
+        ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/release-contract.md",
+        ".kbd-orchestrator/phases/production-readiness-integration/execution.md",
+        ".kbd-orchestrator/phases/production-readiness-integration/decision-log.md"
+      ],
+      "notes": "Q1-Q7 are resolved with conservative defaults: full and shape-only profiles; browser/PEM, Node ESM/CJS and Rust clients; ASO shape catalog; full-profile schema/key/tenant enrollment; authorized delete invalidations; bounded durable at-least-once history; 1,000 subscriptions, 100 changes/s for 60 minutes, p95 <= 1s, p99 <= 3s, >=24h retention, RPO 0 acknowledged commits, RTO <=15m; ASO RSS/heap budgets; and per-profile endpoint authorization lifetimes. Q8 keeps legacy KBD authority unchanged and outside c003."
+    },
+    "B": {
+      "status": "PASS",
+      "evidence": [
+        ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/dependency-qualification.md",
+        ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/source-inventory.md",
+        ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/cargo-audit-summary.json",
+        ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/integration-audit-summary.json",
+        ".kbd-orchestrator/phases/production-readiness-integration/library-candidates.json"
+      ],
+      "notes": "Fabric lock pins for Iggy, pg_walstream, Cedar, Connect-ES/Protobuf-ES, PGlite, PEM packages, SurrealDB, redb, Loro, LiveKit, str0m, UniFFI and wasm-bindgen are recorded. Current audit failures and unqualified mutable image tags are not accepted; they are assigned to c004/c005/c007/c008/c013/c014/c016/c017/c020/c022/c023 as revised obligations."
+    }
+  },
+  "reconciliations": [
+    {
+      "source": ".kbd-orchestrator/phases/production-readiness-integration/review/assess/findings.json",
+      "status": "PASS",
+      "notes": "The missing Forge provenance blocker is reconciled by current Forge source at /Users/gqadonis/Projects/prometheus/flint-forge@dc313be3a044c65b05d845a9c34350bf5ca3ca3e: crates/fdb-app/src/lib.rs re-queries under RLS and returns the original event when a row exists."
+    },
+    {
+      "source": ".kbd-orchestrator/phases/production-readiness-integration/review/plan/findings.json",
+      "status": "PASS",
+      "notes": "The c003 circularity warning is fixed: design/tasks/plan now make Q1-Q7 closure outputs, not start inputs. The c011 ordering warning is fixed in plan.md by generating/exporting the Rust client in c010 and leaving non-Rust package generation to c012."
+    },
+    {
+      "source": ".kbd-orchestrator/phases/production-readiness-integration/review/analyze/findings.json",
+      "status": "PASS",
+      "notes": "The final analysis states alternative CDC services were not evaluated and library-candidates.json no longer claims F10 coverage in candidate fit/build-required entries."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/source-inventory.md",
+      "line": 7,
+      "claim": "Sibling checkout state has drifted since the c003 inventory capture.",
+      "evidence": "Current checks found /Users/gqadonis/Projects/prometheus/flint-gate at the recorded HEAD 97d65437c937a285fb000f5e42fddc8af4ff9934 but with modified crates/flint-gate-core/src/admin/mod.rs, crates/flint-gate-core/src/auth/jwt_mint.rs and crates/flint-gate/src/main.rs. Current ASO status hash is 6881e7592666d1f7fd15745886563b6c253b21619d6a6d8bdd6516086297c2bf, not the ef91609... hash recorded in baseline.md.",
+      "impact": "Not an archive blocker for c003 because source-inventory.md explicitly says it is not a release receipt and later cross-repository changes must recapture revisions and dirty diffs. Do not reuse c003 as current Gate or ASO implementation certification."
+    }
+  ],
+  "local_checks": [
+    {
+      "command": "openspec validate pri-c003-scope-research-contract --strict --no-interactive",
+      "result": "PASS"
+    },
+    {
+      "command": "jq empty on c003 JSON evidence and library-candidates.json",
+      "result": "PASS"
+    },
+    {
+      "command": "cargo metadata --format-version 1 --locked",
+      "result": "PASS",
+      "notes": "Confirmed locked Fabric dependency rows for cedar-policy 4.11.1, iggy 0.6.203 at d34b9c96..., livekit-api 0.5.2, loro 1.13.1, pg_walstream 0.6.3, redb 4.1.0, str0m 0.21.0, surrealdb 3.1.5, uniffi 0.31.2 and wasm-bindgen 0.2.125."
+    },
+    {
+      "command": "Context7 docs spot-check",
+      "result": "PASS",
+      "notes": "Checked /connectrpc/connect-es, /ory/keto and /electric-sql/pglite; docs matched the evidence boundaries for browser transport/v2 migration, Keto readiness/version/check APIs and PGlite close/persistence/upgrade guidance."
+    }
+  ],
+  "evidence_reviewed": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "openspec/changes/pri-c003-scope-research-contract/proposal.md",
+    "openspec/changes/pri-c003-scope-research-contract/design.md",
+    "openspec/changes/pri-c003-scope-research-contract/tasks.md",
+    "openspec/changes/pri-c003-scope-research-contract/specs/production-readiness-integration/spec.md",
+    ".kbd-orchestrator/phases/production-readiness-integration/analysis.md",
+    ".kbd-orchestrator/phases/production-readiness-integration/decision-log.md",
+    ".kbd-orchestrator/phases/production-readiness-integration/library-candidates.json",
+    ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/baseline.md",
+    ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/release-contract.md",
+    ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/dependency-qualification.md",
+    ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/source-inventory.md",
+    ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/cargo-audit-summary.json",
+    ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/integration-audit-summary.json",
+    ".kbd-orchestrator/phases/production-readiness-integration/review/assess/findings.json",
+    ".kbd-orchestrator/phases/production-readiness-integration/review/plan/findings.json",
+    ".kbd-orchestrator/phases/production-readiness-integration/review/analyze/findings.json",
+    "/Users/gqadonis/Projects/prometheus/flint-forge/crates/fdb-app/src/lib.rs",
+    "/Users/gqadonis/Projects/prometheus/prometheus-entity-management/packages/entity-graph-core/src/adapters/flint-live.integration.test.ts",
+    "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/frf/shape-catalog.json",
+    "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/versions.toml"
+  ]
+}

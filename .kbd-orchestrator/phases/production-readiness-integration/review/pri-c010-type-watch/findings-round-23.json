@@ -1,0 +1,22 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [],
+  "checked_classes": [
+    "Spec violations \u2014 acceptance A/B paths were checked against the diff evidence and implementation points; no concrete unmet criterion was found in the packet.",
+    "Correctness \u2014 stream ordering, final authorization rechecks, checkpoint validation, snapshot/resume offset handling, and gRPC frame conversion were reviewed; no definite logic defect was identified from the provided hunks.",
+    "Regressions \u2014 v1 proto immutability, existing v1 entity service registration, broker construction, and projection fallback behavior were checked; no concrete regression was evident in the diff.",
+    "Security \u2014 checkpoint secrecy, hardcoded production secrets, tenant guard paths, authorization rechecks, and sensitive logging were checked; no blocking violation was found in the provided hunks.",
+    "Constraint breaches \u2014 dependency direction, adapter isolation, proto-v1 freeze, unwrap/expect policy, OpenSpec presence, and touched-file size limits were checked; no definite breach was found from the packet.",
+    "Silent failure \u2014 env numeric parsing, retention validation, checkpoint validation failures, malformed canonical data, and source-history expiry handling were checked; no silent fallback defect was identified."
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

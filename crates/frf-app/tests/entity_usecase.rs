@@ -1,13 +1,14 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)] // test crate — see clippy.toml + rules/rust/testing.md
 
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use frf_app::{AppError, EntityRequest, EntityUseCase};
 use frf_domain::{ChangeOp, EntityChange, EntityId, TenantId};
 use frf_ports::{
-    AuthzProvider, EntityChangeStream, EntityStore, IdentityVerifier, PortError, RelationTuple,
-    VerifiedClaims,
+    AuthzProvider, EntityChangeStream, EntityProjectionSnapshot, EntityStore, IdentityVerifier,
+    PortError, ProjectionApply, ProjectionCursor, RelationTuple, VerifiedClaims,
 };
+use futures_util::StreamExt as _;
 use mockall::mock;
 use uuid::Uuid;
 
@@ -29,6 +30,16 @@ mock! {
             entity_id: EntityId,
             tenant_id: TenantId,
         ) -> Result<EntityChangeStream, PortError>;
+        async fn apply_projection(
+            &self,
+            change: EntityChange,
+            cursor: ProjectionCursor,
+        ) -> Result<ProjectionApply, PortError>;
+        async fn install_projection_snapshot(
+            &self,
+            snapshot: EntityProjectionSnapshot,
+        ) -> Result<bool, PortError>;
+        async fn projection_checkpoint(&self) -> Result<Option<ProjectionCursor>, PortError>;
     }
 }
 
@@ -209,4 +220,38 @@ async fn get_returns_none_for_unknown_entity() {
     let tenant = TenantId::from_uuid(NIL_TENANT);
     let got = usecase.get(req(EntityId::new(), tenant)).await.unwrap();
     assert!(got.is_none());
+}
+
+#[tokio::test]
+async fn watch_rechecks_object_authority_for_each_event() {
+    let entity = EntityId::new();
+    let tenant = TenantId::from_uuid(NIL_TENANT);
+    let change = sample_change(entity, tenant);
+    let mut store = MockStore::new();
+    store.expect_watch_entity().once().returning(move |_, _| {
+        let first = futures_util::stream::once(futures_util::future::ready(Ok(change.clone())));
+        let idle = futures_util::stream::pending();
+        Ok(Box::pin(first.chain(idle)))
+    });
+
+    let mut authz = MockAuthz::new();
+    let mut checks = [true, false].into_iter();
+    authz
+        .expect_check()
+        .times(2)
+        .returning(move |_| Ok(checks.next().unwrap_or(false)));
+    let mut identity = MockIdentity::new();
+    identity
+        .expect_verify()
+        .once()
+        .returning(|_| Ok(test_claims()));
+
+    let usecase = EntityUseCase::new(Arc::new(store), Arc::new(authz), Arc::new(identity));
+    let mut stream = usecase.watch(req(entity, tenant)).await.unwrap();
+    let item = stream.next().await.expect("revocation result");
+    assert!(matches!(item, Err(PortError::PermissionDenied(_))));
+    let end = tokio::time::timeout(Duration::from_millis(100), stream.next())
+        .await
+        .expect("revoked stream must terminate without polling the idle source");
+    assert!(end.is_none(), "revoked stream must terminate");
 }

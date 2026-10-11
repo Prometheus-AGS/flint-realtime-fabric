@@ -36,8 +36,10 @@
   denied at the workspace level; they are allowed only in tests (`clippy.toml`). `anyhow`
   only at binary edges (`frf-gateway`, `frf-cli`).
 - **R4 — Formatted.** `cargo fmt --check --all` is clean.
-- **R5 — File size.** No file over **500 lines** (any language). Split into a directory
-  module when approaching it.
+- **R5 — File size.** No hand-authored file over **500 lines** (any language or
+  format). Split into a directory module when approaching it. Machine-generated
+  dependency lockfiles are exempt because their package managers require the
+  native single-file format; do not split or hand-edit them for line count.
 
 ## Rust idioms (HIGH)
 

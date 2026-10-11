@@ -131,15 +131,19 @@ Compile with `--features shape-facade`, then set **both**:
 | `SHAPE_CATALOG_PATH` | Path to the JSON shape catalog |
 | `SHAPE_TIMEOUT_SECS` | Upstream timeout (default 30) |
 | `GATEWAY_PROFILE` | Use `shape-only` for the bounded facade deployment; unrelated HTTP, gRPC, media and agent lanes are disabled |
+| `MEDIA_ENABLED` | Must be `false`; media authority is outside this profile |
 
 The RA06 active-response lease is compiled at 1,750 ms and cannot be configured above the
 recorded component budget. Gate's ASO deployment mints downstream replica tokens for at most
 three seconds. This covers the 1,750 ms FRF lease plus the recorded one-second allowance for
 whole-second JWT expiry precision.
 
-The `shape-only` profile refuses to start unless both of the first two variables are set. In
-the full profile, omitting both leaves the optional lane unmounted; setting only one is an
-invalid configuration. A half-configured deployment therefore cannot reach Electric.
+The `shape-only` profile refuses to start unless both of the first two variables are set. The
+`full` profile rejects either variable because Electric belongs to the separately qualified
+shape boundary. A half-configured or cross-profile deployment therefore cannot reach Electric.
+`shape-only` also rejects Iggy, gRPC, CDC, federation and media configuration. Its readiness
+check calls Electric's `/v1/health`; an unreachable Electric service keeps the instance out of
+rotation.
 
 ### Catalog format
 

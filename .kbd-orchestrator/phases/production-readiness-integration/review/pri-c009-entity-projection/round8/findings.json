@@ -1,0 +1,29 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-projection-surreal/src/store.rs",
+      "claim": "Snapshot installation can leave an open SurrealDB transaction on any mid-snapshot error, so the advertised atomic snapshot/checkpoint seam is not reliably cleaned up.",
+      "evidence": "In `install_projection_snapshot`, a transaction is begun, then `delete`, per-entity `EntityRow::from_change`, `upsert`, cursor `upsert`, and `commit` all use `?` without a cancellation path; by contrast `apply_projection` explicitly calls `transaction.cancel().await` on both duplicate and error branches. Acceptance criterion 2 requires a durable population/checkpoint seam and snapshot-to-WAL catch-up.",
+      "suggested_fix": "Wrap the snapshot transaction body like `apply_projection`: collect the result, call `transaction.cancel().await` before returning any error, and only return success after `commit` succeeds."
+    },
+    {
+      "severity": "WARNING",
+      "file": "crates/frf-app/src/entity.rs",
+      "claim": "A revoked watch is only detected after the underlying entity stream yields another item, so an idle watch can remain open indefinitely after authorization is revoked.",
+      "evidence": "The watch guard performs `authz.check(&view_tuple).await` only inside `stream.then(...)` after an item arrives, and the outer `unfold` awaits `checked.as_mut().next().await?`; no independent revocation signal or periodic recheck exists. The completion receipt claims the correction makes a revoked watch terminate on its next poll without waiting for another event from an idle underlying source.",
+      "suggested_fix": "Add an authorization-revocation signal or periodic/explicit recheck path that can yield `PermissionDenied` even when the underlying entity stream is pending, or narrow the documented claim to per-event reauthorization only."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

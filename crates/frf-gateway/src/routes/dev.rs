@@ -167,6 +167,9 @@ pub mod inject {
             sfu_mode: SfuMode::Sovereign,
             payload: body.payload,
             timestamp: chrono::Utc::now(),
+            // This endpoint injects a synthetic local-development signal rather
+            // than one authenticated by the browser signaling route.
+            subject: None,
         };
 
         match state.media_signaler.send_signal(envelope).await {

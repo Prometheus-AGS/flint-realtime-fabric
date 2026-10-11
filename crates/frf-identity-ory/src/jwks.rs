@@ -1,17 +1,43 @@
-use std::sync::Arc;
+use std::time::Duration;
 
 use jsonwebtoken::jwk::JwkSet;
-use tokio::sync::RwLock;
+use tokio::sync::{Mutex, RwLock};
+use tokio::time::Instant;
 use tracing::debug;
 
 use crate::error::IdentityError;
 
-pub type JwksCache = Arc<RwLock<Option<JwkSet>>>;
+/// Default refresh age stays inside the accepted five-second authority lifetime.
+pub const DEFAULT_JWKS_MAX_AGE: Duration = Duration::from_secs(2);
+
+#[derive(Debug, Clone)]
+struct CachedJwks {
+    keys: JwkSet,
+    fetched_at: Instant,
+}
+
+/// Age-bounded JWKS cache. Removed signing keys cannot remain trusted indefinitely.
+#[derive(Debug)]
+pub struct JwksCache {
+    state: RwLock<Option<CachedJwks>>,
+    refresh: Mutex<()>,
+    max_age: Duration,
+}
 
 /// Create a new empty JWKS cache.
 #[must_use]
 pub fn new_cache() -> JwksCache {
-    Arc::new(RwLock::new(None))
+    new_cache_with_max_age(DEFAULT_JWKS_MAX_AGE)
+}
+
+/// Create an empty cache with an explicit maximum age.
+#[must_use]
+pub fn new_cache_with_max_age(max_age: Duration) -> JwksCache {
+    JwksCache {
+        state: RwLock::new(None),
+        refresh: Mutex::new(()),
+        max_age,
+    }
 }
 
 /// Fetch the JWKS from `url`, store it in `cache`, and return it.
@@ -24,6 +50,9 @@ pub async fn fetch_and_cache(
     url: &str,
     cache: &JwksCache,
 ) -> Result<JwkSet, IdentityError> {
+    // Serialize fetches so an older in-flight response cannot overwrite a
+    // newer key set after rotation.
+    let _refresh = cache.refresh.lock().await;
     debug!(url, "fetching JWKS");
     let jwks: JwkSet = http
         .get(url)
@@ -34,8 +63,11 @@ pub async fn fetch_and_cache(
         .await
         .map_err(|e| IdentityError::JwksFetch(e.to_string()))?;
 
-    let mut guard = cache.write().await;
-    *guard = Some(jwks.clone());
+    let mut guard = cache.state.write().await;
+    *guard = Some(CachedJwks {
+        keys: jwks.clone(),
+        fetched_at: Instant::now(),
+    });
     Ok(jwks)
 }
 
@@ -50,9 +82,11 @@ pub async fn get_or_fetch(
     cache: &JwksCache,
 ) -> Result<JwkSet, IdentityError> {
     {
-        let guard = cache.read().await;
-        if let Some(ref jwks) = *guard {
-            return Ok(jwks.clone());
+        let guard = cache.state.read().await;
+        if let Some(cached) = guard.as_ref()
+            && cached.fetched_at.elapsed() < cache.max_age
+        {
+            return Ok(cached.keys.clone());
         }
     }
     fetch_and_cache(http, url, cache).await

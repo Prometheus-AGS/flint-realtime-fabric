@@ -1,0 +1,20 @@
+{
+  "artifact_type": "content",
+  "constraints": [
+    {"id":"A","description":"Full and shape-only compose exactly their accepted dependencies and semantic readiness checks.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"deployment_profiles integration tests and owned real-Iggy runner"}},
+    {"id":"B","description":"Images, secrets, TLS, ports, networks and public routes fail closed at render and runtime boundaries.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"profile render matrix, pinned Nginx TLS runtime and Kubernetes dry-run"}},
+    {"id":"P1","description":"OpenSpec validates strictly.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"openspec validate --strict --no-interactive"}},
+    {"id":"P2","description":"Rust, shell, manifests and file-size rules pass their local quality gates.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"workspace check, gateway test/Clippy, Shellcheck, diff and size gates"}},
+    {"id":"S1","description":"The receipt does not claim later persistence, replay, recovery, ASO or release-image qualification.","severity":"high","type":"semantic","validation":{"requires_code_execution":false,"validation_method":"receipt and accepted release-contract comparison"}}
+  ],
+  "global_rules": [
+    "Runtime tests execute locally; CI results are not evidence.",
+    "Only immutable image digests qualify for a rendered profile.",
+    "The three pre-existing shape files remain outside c004.",
+    "A missing dependency, key, TLS input or authority endpoint fails startup/readiness."
+  ],
+  "termination_conditions": [
+    "All blocking c004 constraints pass.",
+    "Remaining production-readiness work is assigned to later changes."
+  ]
+}

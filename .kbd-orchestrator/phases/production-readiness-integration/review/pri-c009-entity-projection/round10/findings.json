@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "crates/frf-projection-surreal/src/model.rs",
+      "line": 120,
+      "claim": "The Surreal projection serializer can write delete operations but the deserializer rejects them, making any persisted delete change unreadable.",
+      "evidence": "`op_name` maps `ChangeOp::Delete` to `\"delete\"`, while `parse_op` only accepts `\"insert\"`, `\"update\"`, and `\"upsert\"` and returns `InvalidData` for every other value; acceptance criterion 4 requires delete semantics for the v1 entity path.",
+      "suggested_fix": "Add `\"delete\" => Ok(ChangeOp::Delete)` to `parse_op`, or reject delete changes before persisting rows if deletes must never be stored."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "library-candidates.json",
+      "line": 0,
+      "claim": "The analysis claims to address all assessed gaps while omitting candidate evaluation or maintenance checks for the media, federation, identity, policy, deployment, and platform components required by the goals.",
+      "evidence": "Goals require these release surfaces: G2 says manifests must cover \"identity, media, secrets, dependency health, TLS and network-boundary configuration\" and G8 says to \"Prove hosted media and separately close sovereign decode, authorization lifetime and federation recovery gaps\"; however library-candidates.json lists only four candidates\u2014Iggy, pg_walstream, PGlite/ASO, and Connect-ES\u2014and reduces the remaining area to an unevaluated build item: \"Reuse current persistence/media/federation/binding adapters; selected release scope determines required load, restart, decode, rotation, install and device receipts.\"",
+      "suggested_fix": "Add explicit candidate/stack evaluations for the existing media, federation, identity/authz, policy, persistence, deployment, and platform dependencies that are in scope for G2/G8/G9, or state that those goals are excluded from this Analyze artifact and cannot be planned from it."
+    },
+    {
+      "severity": "WARNING",
+      "file": "library-candidates.json",
+      "line": 0,
+      "claim": "pg_walstream is given an adapt verdict even though the analysis records that its current registry maintenance and latest release status were not verified.",
+      "evidence": "cand-002 has \"verdict\": \"adapt\" but its risks include \"Current registry maintenance and latest release unverified\"; analysis.md likewise states \"Exact maintenance health remains unknown; inspect release policy/security maintenance before production dependency qualification.\"",
+      "suggested_fix": "Make the pg_walstream decision explicitly conditional/deferred until maintenance and security status are checked, or complete that check and record the result in the candidate entry."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

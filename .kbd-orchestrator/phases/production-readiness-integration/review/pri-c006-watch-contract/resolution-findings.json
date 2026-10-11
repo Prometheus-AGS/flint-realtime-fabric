@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c006-watch-contract/receipt.md",
+      "line": 33,
+      "claim": "The recorded quality gates do not satisfy the blocking workspace Rust checks required for a Rust code change.",
+      "evidence": "Constraints R1/R2 require `cargo check --workspace` and `cargo clippy --workspace --lib --bins -- -D warnings -W clippy::pedantic` to be clean for Rust code, but the receipt records only focused commands: `cargo test --offline -p frf-proto -p frf-domain -p frf-ports`, strict Clippy for those three crates, and `cargo check --offline -p frf-gateway -p frf-sdk-rust`.",
+      "suggested_fix": "Run and record the required workspace-level `cargo check --workspace` and `cargo clippy --workspace --lib --bins -- -D warnings -W clippy::pedantic` checks, plus the specified feature/tests clippy passes, and fix any resulting failures before marking task 5 complete."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

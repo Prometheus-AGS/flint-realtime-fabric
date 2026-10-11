@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "runId": "20260915171812-5090",
+  "source": {
+    "commit": "5aaad523ad6803bd07992a6ca6e6d75238d968c9",
+    "candidateArtifactSetSha256": "6ea5790712525f25e9d7057a978fda8c0cb5d817b35472e5f2bad880a565f2df"
+  },
+  "startedAt": "2026-09-15T17:18:12Z",
+  "finishedAt": "2026-09-15T17:28:40Z",
+  "exitStatus": 0,
+  "topology": {
+    "composeProject": "frf-broker-replay-20260915171812-5090",
+    "composeFiles": [
+      "compose.integration.yml",
+      "compose.broker-replay.yml"
+    ],
+    "endpoint": "127.0.0.1:32847",
+    "imageId": "sha256:5ed1de369f7d563d5da04093e2d04beb980d2ce965efaaa683bf9a3c72aa5c5f",
+    "imageDigest": "iggyrs/iggy@sha256:2b2d79a5d58a35834cf69b1e2e05d2052c91d739d1d91449475bcd04de24cdc5",
+    "partitions": 1
+  },
+  "durability": {
+    "messageSaver": {
+      "enabled": true,
+      "enforceFsync": true,
+      "interval": "1 s"
+    },
+    "partition": {
+      "enforceFsync": true,
+      "messagesRequiredToSave": 1
+    },
+    "state": {
+      "enforceFsync": true
+    },
+    "messageDeduplication": {
+      "enabled": true,
+      "maxEntries": 10000,
+      "expiry": "24 h"
+    },
+    "segmentSize": "1 KB",
+    "topicRetentionSeconds": 86400
+  },
+  "scenarios": {
+    "crashBeforeCheckpoint": "pass",
+    "checkpointAndInclusiveResume": "pass",
+    "independentConsumersAndCancellation": "pass",
+    "producerRestartPosition": "pass",
+    "concurrentPublishPosition": "pass",
+    "seedBeforeServerRestart": "pass",
+    "serverRestart": "pass",
+    "durableReplayAfterServerRestart": "pass",
+    "stableIdentityDeduplicationAfterRestart": "pass"
+  },
+  "cleanup": {
+    "status": "owned-resources-removed",
+    "composeProject": "frf-broker-replay-20260915171812-5090"
+  },
+  "sha256": {
+    "broker": "2a55d12fc1843985f56496bb993ae910c58c7eab04b58f984f722d8065f26148",
+    "brokerUnitTests": "29b3030cba3ddce9fd096db6e7cecd1647c7bc853c14e7567e175c63f1c31920",
+    "brokerLib": "2f60caac97b4ab86af257d366342959095ff1e4051a3d60c6d9ddfdbb863bb2a",
+    "positionMapping": "bc9234e4aea4fa52ddb5fd7a1de44e2032c80d70f2e78dc462ac6c3d9a98117e",
+    "test": "2098e229ee3e964e644f96ca5071c1d8844c071b88b0539133d98b30bda25060",
+    "port": "a004c0d6c5cae3ba56cce0247a9b8c3ac331102f5b94374098757dbaf7ab9ce2",
+    "composeOverride": "9d440d877cf113136f93fc7538045a3abb823c352df16a8f79b12e22a4388779",
+    "runner": "7603b5be60ecd9a763620862d53a9d89c0191a57d987f0c75a623e4a89bfc4c1",
+    "sourceBinding": "6ea5790712525f25e9d7057a978fda8c0cb5d817b35472e5f2bad880a565f2df",
+    "coreLog": "99ca0646436b121d79968050920ca0c45eb10cab7fe33134aa746306a21a1701",
+    "seedLog": "eeb420223ec00c898b7fe6ffbc387f41e4bdf40aba110a02fad235a0158146db",
+    "verifyLog": "df17c6b809172c8fdbdc5e14e2b12b5acefbdf99f7e4c33d4ad44fd0006475eb",
+    "serverLog": "b2675441e9d9bf49c37edeff8b8ebb482b11981dafedd5c7d2b5ad4077935e48"
+  },
+  "credentials": "disposable Iggy credentials removed with the owned Compose project"
+}

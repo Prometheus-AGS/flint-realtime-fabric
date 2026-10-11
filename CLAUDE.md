@@ -14,7 +14,7 @@ Base rules for all agents are in **`docs/PROMETHEUS-BASE-RULES.md`** (Rules 1–
 
 ## File Size Limit
 
-**No file over 500 lines.** When a file approaches 500 lines, create a directory module and split it into architecturally sound sub-modules. This applies to every language (Rust, TypeScript, proto files, config files).
+**No hand-authored file over 500 lines.** When a file approaches 500 lines, create a directory module and split it into architecturally sound sub-modules. This applies to every hand-authored language and format (Rust, TypeScript, proto files, config files). Machine-generated dependency lockfiles are exempt because package managers require their native single-file format; do not split or hand-edit them merely to meet a line count.
 
 ---
 

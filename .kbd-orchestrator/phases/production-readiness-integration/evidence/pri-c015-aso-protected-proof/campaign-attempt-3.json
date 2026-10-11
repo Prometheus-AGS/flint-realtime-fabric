@@ -1,0 +1,1973 @@
+{
+  "result": "Failed",
+  "verification_tier": 1,
+  "observed_at": "2026-09-17T14:56:11.421430+00:00",
+  "scope": "Current browser PGlite topology from protected Gate/FRF shapes through transactional SQL materialization into the PEM graph",
+  "command": "python3 scripts/test-pri-c015-protected-replica.py --output /Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c015-aso-protected-proof/campaign.json --data-dir .runtime/ra11a-data/pri-c015-protected-replica --timeout-seconds 240",
+  "checks": {
+    "production_replica_uses_shape_transport_without_generic_watch_writer": {
+      "result": "Passed",
+      "closureAggregateSha256": "337cdc470558f989acc0149c7098826226fa17ecf001fff4b3d321f349c9fe76",
+      "closureFileCount": 34,
+      "competingGenericWatchMatches": []
+    },
+    "focused_browser_crash_fence_and_egress_tests_passed": {
+      "result": "Passed",
+      "testFiles": [
+        "src/shared/sync/protected-replica-boundaries.integration.test.ts",
+        "src/shared/sync/frf-shape-transport.test.ts",
+        "src/shared/sync/replica-runtime.test.ts",
+        "src/shared/sync/graph-session-manager.test.ts",
+        "src/shared/sync/replica-worker-owner.test.ts",
+        "src/shared/sync/chunk-writer.test.ts",
+        "src/shared/sync/case-summary-materialization.test.ts",
+        "src/shared/sync/catalog-conformance.test.ts"
+      ]
+    },
+    "fabric_stream_revocation_suite_passed": {
+      "result": "Passed"
+    },
+    "gate_ready": {
+      "result": "Passed"
+    },
+    "realtime_fabric_ready": {
+      "result": "Passed"
+    },
+    "ra11a_identity_created": {
+      "result": "Passed",
+      "status": 201
+    },
+    "ra11a_login_flow_created": {
+      "result": "Passed",
+      "status": 200
+    },
+    "ra11a_login_completed": {
+      "result": "Passed",
+      "status": 200
+    },
+    "ra11a_session_is_authoritative": {
+      "result": "Passed",
+      "status": 200,
+      "identity_match": true
+    },
+    "representative_dataset_committed": {
+      "result": "Passed",
+      "observed": "360,4320,2880,8640"
+    },
+    "mounted_materializer_passed": {
+      "result": "Passed",
+      "exit_code": 0
+    },
+    "browser_memory_passed": {
+      "result": "Passed",
+      "exit_code": 0
+    },
+    "pri-c015-b_identity_created": {
+      "result": "Passed",
+      "status": 201
+    },
+    "pri-c015-b_login_flow_created": {
+      "result": "Passed",
+      "status": 200
+    },
+    "pri-c015-b_login_completed": {
+      "result": "Passed",
+      "status": 200
+    },
+    "pri-c015-b_session_is_authoritative": {
+      "result": "Passed",
+      "status": 200,
+      "identity_match": true
+    },
+    "campaign_inputs_unchanged": {
+      "result": "Passed",
+      "beforeAggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd",
+      "afterAggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd"
+    },
+    "selected_source_inputs_unchanged": {
+      "result": "Passed",
+      "repositories": {
+        "aso": {
+          "before": "044b452ac07c1fdaaf3acd2ce3f7a33e51d1420295c57d420d1f6815b7d7d907",
+          "after": "044b452ac07c1fdaaf3acd2ce3f7a33e51d1420295c57d420d1f6815b7d7d907"
+        },
+        "fabric": {
+          "before": "02af23d67a1dd708658c628ae8b222575450b538836ccff4235bbf9d9f9cd624",
+          "after": "02af23d67a1dd708658c628ae8b222575450b538836ccff4235bbf9d9f9cd624"
+        },
+        "gate": {
+          "before": "b3d9398ff7a2b1bada6ce3a49860553d9da9b48fc07b630c18ea24a95e5bfc5b",
+          "after": "b3d9398ff7a2b1bada6ce3a49860553d9da9b48fc07b630c18ea24a95e5bfc5b"
+        }
+      }
+    }
+  },
+  "cleanup": {
+    "synthetic_relational_rows": "Passed",
+    "isolated_pglite_store": "Passed",
+    "campaign_services": "Passed",
+    "grant_callback": "Passed",
+    "synthetic_identities": "Passed",
+    "deleted_identity_count": 2
+  },
+  "dataset": {
+    "counts": {
+      "cases": 360,
+      "case_evidence": 4320,
+      "documents": 2880,
+      "evidence_citations": 8640,
+      "evidence_states": 3
+    },
+    "total_rows": 16203
+  },
+  "isolated_data_dir": ".runtime/ra11a-data/pri-c015-protected-replica",
+  "campaign_input_fingerprints": {
+    "before": {
+      "aggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd",
+      "files": {
+        "docker-compose.ra05.yaml": {
+          "bytes": 6131,
+          "sha256": "1815b800b226a0b356d903062f172d9377108194fa5bbf9f1b18cdd9687a50bc"
+        },
+        "docker-compose.yaml": {
+          "bytes": 9907,
+          "sha256": "6f642f9f561b78a46fae7f1f3863dcdcd633c9dd2730954a58ee87b1bbda7e8b"
+        },
+        "docker/flint-gate/config.ra05.yaml": {
+          "bytes": 2843,
+          "sha256": "347d3dd0d30f2221fbbe39237f967b0511e703ab5ecee8e327a87b78ff3dafa1"
+        },
+        "docker/frf/shape-catalog.json": {
+          "bytes": 2460,
+          "sha256": "7c50cc69ff87cfd5db56fc847c17ac035f97bd900ae71a7eee286fca286ce453"
+        },
+        "scripts/ra05-stack.sh": {
+          "bytes": 922,
+          "sha256": "824377cc9561e71474da079219527a4b1846a02592653e5a5ec430a2fc7cf2f4"
+        },
+        "scripts/ra06c_campaign_config.py": {
+          "bytes": 4379,
+          "sha256": "cd99908ae918fb7a4d1eff48500aad329ac923ad477bb1f2bfb77e8706fa9b4e"
+        },
+        "scripts/test-authorized-shape-composition.py": {
+          "bytes": 16064,
+          "sha256": "bbac93420ab50c53624c3c06c9c27d61ef94ca2fa28dfeb4031cbe09346f09d7"
+        },
+        "scripts/test-ra11a-sync-conformance.py": {
+          "bytes": 33272,
+          "sha256": "b21d01815058e7307f30989b11ce35c3954e3910e50f47a2bc05158e6915261a"
+        },
+        "scripts/test-ra11c-browser-memory.py": {
+          "bytes": 13301,
+          "sha256": "10e3c049d5c4299e34bb1024377d06912a4fb5ff05b5f4de3ea4860fc1b24205"
+        },
+        "scripts/test-ra11c-materialization.py": {
+          "bytes": 10019,
+          "sha256": "be8af39283fe56e1fac1c384a755986df5e10712770f96ca02962730f2b9bdf1"
+        },
+        "web/package.json": {
+          "bytes": 1928,
+          "sha256": "c8c7a697a514ddc18246f35e2c12db5eaa07bfa2f63ab131034b42c1c8be6641"
+        },
+        "web/pnpm-lock.yaml": {
+          "bytes": 315803,
+          "sha256": "fbe014d8cde45225e4c8884edd5193ddcd387295f065fbbb27690fd0269c2547"
+        },
+        "web/public/pglite-base.tgz": {
+          "bytes": 4529203,
+          "sha256": "f4818a049c2e017209433b00518760dbd8694d20c88fdc59b3bc2aea299f635f"
+        },
+        "web/ra11c-browser-memory.html": {
+          "bytes": 366,
+          "sha256": "4a26bd7963b6efb023a4a5f152170a9e350e9737a18f982b97b449e17662dd72"
+        },
+        "web/src/shared/session-revocation-events.ts": {
+          "bytes": 1035,
+          "sha256": "e6c691d5b611aa9e8add31d3995d60529aa274b132e3ef67d357a93580ca6850"
+        },
+        "web/src/shared/sync/chunk-writer.ts": {
+          "bytes": 9375,
+          "sha256": "e3b25011f44d25b969759599c0abd90664ea873cc0996da454572f6c4815826e"
+        },
+        "web/src/shared/sync/electric-shapes.ts": {
+          "bytes": 4440,
+          "sha256": "830e2540b6e03d5356243a390c622b467fde5e637ecdceb5030afc492be9944c"
+        },
+        "web/src/shared/sync/frf-shape-transport.ts": {
+          "bytes": 11521,
+          "sha256": "49751868d6d78da375c1750e6093e2c27e39403b48152f3de1d62fc1ed9e176c"
+        },
+        "web/src/shared/sync/migration-ledger.ts": {
+          "bytes": 10722,
+          "sha256": "206d0e3ce46181653db0b1b5d2c675c7a7018ae8e773c1d4c0c7d9da95567bc4"
+        },
+        "web/src/shared/sync/pglite-bootstrap.ts": {
+          "bytes": 1513,
+          "sha256": "5d7cf6b33bfae8c0c6e74287950575c10741c2aa3e07dddca2b69045a799b0c6"
+        },
+        "web/src/shared/sync/pglite-schema.ts": {
+          "bytes": 10640,
+          "sha256": "7754586386bbfd29144e7cb47f9f188a41bd8c6f17aa688dce48d6f4a0bf433e"
+        },
+        "web/src/shared/sync/replica-browser-memory.ts": {
+          "bytes": 10469,
+          "sha256": "a8d17a9a591b08cce218f843621b35cf9b9788320b241a0eb98bb4f6e56a2208"
+        },
+        "web/src/shared/sync/replica-mounted-runtime.ts": {
+          "bytes": 11193,
+          "sha256": "7caaaa829f37e7f393bd3f56f9de015ef6503acdd5536cbca4e9f2f9d37756c0"
+        },
+        "web/src/shared/sync/replica-mounted.integration.test.ts": {
+          "bytes": 20873,
+          "sha256": "5e394e3e505b7f6cb9daf32ba8dd8c61a4398e94457325f18f42c52470c93849"
+        },
+        "web/src/shared/sync/replica-owner.ts": {
+          "bytes": 6973,
+          "sha256": "4352138b06c24f55e6cfad5a0ada89ba04636e0e9657c3ccb494d14af39ab670"
+        },
+        "web/src/shared/sync/replica-rebuild.ts": {
+          "bytes": 4300,
+          "sha256": "fe79cfc4573d9af144c20293e08e8dcb3e490a1c1ecd2988abd2d17273cdb76a"
+        },
+        "web/src/shared/sync/replica-runtime.ts": {
+          "bytes": 17374,
+          "sha256": "97a8180893f0039ecb2e23ca2a1b86ca5d3d6a2432d50f5ae0d430d808a5e5fb"
+        },
+        "web/src/shared/sync/replica-wiring.ts": {
+          "bytes": 5040,
+          "sha256": "ce52c79d4e2c113084913e9df34e1b2502b5c20838a0df748c22f1382e45484b"
+        },
+        "web/src/shared/sync/replica-worker-owner.ts": {
+          "bytes": 15889,
+          "sha256": "616a71b27e461954efb701dc18f686dce81e818edd5ef0ff2f23076f96063f5b"
+        },
+        "web/src/shared/sync/storage-policy.ts": {
+          "bytes": 3705,
+          "sha256": "74ebfba4eb1ad96efc032de39f3f3715ad5f861a0a776af3a6b2ed8b78bd58a0"
+        },
+        "web/vite.config.ts": {
+          "bytes": 1991,
+          "sha256": "89da9c620bb5d18f0b8eaf8d4fba7805bac56dcd23ffc87e0cce2e17ad01d8fd"
+        }
+      }
+    },
+    "after": {
+      "aggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd",
+      "files": {
+        "docker-compose.ra05.yaml": {
+          "bytes": 6131,
+          "sha256": "1815b800b226a0b356d903062f172d9377108194fa5bbf9f1b18cdd9687a50bc"
+        },
+        "docker-compose.yaml": {
+          "bytes": 9907,
+          "sha256": "6f642f9f561b78a46fae7f1f3863dcdcd633c9dd2730954a58ee87b1bbda7e8b"
+        },
+        "docker/flint-gate/config.ra05.yaml": {
+          "bytes": 2843,
+          "sha256": "347d3dd0d30f2221fbbe39237f967b0511e703ab5ecee8e327a87b78ff3dafa1"
+        },
+        "docker/frf/shape-catalog.json": {
+          "bytes": 2460,
+          "sha256": "7c50cc69ff87cfd5db56fc847c17ac035f97bd900ae71a7eee286fca286ce453"
+        },
+        "scripts/ra05-stack.sh": {
+          "bytes": 922,
+          "sha256": "824377cc9561e71474da079219527a4b1846a02592653e5a5ec430a2fc7cf2f4"
+        },
+        "scripts/ra06c_campaign_config.py": {
+          "bytes": 4379,
+          "sha256": "cd99908ae918fb7a4d1eff48500aad329ac923ad477bb1f2bfb77e8706fa9b4e"
+        },
+        "scripts/test-authorized-shape-composition.py": {
+          "bytes": 16064,
+          "sha256": "bbac93420ab50c53624c3c06c9c27d61ef94ca2fa28dfeb4031cbe09346f09d7"
+        },
+        "scripts/test-ra11a-sync-conformance.py": {
+          "bytes": 33272,
+          "sha256": "b21d01815058e7307f30989b11ce35c3954e3910e50f47a2bc05158e6915261a"
+        },
+        "scripts/test-ra11c-browser-memory.py": {
+          "bytes": 13301,
+          "sha256": "10e3c049d5c4299e34bb1024377d06912a4fb5ff05b5f4de3ea4860fc1b24205"
+        },
+        "scripts/test-ra11c-materialization.py": {
+          "bytes": 10019,
+          "sha256": "be8af39283fe56e1fac1c384a755986df5e10712770f96ca02962730f2b9bdf1"
+        },
+        "web/package.json": {
+          "bytes": 1928,
+          "sha256": "c8c7a697a514ddc18246f35e2c12db5eaa07bfa2f63ab131034b42c1c8be6641"
+        },
+        "web/pnpm-lock.yaml": {
+          "bytes": 315803,
+          "sha256": "fbe014d8cde45225e4c8884edd5193ddcd387295f065fbbb27690fd0269c2547"
+        },
+        "web/public/pglite-base.tgz": {
+          "bytes": 4529203,
+          "sha256": "f4818a049c2e017209433b00518760dbd8694d20c88fdc59b3bc2aea299f635f"
+        },
+        "web/ra11c-browser-memory.html": {
+          "bytes": 366,
+          "sha256": "4a26bd7963b6efb023a4a5f152170a9e350e9737a18f982b97b449e17662dd72"
+        },
+        "web/src/shared/session-revocation-events.ts": {
+          "bytes": 1035,
+          "sha256": "e6c691d5b611aa9e8add31d3995d60529aa274b132e3ef67d357a93580ca6850"
+        },
+        "web/src/shared/sync/chunk-writer.ts": {
+          "bytes": 9375,
+          "sha256": "e3b25011f44d25b969759599c0abd90664ea873cc0996da454572f6c4815826e"
+        },
+        "web/src/shared/sync/electric-shapes.ts": {
+          "bytes": 4440,
+          "sha256": "830e2540b6e03d5356243a390c622b467fde5e637ecdceb5030afc492be9944c"
+        },
+        "web/src/shared/sync/frf-shape-transport.ts": {
+          "bytes": 11521,
+          "sha256": "49751868d6d78da375c1750e6093e2c27e39403b48152f3de1d62fc1ed9e176c"
+        },
+        "web/src/shared/sync/migration-ledger.ts": {
+          "bytes": 10722,
+          "sha256": "206d0e3ce46181653db0b1b5d2c675c7a7018ae8e773c1d4c0c7d9da95567bc4"
+        },
+        "web/src/shared/sync/pglite-bootstrap.ts": {
+          "bytes": 1513,
+          "sha256": "5d7cf6b33bfae8c0c6e74287950575c10741c2aa3e07dddca2b69045a799b0c6"
+        },
+        "web/src/shared/sync/pglite-schema.ts": {
+          "bytes": 10640,
+          "sha256": "7754586386bbfd29144e7cb47f9f188a41bd8c6f17aa688dce48d6f4a0bf433e"
+        },
+        "web/src/shared/sync/replica-browser-memory.ts": {
+          "bytes": 10469,
+          "sha256": "a8d17a9a591b08cce218f843621b35cf9b9788320b241a0eb98bb4f6e56a2208"
+        },
+        "web/src/shared/sync/replica-mounted-runtime.ts": {
+          "bytes": 11193,
+          "sha256": "7caaaa829f37e7f393bd3f56f9de015ef6503acdd5536cbca4e9f2f9d37756c0"
+        },
+        "web/src/shared/sync/replica-mounted.integration.test.ts": {
+          "bytes": 20873,
+          "sha256": "5e394e3e505b7f6cb9daf32ba8dd8c61a4398e94457325f18f42c52470c93849"
+        },
+        "web/src/shared/sync/replica-owner.ts": {
+          "bytes": 6973,
+          "sha256": "4352138b06c24f55e6cfad5a0ada89ba04636e0e9657c3ccb494d14af39ab670"
+        },
+        "web/src/shared/sync/replica-rebuild.ts": {
+          "bytes": 4300,
+          "sha256": "fe79cfc4573d9af144c20293e08e8dcb3e490a1c1ecd2988abd2d17273cdb76a"
+        },
+        "web/src/shared/sync/replica-runtime.ts": {
+          "bytes": 17374,
+          "sha256": "97a8180893f0039ecb2e23ca2a1b86ca5d3d6a2432d50f5ae0d430d808a5e5fb"
+        },
+        "web/src/shared/sync/replica-wiring.ts": {
+          "bytes": 5040,
+          "sha256": "ce52c79d4e2c113084913e9df34e1b2502b5c20838a0df748c22f1382e45484b"
+        },
+        "web/src/shared/sync/replica-worker-owner.ts": {
+          "bytes": 15889,
+          "sha256": "616a71b27e461954efb701dc18f686dce81e818edd5ef0ff2f23076f96063f5b"
+        },
+        "web/src/shared/sync/storage-policy.ts": {
+          "bytes": 3705,
+          "sha256": "74ebfba4eb1ad96efc032de39f3f3715ad5f861a0a776af3a6b2ed8b78bd58a0"
+        },
+        "web/vite.config.ts": {
+          "bytes": 1991,
+          "sha256": "89da9c620bb5d18f0b8eaf8d4fba7805bac56dcd23ffc87e0cce2e17ad01d8fd"
+        }
+      }
+    }
+  },
+  "effective_arguments": {
+    "callbackPort": 8788,
+    "campaignSecrets": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra06c/campaign-secrets.json",
+    "dataDir": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra11a-data/pri-c015-protected-replica",
+    "output": "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c015-aso-protected-proof/campaign.json",
+    "timeoutSeconds": 240
+  },
+  "selected_topologies": [
+    "browser PGlite through pinned PEM packages"
+  ],
+  "native_topology_selected": false,
+  "repositories": {
+    "before": {
+      "aso": {
+        "branch": "main",
+        "head": "d95242542060d1e19a6efe9143f57c015d6162f4",
+        "statusSha256": "acd8eecc2ba81ec91f3ce5b1eea216537c2c0f945b3d0b48eafbf264a7805170",
+        "unstagedDiffSha256": "f9610f3ed5f5e79d4d99e63ca9d707d537c4efa92cc7be521ada7c7868198251",
+        "stagedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "selectedAggregateSha256": "044b452ac07c1fdaaf3acd2ce3f7a33e51d1420295c57d420d1f6815b7d7d907",
+        "selectedFiles": {
+          "docker-compose.yaml": {
+            "bytes": 9907,
+            "sha256": "6f642f9f561b78a46fae7f1f3863dcdcd633c9dd2730954a58ee87b1bbda7e8b"
+          },
+          "docker-compose.ra05.yaml": {
+            "bytes": 6131,
+            "sha256": "1815b800b226a0b356d903062f172d9377108194fa5bbf9f1b18cdd9687a50bc"
+          },
+          "docker/flint-gate/config.ra05.yaml": {
+            "bytes": 2843,
+            "sha256": "347d3dd0d30f2221fbbe39237f967b0511e703ab5ecee8e327a87b78ff3dafa1"
+          },
+          "docker/frf/shape-catalog.json": {
+            "bytes": 2460,
+            "sha256": "7c50cc69ff87cfd5db56fc847c17ac035f97bd900ae71a7eee286fca286ce453"
+          },
+          "scripts/ra05-stack.sh": {
+            "bytes": 922,
+            "sha256": "824377cc9561e71474da079219527a4b1846a02592653e5a5ec430a2fc7cf2f4"
+          },
+          "scripts/ra06c_campaign_config.py": {
+            "bytes": 4379,
+            "sha256": "cd99908ae918fb7a4d1eff48500aad329ac923ad477bb1f2bfb77e8706fa9b4e"
+          },
+          "scripts/test-authorized-shape-composition.py": {
+            "bytes": 16064,
+            "sha256": "bbac93420ab50c53624c3c06c9c27d61ef94ca2fa28dfeb4031cbe09346f09d7"
+          },
+          "scripts/test-authorized-shape-topology.py": {
+            "bytes": 11791,
+            "sha256": "e0d3b4b719a6d3c1f7ceb61db9b8403bd5581e652e48bff8dc550d7100d2ef72"
+          },
+          "scripts/test-pri-c015-protected-replica.py": {
+            "bytes": 18419,
+            "sha256": "ccb069cb5131259056c6c45b6e67d588b7ddcecb34f6b1789c5994410b176d72"
+          },
+          "scripts/test-ra11a-sync-conformance.py": {
+            "bytes": 33272,
+            "sha256": "b21d01815058e7307f30989b11ce35c3954e3910e50f47a2bc05158e6915261a"
+          },
+          "scripts/test-ra11c-browser-memory.py": {
+            "bytes": 13301,
+            "sha256": "10e3c049d5c4299e34bb1024377d06912a4fb5ff05b5f4de3ea4860fc1b24205"
+          },
+          "scripts/test-ra11c-materialization.py": {
+            "bytes": 10019,
+            "sha256": "be8af39283fe56e1fac1c384a755986df5e10712770f96ca02962730f2b9bdf1"
+          },
+          "web/package.json": {
+            "bytes": 1928,
+            "sha256": "c8c7a697a514ddc18246f35e2c12db5eaa07bfa2f63ab131034b42c1c8be6641"
+          },
+          "web/pnpm-lock.yaml": {
+            "bytes": 315803,
+            "sha256": "fbe014d8cde45225e4c8884edd5193ddcd387295f065fbbb27690fd0269c2547"
+          },
+          "web/public/pglite-base.tgz": {
+            "bytes": 4529203,
+            "sha256": "f4818a049c2e017209433b00518760dbd8694d20c88fdc59b3bc2aea299f635f"
+          },
+          "web/ra11c-browser-memory.html": {
+            "bytes": 366,
+            "sha256": "4a26bd7963b6efb023a4a5f152170a9e350e9737a18f982b97b449e17662dd72"
+          },
+          "web/src/app/providers/graph-provider.tsx": {
+            "bytes": 23755,
+            "sha256": "74e46d667204ee639f8c460ac8187a078688905a7f4fbfead0b01be211978d07"
+          },
+          "web/src/shared/sync/case-summary-materialization.test.ts": {
+            "bytes": 2559,
+            "sha256": "72b3327fe0acd8b44533711510a3f319ed0260a2dcaea7348aeb92f87bbff4e7"
+          },
+          "web/src/shared/sync/catalog-conformance.test.ts": {
+            "bytes": 5009,
+            "sha256": "ec0cfdac6f57e33f717c0a3cf4598c1f0081f7c83728a365a5e12526d9f77cab"
+          },
+          "web/src/shared/sync/chunk-writer.test.ts": {
+            "bytes": 9181,
+            "sha256": "4829b1c263ed11a05c491b39ce7b5601f6587f69c8103c49a8f2e74fc384951a"
+          },
+          "web/src/shared/sync/chunk-writer.ts": {
+            "bytes": 9375,
+            "sha256": "e3b25011f44d25b969759599c0abd90664ea873cc0996da454572f6c4815826e"
+          },
+          "web/src/shared/sync/electric-shapes.ts": {
+            "bytes": 4440,
+            "sha256": "830e2540b6e03d5356243a390c622b467fde5e637ecdceb5030afc492be9944c"
+          },
+          "web/src/shared/sync/frf-shape-transport.test.ts": {
+            "bytes": 15765,
+            "sha256": "b164771df2f7dd06a360f6aab24410e78151617dec0fc87d9b73f8c8a2332e29"
+          },
+          "web/src/shared/sync/frf-shape-transport.ts": {
+            "bytes": 11521,
+            "sha256": "49751868d6d78da375c1750e6093e2c27e39403b48152f3de1d62fc1ed9e176c"
+          },
+          "web/src/shared/sync/graph-session-manager.test.ts": {
+            "bytes": 8583,
+            "sha256": "cf39d361f316fe476c1ddb7909526d40a6d2d08031d6b3e69d0b3860c3194df7"
+          },
+          "web/src/shared/sync/graph-session-manager.ts": {
+            "bytes": 7229,
+            "sha256": "cd6f14a9fbe5e3d483ea020f739628d91a28ecd5d9224cbc28f547e01aa18f79"
+          },
+          "web/src/shared/sync/lease-store-web.test.ts": {
+            "bytes": 4886,
+            "sha256": "3c1a1cce3e554deef813aab597aa985ea2422f497d24cf1c94a543c4e7b81c84"
+          },
+          "web/src/shared/sync/lease-store-web.ts": {
+            "bytes": 3450,
+            "sha256": "8cedbb5059876388374a95c5f004a3b15594f77761cadb8c16fb9fbc3fdbda29"
+          },
+          "web/src/shared/sync/materializer-adoption.test.ts": {
+            "bytes": 622,
+            "sha256": "28b8c4ee655dc9cfb22565cc68e9e9ed957a70c053c394ba32310e8c50f94b03"
+          },
+          "web/src/shared/sync/materializer-adoption.ts": {
+            "bytes": 220,
+            "sha256": "2a255b0ef6eca4cf6d2a267bd9633a35eb7a7e5136897a14df3d6ad1d1f8160b"
+          },
+          "web/src/shared/sync/migration-ledger.test.ts": {
+            "bytes": 8940,
+            "sha256": "6d3bd0742ee604c3e7cd8d59ab88fa0ff940247686a2e616c1886766c9e060ff"
+          },
+          "web/src/shared/sync/migration-ledger.ts": {
+            "bytes": 10722,
+            "sha256": "206d0e3ce46181653db0b1b5d2c675c7a7018ae8e773c1d4c0c7d9da95567bc4"
+          },
+          "web/src/shared/sync/native-replica-client.test.ts": {
+            "bytes": 5466,
+            "sha256": "a445796f337d52fc1750a2bbcea426277ce8c22b05fc2b891bc9bc01c9be2d7b"
+          },
+          "web/src/shared/sync/native-replica-client.ts": {
+            "bytes": 8236,
+            "sha256": "527e2d8e5d5162b512630d4ade7b34668b7e58c11b99018a9426510643c30596"
+          },
+          "web/src/shared/sync/pglite-bootstrap.ts": {
+            "bytes": 1513,
+            "sha256": "5d7cf6b33bfae8c0c6e74287950575c10741c2aa3e07dddca2b69045a799b0c6"
+          },
+          "web/src/shared/sync/pglite-schema.test.ts": {
+            "bytes": 3442,
+            "sha256": "ac96c3fffab8947abaa27f037e4e24507d48702f503fe529a15ee1978f124b64"
+          },
+          "web/src/shared/sync/pglite-schema.ts": {
+            "bytes": 10640,
+            "sha256": "7754586386bbfd29144e7cb47f9f188a41bd8c6f17aa688dce48d6f4a0bf433e"
+          },
+          "web/src/shared/sync/protected-replica-boundaries.integration.test.ts": {
+            "bytes": 3158,
+            "sha256": "4a8d7b6a38faebcb615a2713de5c7d8456ccdc7e14cbfd55e9a1f095d7a4a0a4"
+          },
+          "web/src/shared/sync/replica-browser-memory.ts": {
+            "bytes": 10469,
+            "sha256": "a8d17a9a591b08cce218f843621b35cf9b9788320b241a0eb98bb4f6e56a2208"
+          },
+          "web/src/shared/sync/replica-continuation.test.ts": {
+            "bytes": 1847,
+            "sha256": "c2d02095298111972e7e667554748f1eeef4d45bd1ebe5eb49bc3831b31aa9f4"
+          },
+          "web/src/shared/sync/replica-continuation.ts": {
+            "bytes": 2060,
+            "sha256": "0cab01a263f395a41635f2f64b60c8adc434861a357e10de0cb3d61812b838af"
+          },
+          "web/src/shared/sync/replica-materializer.test.ts": {
+            "bytes": 5347,
+            "sha256": "d188b4d6541e1dfdc4731ebc75f88d276be2e1ab9bff82994777289d7db8a1cd"
+          },
+          "web/src/shared/sync/replica-mounted-runtime.ts": {
+            "bytes": 11193,
+            "sha256": "7caaaa829f37e7f393bd3f56f9de015ef6503acdd5536cbca4e9f2f9d37756c0"
+          },
+          "web/src/shared/sync/replica-mounted.integration.test.ts": {
+            "bytes": 20873,
+            "sha256": "5e394e3e505b7f6cb9daf32ba8dd8c61a4398e94457325f18f42c52470c93849"
+          },
+          "web/src/shared/sync/replica-owner.test.ts": {
+            "bytes": 6663,
+            "sha256": "558830c67f1127281580d4838b9f683c64cca496d8ca1c317a5c60cc85901aa1"
+          },
+          "web/src/shared/sync/replica-owner.ts": {
+            "bytes": 6973,
+            "sha256": "4352138b06c24f55e6cfad5a0ada89ba04636e0e9657c3ccb494d14af39ab670"
+          },
+          "web/src/shared/sync/replica-publisher.test.ts": {
+            "bytes": 6501,
+            "sha256": "ed7dc8665faf9f760eb5233e4392bc016191971da56a128ec77d729d99cd14ec"
+          },
+          "web/src/shared/sync/replica-publisher.ts": {
+            "bytes": 3792,
+            "sha256": "98a4c2938459bde0f496534acb9bfb140e8f2708f36f9920065dd96f906925c7"
+          },
+          "web/src/shared/sync/replica-rebuild.test.ts": {
+            "bytes": 4843,
+            "sha256": "22175e9b73b1362165b88749704e7b085f81b75cb6a17515494cb212eb04deac"
+          },
+          "web/src/shared/sync/replica-rebuild.ts": {
+            "bytes": 4300,
+            "sha256": "fe79cfc4573d9af144c20293e08e8dcb3e490a1c1ecd2988abd2d17273cdb76a"
+          },
+          "web/src/shared/sync/replica-runtime.test.ts": {
+            "bytes": 22777,
+            "sha256": "3d759c7c5d7688d05bac7072d2e772507163f25c4edab43282588b242d1317e2"
+          },
+          "web/src/shared/sync/replica-runtime.ts": {
+            "bytes": 17374,
+            "sha256": "97a8180893f0039ecb2e23ca2a1b86ca5d3d6a2432d50f5ae0d430d808a5e5fb"
+          },
+          "web/src/shared/sync/replica-wiring.test.ts": {
+            "bytes": 1222,
+            "sha256": "6c17b88480dfad3c2cb7e435419450fd4d418951cb922576ec1dc4aecea1b6dc"
+          },
+          "web/src/shared/sync/replica-wiring.ts": {
+            "bytes": 5040,
+            "sha256": "ce52c79d4e2c113084913e9df34e1b2502b5c20838a0df748c22f1382e45484b"
+          },
+          "web/src/shared/sync/replica-worker-lifecycle.test.ts": {
+            "bytes": 8556,
+            "sha256": "df5412d3b0fc93eda36f2d339a01e0e2df2461a54493ae747217f11e3afb5767"
+          },
+          "web/src/shared/sync/replica-worker-owner.test.ts": {
+            "bytes": 15474,
+            "sha256": "f77f1f23430b3959b675328e824471cea3294a1c412c2f2d673cb9e4550013c8"
+          },
+          "web/src/shared/sync/replica-worker-owner.ts": {
+            "bytes": 15889,
+            "sha256": "616a71b27e461954efb701dc18f686dce81e818edd5ef0ff2f23076f96063f5b"
+          },
+          "web/src/shared/sync/runtime-quiescence.test.ts": {
+            "bytes": 849,
+            "sha256": "e451eb6275832d515ecad856d3a5620f64cbbac20043f9e7d5e0c07680c54249"
+          },
+          "web/src/shared/sync/runtime-quiescence.ts": {
+            "bytes": 628,
+            "sha256": "a9857aa502dd186050557b5b2313aaac862ba50c564d20a03fd3eb4b21c9aee7"
+          },
+          "web/src/shared/sync/shape-gateway.test.ts": {
+            "bytes": 570,
+            "sha256": "2cfd58bfb5d3e56e791b16effdb232d100c3ba9e1dcc43d83f3b048e99f7395d"
+          },
+          "web/src/shared/sync/shape-gateway.ts": {
+            "bytes": 440,
+            "sha256": "89918adbcbe73f70f5222ff481badc96424f063c902beaa93728625ebfb3ac86"
+          },
+          "web/src/shared/sync/source-hash-materialization.test.ts": {
+            "bytes": 1569,
+            "sha256": "8af9fd1ab563ab1598494ae7ad96d9d157ac7260d4f57e53b399c12f9169f2a1"
+          },
+          "web/src/shared/sync/storage-policy.test.ts": {
+            "bytes": 3959,
+            "sha256": "e54e2790c7105882da5f9126608a691ecef2ebbcf1800265bfde339991c8171d"
+          },
+          "web/src/shared/sync/storage-policy.ts": {
+            "bytes": 3705,
+            "sha256": "74ebfba4eb1ad96efc032de39f3f3715ad5f861a0a776af3a6b2ed8b78bd58a0"
+          },
+          "web/vite.config.ts": {
+            "bytes": 1991,
+            "sha256": "89da9c620bb5d18f0b8eaf8d4fba7805bac56dcd23ffc87e0cce2e17ad01d8fd"
+          }
+        }
+      },
+      "fabric": {
+        "branch": "codex/production-readiness-integration",
+        "head": "ae26f45d8afa037677004cd118b0571b8b552131",
+        "statusSha256": "ccaecb558d40bbc2eabf8c01575d77fe47c61682cd5b67fbb905ea13e9b98791",
+        "unstagedDiffSha256": "4565bd0c2be3e997351000150b1767cc761c707cda5fac6333ee3c30c6307cba",
+        "stagedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "selectedAggregateSha256": "02af23d67a1dd708658c628ae8b222575450b538836ccff4235bbf9d9f9cd624",
+        "selectedFiles": {
+          "Cargo.lock": {
+            "bytes": 284223,
+            "sha256": "e6c43e7e3d54d178f3eef2ad9a5a2712deff4657a021c3569c39bb49b17f540c"
+          },
+          "Cargo.toml": {
+            "bytes": 5099,
+            "sha256": "b04c16117946929a0a931b7c42231ca242f4c620400c491b617ca6115e234673"
+          },
+          "crates/frf-app/Cargo.toml": {
+            "bytes": 993,
+            "sha256": "b50106db16e78385ab11f1debcc627de94d65c611306f5035a4a207b0630465d"
+          },
+          "crates/frf-app/src/shape/continuation.rs": {
+            "bytes": 5418,
+            "sha256": "c6360580af16677eb16ca6978c42b8c53797a5d4bef8fb74abd01fe2adc264e6"
+          },
+          "crates/frf-app/src/shape/expiry_regression.rs": {
+            "bytes": 1498,
+            "sha256": "574f716b045c6f87ca77b5ba13aba973f5cd93fecddcf033ef0441c10ee37856"
+          },
+          "crates/frf-app/src/shape/lease.rs": {
+            "bytes": 14375,
+            "sha256": "62dc5644ef424a15bf9af57b64d33be287fd65a570f0e9e7031681eddde4879f"
+          },
+          "crates/frf-app/src/shape/lease_regression.rs": {
+            "bytes": 1005,
+            "sha256": "7bcc7b406b95815667fd4b9cbc64230d2b9c47da7bd42d78c73a6366edb282cf"
+          },
+          "crates/frf-app/src/shape/mod.rs": {
+            "bytes": 13824,
+            "sha256": "e78c5db24a4164d8273ec9c5fabfeb35ec64c1cb78bc5c2c2843afcd1f4f934d"
+          },
+          "crates/frf-app/src/shape/policy.rs": {
+            "bytes": 10331,
+            "sha256": "fcaea201272b0b1e557e884b27fbfb20c17ef4ce521300289b9718818f22f718"
+          },
+          "crates/frf-app/src/shape/tests.rs": {
+            "bytes": 15111,
+            "sha256": "781ba6e7c719032eafcf0977c177632127f9cf0f9f7f62c35460e61ff54f8717"
+          },
+          "crates/frf-app/tests/shape_revocation.rs": {
+            "bytes": 10409,
+            "sha256": "c5fce6dcbd54cd4d32b007cb2367daf304ddae7b6cb1add0de609280469a5b4e"
+          },
+          "crates/frf-gateway/Cargo.toml": {
+            "bytes": 3241,
+            "sha256": "d00b193e238df23d3e5acc2ef0fad7264c484755dbde1c12c80bcbb895e85b3c"
+          },
+          "crates/frf-gateway/src/routes/shape.rs": {
+            "bytes": 14659,
+            "sha256": "c798cd788c685e4329312a27bb32dd4d3ba6fac766e7361501fc3b103da98e8e"
+          }
+        }
+      },
+      "gate": {
+        "branch": "main",
+        "head": "77914a2ad2e3cd57f12fd9131fa8cdddf625f68e",
+        "statusSha256": "5bf34d9ed8326ad384a4c41d1aa697616d02645389f7c3c2f7b5b777720322c9",
+        "unstagedDiffSha256": "902fc42fa613f7ae62178f9faf8046f5ace7c3a3557e4b5b369f4770d7567e00",
+        "stagedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "selectedAggregateSha256": "b3d9398ff7a2b1bada6ce3a49860553d9da9b48fc07b630c18ea24a95e5bfc5b",
+        "selectedFiles": {
+          "Cargo.lock": {
+            "bytes": 131126,
+            "sha256": "f7a12663aae6b35a2956bcb4a864452551b8edfa4c3cb0559ac155893dffcf11"
+          },
+          "Cargo.toml": {
+            "bytes": 397,
+            "sha256": "e9ba1b3082f630761d1bdfee852e51057999330ed08cf0daeabc613805f43ba3"
+          },
+          "crates/flint-gate-core/src/authority/consumer.rs": {
+            "bytes": 18193,
+            "sha256": "44f080b7ca5a00f0331719c6cbf8205a2685ce4d1ae365040a0f3ac3c355b6cf"
+          },
+          "crates/flint-gate-core/src/authority/mod.rs": {
+            "bytes": 18113,
+            "sha256": "2b56930def47f70fb5d5f556a9cd809e966fd80d249867522a640dd7f8c49879"
+          },
+          "crates/flint-gate-core/src/authority/postgres.rs": {
+            "bytes": 28014,
+            "sha256": "c3f4fbd94a06e3be3c6969a3d8b8264f26bb2baa8355f7e2fff2564b25fd7bfd"
+          },
+          "crates/flint-gate-core/src/cache/mod.rs": {
+            "bytes": 39503,
+            "sha256": "843296d04f12612fb0197553250b89b5408a4124240b2b6ddaf367c9ce3fcf6d"
+          },
+          "crates/flint-gate-core/src/cache/redis_fence.rs": {
+            "bytes": 85186,
+            "sha256": "0a214f56291c5991c0e66210f8e50a57cd788a4fde944a8b6e575237a2ce6418"
+          },
+          "crates/flint-gate-core/src/cache/session.rs": {
+            "bytes": 8769,
+            "sha256": "fbec640656aa0cb45453093126ff98ea258379e02694abd87d52cef7d068b69e"
+          },
+          "crates/flint-gate-core/src/config/types.rs": {
+            "bytes": 87159,
+            "sha256": "3a79b4bb1d71a5ef763c7459c69e7e61f83b2d2446608806ee6e19cb3da6aca4"
+          },
+          "crates/flint-gate-core/src/middleware/aso_clinical_authorize.rs": {
+            "bytes": 11434,
+            "sha256": "bb68de7e931621ff27bab78ac139688cbf825ecd75f262ead7cd154bc39f5bdb"
+          },
+          "crates/flint-gate-core/src/middleware/aso_replica_grant.rs": {
+            "bytes": 10746,
+            "sha256": "e0c38a59fc82d76f00ae28bf8188fce551c691d0e1de8b0d6a0285f1b92837ab"
+          },
+          "crates/flint-gate-core/src/middleware/pipeline.rs": {
+            "bytes": 107706,
+            "sha256": "5edfd6de7e95d89fdf35efa26912bdeea3e0eeac61127f6d37402ce031eedea0"
+          },
+          "crates/flint-gate/src/main.rs": {
+            "bytes": 70490,
+            "sha256": "b85770229d8e7a15bec92a517f9716d0761961c61be75c7c2ee314e209879626"
+          }
+        }
+      }
+    },
+    "after": {
+      "aso": {
+        "branch": "main",
+        "head": "d95242542060d1e19a6efe9143f57c015d6162f4",
+        "statusSha256": "acd8eecc2ba81ec91f3ce5b1eea216537c2c0f945b3d0b48eafbf264a7805170",
+        "unstagedDiffSha256": "f9610f3ed5f5e79d4d99e63ca9d707d537c4efa92cc7be521ada7c7868198251",
+        "stagedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "selectedAggregateSha256": "044b452ac07c1fdaaf3acd2ce3f7a33e51d1420295c57d420d1f6815b7d7d907",
+        "selectedFiles": {
+          "docker-compose.yaml": {
+            "bytes": 9907,
+            "sha256": "6f642f9f561b78a46fae7f1f3863dcdcd633c9dd2730954a58ee87b1bbda7e8b"
+          },
+          "docker-compose.ra05.yaml": {
+            "bytes": 6131,
+            "sha256": "1815b800b226a0b356d903062f172d9377108194fa5bbf9f1b18cdd9687a50bc"
+          },
+          "docker/flint-gate/config.ra05.yaml": {
+            "bytes": 2843,
+            "sha256": "347d3dd0d30f2221fbbe39237f967b0511e703ab5ecee8e327a87b78ff3dafa1"
+          },
+          "docker/frf/shape-catalog.json": {
+            "bytes": 2460,
+            "sha256": "7c50cc69ff87cfd5db56fc847c17ac035f97bd900ae71a7eee286fca286ce453"
+          },
+          "scripts/ra05-stack.sh": {
+            "bytes": 922,
+            "sha256": "824377cc9561e71474da079219527a4b1846a02592653e5a5ec430a2fc7cf2f4"
+          },
+          "scripts/ra06c_campaign_config.py": {
+            "bytes": 4379,
+            "sha256": "cd99908ae918fb7a4d1eff48500aad329ac923ad477bb1f2bfb77e8706fa9b4e"
+          },
+          "scripts/test-authorized-shape-composition.py": {
+            "bytes": 16064,
+            "sha256": "bbac93420ab50c53624c3c06c9c27d61ef94ca2fa28dfeb4031cbe09346f09d7"
+          },
+          "scripts/test-authorized-shape-topology.py": {
+            "bytes": 11791,
+            "sha256": "e0d3b4b719a6d3c1f7ceb61db9b8403bd5581e652e48bff8dc550d7100d2ef72"
+          },
+          "scripts/test-pri-c015-protected-replica.py": {
+            "bytes": 18419,
+            "sha256": "ccb069cb5131259056c6c45b6e67d588b7ddcecb34f6b1789c5994410b176d72"
+          },
+          "scripts/test-ra11a-sync-conformance.py": {
+            "bytes": 33272,
+            "sha256": "b21d01815058e7307f30989b11ce35c3954e3910e50f47a2bc05158e6915261a"
+          },
+          "scripts/test-ra11c-browser-memory.py": {
+            "bytes": 13301,
+            "sha256": "10e3c049d5c4299e34bb1024377d06912a4fb5ff05b5f4de3ea4860fc1b24205"
+          },
+          "scripts/test-ra11c-materialization.py": {
+            "bytes": 10019,
+            "sha256": "be8af39283fe56e1fac1c384a755986df5e10712770f96ca02962730f2b9bdf1"
+          },
+          "web/package.json": {
+            "bytes": 1928,
+            "sha256": "c8c7a697a514ddc18246f35e2c12db5eaa07bfa2f63ab131034b42c1c8be6641"
+          },
+          "web/pnpm-lock.yaml": {
+            "bytes": 315803,
+            "sha256": "fbe014d8cde45225e4c8884edd5193ddcd387295f065fbbb27690fd0269c2547"
+          },
+          "web/public/pglite-base.tgz": {
+            "bytes": 4529203,
+            "sha256": "f4818a049c2e017209433b00518760dbd8694d20c88fdc59b3bc2aea299f635f"
+          },
+          "web/ra11c-browser-memory.html": {
+            "bytes": 366,
+            "sha256": "4a26bd7963b6efb023a4a5f152170a9e350e9737a18f982b97b449e17662dd72"
+          },
+          "web/src/app/providers/graph-provider.tsx": {
+            "bytes": 23755,
+            "sha256": "74e46d667204ee639f8c460ac8187a078688905a7f4fbfead0b01be211978d07"
+          },
+          "web/src/shared/sync/case-summary-materialization.test.ts": {
+            "bytes": 2559,
+            "sha256": "72b3327fe0acd8b44533711510a3f319ed0260a2dcaea7348aeb92f87bbff4e7"
+          },
+          "web/src/shared/sync/catalog-conformance.test.ts": {
+            "bytes": 5009,
+            "sha256": "ec0cfdac6f57e33f717c0a3cf4598c1f0081f7c83728a365a5e12526d9f77cab"
+          },
+          "web/src/shared/sync/chunk-writer.test.ts": {
+            "bytes": 9181,
+            "sha256": "4829b1c263ed11a05c491b39ce7b5601f6587f69c8103c49a8f2e74fc384951a"
+          },
+          "web/src/shared/sync/chunk-writer.ts": {
+            "bytes": 9375,
+            "sha256": "e3b25011f44d25b969759599c0abd90664ea873cc0996da454572f6c4815826e"
+          },
+          "web/src/shared/sync/electric-shapes.ts": {
+            "bytes": 4440,
+            "sha256": "830e2540b6e03d5356243a390c622b467fde5e637ecdceb5030afc492be9944c"
+          },
+          "web/src/shared/sync/frf-shape-transport.test.ts": {
+            "bytes": 15765,
+            "sha256": "b164771df2f7dd06a360f6aab24410e78151617dec0fc87d9b73f8c8a2332e29"
+          },
+          "web/src/shared/sync/frf-shape-transport.ts": {
+            "bytes": 11521,
+            "sha256": "49751868d6d78da375c1750e6093e2c27e39403b48152f3de1d62fc1ed9e176c"
+          },
+          "web/src/shared/sync/graph-session-manager.test.ts": {
+            "bytes": 8583,
+            "sha256": "cf39d361f316fe476c1ddb7909526d40a6d2d08031d6b3e69d0b3860c3194df7"
+          },
+          "web/src/shared/sync/graph-session-manager.ts": {
+            "bytes": 7229,
+            "sha256": "cd6f14a9fbe5e3d483ea020f739628d91a28ecd5d9224cbc28f547e01aa18f79"
+          },
+          "web/src/shared/sync/lease-store-web.test.ts": {
+            "bytes": 4886,
+            "sha256": "3c1a1cce3e554deef813aab597aa985ea2422f497d24cf1c94a543c4e7b81c84"
+          },
+          "web/src/shared/sync/lease-store-web.ts": {
+            "bytes": 3450,
+            "sha256": "8cedbb5059876388374a95c5f004a3b15594f77761cadb8c16fb9fbc3fdbda29"
+          },
+          "web/src/shared/sync/materializer-adoption.test.ts": {
+            "bytes": 622,
+            "sha256": "28b8c4ee655dc9cfb22565cc68e9e9ed957a70c053c394ba32310e8c50f94b03"
+          },
+          "web/src/shared/sync/materializer-adoption.ts": {
+            "bytes": 220,
+            "sha256": "2a255b0ef6eca4cf6d2a267bd9633a35eb7a7e5136897a14df3d6ad1d1f8160b"
+          },
+          "web/src/shared/sync/migration-ledger.test.ts": {
+            "bytes": 8940,
+            "sha256": "6d3bd0742ee604c3e7cd8d59ab88fa0ff940247686a2e616c1886766c9e060ff"
+          },
+          "web/src/shared/sync/migration-ledger.ts": {
+            "bytes": 10722,
+            "sha256": "206d0e3ce46181653db0b1b5d2c675c7a7018ae8e773c1d4c0c7d9da95567bc4"
+          },
+          "web/src/shared/sync/native-replica-client.test.ts": {
+            "bytes": 5466,
+            "sha256": "a445796f337d52fc1750a2bbcea426277ce8c22b05fc2b891bc9bc01c9be2d7b"
+          },
+          "web/src/shared/sync/native-replica-client.ts": {
+            "bytes": 8236,
+            "sha256": "527e2d8e5d5162b512630d4ade7b34668b7e58c11b99018a9426510643c30596"
+          },
+          "web/src/shared/sync/pglite-bootstrap.ts": {
+            "bytes": 1513,
+            "sha256": "5d7cf6b33bfae8c0c6e74287950575c10741c2aa3e07dddca2b69045a799b0c6"
+          },
+          "web/src/shared/sync/pglite-schema.test.ts": {
+            "bytes": 3442,
+            "sha256": "ac96c3fffab8947abaa27f037e4e24507d48702f503fe529a15ee1978f124b64"
+          },
+          "web/src/shared/sync/pglite-schema.ts": {
+            "bytes": 10640,
+            "sha256": "7754586386bbfd29144e7cb47f9f188a41bd8c6f17aa688dce48d6f4a0bf433e"
+          },
+          "web/src/shared/sync/protected-replica-boundaries.integration.test.ts": {
+            "bytes": 3158,
+            "sha256": "4a8d7b6a38faebcb615a2713de5c7d8456ccdc7e14cbfd55e9a1f095d7a4a0a4"
+          },
+          "web/src/shared/sync/replica-browser-memory.ts": {
+            "bytes": 10469,
+            "sha256": "a8d17a9a591b08cce218f843621b35cf9b9788320b241a0eb98bb4f6e56a2208"
+          },
+          "web/src/shared/sync/replica-continuation.test.ts": {
+            "bytes": 1847,
+            "sha256": "c2d02095298111972e7e667554748f1eeef4d45bd1ebe5eb49bc3831b31aa9f4"
+          },
+          "web/src/shared/sync/replica-continuation.ts": {
+            "bytes": 2060,
+            "sha256": "0cab01a263f395a41635f2f64b60c8adc434861a357e10de0cb3d61812b838af"
+          },
+          "web/src/shared/sync/replica-materializer.test.ts": {
+            "bytes": 5347,
+            "sha256": "d188b4d6541e1dfdc4731ebc75f88d276be2e1ab9bff82994777289d7db8a1cd"
+          },
+          "web/src/shared/sync/replica-mounted-runtime.ts": {
+            "bytes": 11193,
+            "sha256": "7caaaa829f37e7f393bd3f56f9de015ef6503acdd5536cbca4e9f2f9d37756c0"
+          },
+          "web/src/shared/sync/replica-mounted.integration.test.ts": {
+            "bytes": 20873,
+            "sha256": "5e394e3e505b7f6cb9daf32ba8dd8c61a4398e94457325f18f42c52470c93849"
+          },
+          "web/src/shared/sync/replica-owner.test.ts": {
+            "bytes": 6663,
+            "sha256": "558830c67f1127281580d4838b9f683c64cca496d8ca1c317a5c60cc85901aa1"
+          },
+          "web/src/shared/sync/replica-owner.ts": {
+            "bytes": 6973,
+            "sha256": "4352138b06c24f55e6cfad5a0ada89ba04636e0e9657c3ccb494d14af39ab670"
+          },
+          "web/src/shared/sync/replica-publisher.test.ts": {
+            "bytes": 6501,
+            "sha256": "ed7dc8665faf9f760eb5233e4392bc016191971da56a128ec77d729d99cd14ec"
+          },
+          "web/src/shared/sync/replica-publisher.ts": {
+            "bytes": 3792,
+            "sha256": "98a4c2938459bde0f496534acb9bfb140e8f2708f36f9920065dd96f906925c7"
+          },
+          "web/src/shared/sync/replica-rebuild.test.ts": {
+            "bytes": 4843,
+            "sha256": "22175e9b73b1362165b88749704e7b085f81b75cb6a17515494cb212eb04deac"
+          },
+          "web/src/shared/sync/replica-rebuild.ts": {
+            "bytes": 4300,
+            "sha256": "fe79cfc4573d9af144c20293e08e8dcb3e490a1c1ecd2988abd2d17273cdb76a"
+          },
+          "web/src/shared/sync/replica-runtime.test.ts": {
+            "bytes": 22777,
+            "sha256": "3d759c7c5d7688d05bac7072d2e772507163f25c4edab43282588b242d1317e2"
+          },
+          "web/src/shared/sync/replica-runtime.ts": {
+            "bytes": 17374,
+            "sha256": "97a8180893f0039ecb2e23ca2a1b86ca5d3d6a2432d50f5ae0d430d808a5e5fb"
+          },
+          "web/src/shared/sync/replica-wiring.test.ts": {
+            "bytes": 1222,
+            "sha256": "6c17b88480dfad3c2cb7e435419450fd4d418951cb922576ec1dc4aecea1b6dc"
+          },
+          "web/src/shared/sync/replica-wiring.ts": {
+            "bytes": 5040,
+            "sha256": "ce52c79d4e2c113084913e9df34e1b2502b5c20838a0df748c22f1382e45484b"
+          },
+          "web/src/shared/sync/replica-worker-lifecycle.test.ts": {
+            "bytes": 8556,
+            "sha256": "df5412d3b0fc93eda36f2d339a01e0e2df2461a54493ae747217f11e3afb5767"
+          },
+          "web/src/shared/sync/replica-worker-owner.test.ts": {
+            "bytes": 15474,
+            "sha256": "f77f1f23430b3959b675328e824471cea3294a1c412c2f2d673cb9e4550013c8"
+          },
+          "web/src/shared/sync/replica-worker-owner.ts": {
+            "bytes": 15889,
+            "sha256": "616a71b27e461954efb701dc18f686dce81e818edd5ef0ff2f23076f96063f5b"
+          },
+          "web/src/shared/sync/runtime-quiescence.test.ts": {
+            "bytes": 849,
+            "sha256": "e451eb6275832d515ecad856d3a5620f64cbbac20043f9e7d5e0c07680c54249"
+          },
+          "web/src/shared/sync/runtime-quiescence.ts": {
+            "bytes": 628,
+            "sha256": "a9857aa502dd186050557b5b2313aaac862ba50c564d20a03fd3eb4b21c9aee7"
+          },
+          "web/src/shared/sync/shape-gateway.test.ts": {
+            "bytes": 570,
+            "sha256": "2cfd58bfb5d3e56e791b16effdb232d100c3ba9e1dcc43d83f3b048e99f7395d"
+          },
+          "web/src/shared/sync/shape-gateway.ts": {
+            "bytes": 440,
+            "sha256": "89918adbcbe73f70f5222ff481badc96424f063c902beaa93728625ebfb3ac86"
+          },
+          "web/src/shared/sync/source-hash-materialization.test.ts": {
+            "bytes": 1569,
+            "sha256": "8af9fd1ab563ab1598494ae7ad96d9d157ac7260d4f57e53b399c12f9169f2a1"
+          },
+          "web/src/shared/sync/storage-policy.test.ts": {
+            "bytes": 3959,
+            "sha256": "e54e2790c7105882da5f9126608a691ecef2ebbcf1800265bfde339991c8171d"
+          },
+          "web/src/shared/sync/storage-policy.ts": {
+            "bytes": 3705,
+            "sha256": "74ebfba4eb1ad96efc032de39f3f3715ad5f861a0a776af3a6b2ed8b78bd58a0"
+          },
+          "web/vite.config.ts": {
+            "bytes": 1991,
+            "sha256": "89da9c620bb5d18f0b8eaf8d4fba7805bac56dcd23ffc87e0cce2e17ad01d8fd"
+          }
+        }
+      },
+      "fabric": {
+        "branch": "codex/production-readiness-integration",
+        "head": "ae26f45d8afa037677004cd118b0571b8b552131",
+        "statusSha256": "ccaecb558d40bbc2eabf8c01575d77fe47c61682cd5b67fbb905ea13e9b98791",
+        "unstagedDiffSha256": "4565bd0c2be3e997351000150b1767cc761c707cda5fac6333ee3c30c6307cba",
+        "stagedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "selectedAggregateSha256": "02af23d67a1dd708658c628ae8b222575450b538836ccff4235bbf9d9f9cd624",
+        "selectedFiles": {
+          "Cargo.lock": {
+            "bytes": 284223,
+            "sha256": "e6c43e7e3d54d178f3eef2ad9a5a2712deff4657a021c3569c39bb49b17f540c"
+          },
+          "Cargo.toml": {
+            "bytes": 5099,
+            "sha256": "b04c16117946929a0a931b7c42231ca242f4c620400c491b617ca6115e234673"
+          },
+          "crates/frf-app/Cargo.toml": {
+            "bytes": 993,
+            "sha256": "b50106db16e78385ab11f1debcc627de94d65c611306f5035a4a207b0630465d"
+          },
+          "crates/frf-app/src/shape/continuation.rs": {
+            "bytes": 5418,
+            "sha256": "c6360580af16677eb16ca6978c42b8c53797a5d4bef8fb74abd01fe2adc264e6"
+          },
+          "crates/frf-app/src/shape/expiry_regression.rs": {
+            "bytes": 1498,
+            "sha256": "574f716b045c6f87ca77b5ba13aba973f5cd93fecddcf033ef0441c10ee37856"
+          },
+          "crates/frf-app/src/shape/lease.rs": {
+            "bytes": 14375,
+            "sha256": "62dc5644ef424a15bf9af57b64d33be287fd65a570f0e9e7031681eddde4879f"
+          },
+          "crates/frf-app/src/shape/lease_regression.rs": {
+            "bytes": 1005,
+            "sha256": "7bcc7b406b95815667fd4b9cbc64230d2b9c47da7bd42d78c73a6366edb282cf"
+          },
+          "crates/frf-app/src/shape/mod.rs": {
+            "bytes": 13824,
+            "sha256": "e78c5db24a4164d8273ec9c5fabfeb35ec64c1cb78bc5c2c2843afcd1f4f934d"
+          },
+          "crates/frf-app/src/shape/policy.rs": {
+            "bytes": 10331,
+            "sha256": "fcaea201272b0b1e557e884b27fbfb20c17ef4ce521300289b9718818f22f718"
+          },
+          "crates/frf-app/src/shape/tests.rs": {
+            "bytes": 15111,
+            "sha256": "781ba6e7c719032eafcf0977c177632127f9cf0f9f7f62c35460e61ff54f8717"
+          },
+          "crates/frf-app/tests/shape_revocation.rs": {
+            "bytes": 10409,
+            "sha256": "c5fce6dcbd54cd4d32b007cb2367daf304ddae7b6cb1add0de609280469a5b4e"
+          },
+          "crates/frf-gateway/Cargo.toml": {
+            "bytes": 3241,
+            "sha256": "d00b193e238df23d3e5acc2ef0fad7264c484755dbde1c12c80bcbb895e85b3c"
+          },
+          "crates/frf-gateway/src/routes/shape.rs": {
+            "bytes": 14659,
+            "sha256": "c798cd788c685e4329312a27bb32dd4d3ba6fac766e7361501fc3b103da98e8e"
+          }
+        }
+      },
+      "gate": {
+        "branch": "main",
+        "head": "77914a2ad2e3cd57f12fd9131fa8cdddf625f68e",
+        "statusSha256": "5bf34d9ed8326ad384a4c41d1aa697616d02645389f7c3c2f7b5b777720322c9",
+        "unstagedDiffSha256": "902fc42fa613f7ae62178f9faf8046f5ace7c3a3557e4b5b369f4770d7567e00",
+        "stagedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "selectedAggregateSha256": "b3d9398ff7a2b1bada6ce3a49860553d9da9b48fc07b630c18ea24a95e5bfc5b",
+        "selectedFiles": {
+          "Cargo.lock": {
+            "bytes": 131126,
+            "sha256": "f7a12663aae6b35a2956bcb4a864452551b8edfa4c3cb0559ac155893dffcf11"
+          },
+          "Cargo.toml": {
+            "bytes": 397,
+            "sha256": "e9ba1b3082f630761d1bdfee852e51057999330ed08cf0daeabc613805f43ba3"
+          },
+          "crates/flint-gate-core/src/authority/consumer.rs": {
+            "bytes": 18193,
+            "sha256": "44f080b7ca5a00f0331719c6cbf8205a2685ce4d1ae365040a0f3ac3c355b6cf"
+          },
+          "crates/flint-gate-core/src/authority/mod.rs": {
+            "bytes": 18113,
+            "sha256": "2b56930def47f70fb5d5f556a9cd809e966fd80d249867522a640dd7f8c49879"
+          },
+          "crates/flint-gate-core/src/authority/postgres.rs": {
+            "bytes": 28014,
+            "sha256": "c3f4fbd94a06e3be3c6969a3d8b8264f26bb2baa8355f7e2fff2564b25fd7bfd"
+          },
+          "crates/flint-gate-core/src/cache/mod.rs": {
+            "bytes": 39503,
+            "sha256": "843296d04f12612fb0197553250b89b5408a4124240b2b6ddaf367c9ce3fcf6d"
+          },
+          "crates/flint-gate-core/src/cache/redis_fence.rs": {
+            "bytes": 85186,
+            "sha256": "0a214f56291c5991c0e66210f8e50a57cd788a4fde944a8b6e575237a2ce6418"
+          },
+          "crates/flint-gate-core/src/cache/session.rs": {
+            "bytes": 8769,
+            "sha256": "fbec640656aa0cb45453093126ff98ea258379e02694abd87d52cef7d068b69e"
+          },
+          "crates/flint-gate-core/src/config/types.rs": {
+            "bytes": 87159,
+            "sha256": "3a79b4bb1d71a5ef763c7459c69e7e61f83b2d2446608806ee6e19cb3da6aca4"
+          },
+          "crates/flint-gate-core/src/middleware/aso_clinical_authorize.rs": {
+            "bytes": 11434,
+            "sha256": "bb68de7e931621ff27bab78ac139688cbf825ecd75f262ead7cd154bc39f5bdb"
+          },
+          "crates/flint-gate-core/src/middleware/aso_replica_grant.rs": {
+            "bytes": 10746,
+            "sha256": "e0c38a59fc82d76f00ae28bf8188fce551c691d0e1de8b0d6a0285f1b92837ab"
+          },
+          "crates/flint-gate-core/src/middleware/pipeline.rs": {
+            "bytes": 107706,
+            "sha256": "5edfd6de7e95d89fdf35efa26912bdeea3e0eeac61127f6d37402ce031eedea0"
+          },
+          "crates/flint-gate/src/main.rs": {
+            "bytes": 70490,
+            "sha256": "b85770229d8e7a15bec92a517f9716d0761961c61be75c7c2ee314e209879626"
+          }
+        }
+      }
+    }
+  },
+  "child_runs": {
+    "focused_vitest": {
+      "command": "pnpm --dir web exec vitest run --no-file-parallelism --maxWorkers=1 --testTimeout=30000 src/shared/sync/protected-replica-boundaries.integration.test.ts src/shared/sync/frf-shape-transport.test.ts src/shared/sync/replica-runtime.test.ts src/shared/sync/graph-session-manager.test.ts src/shared/sync/replica-worker-owner.test.ts src/shared/sync/chunk-writer.test.ts src/shared/sync/case-summary-materialization.test.ts src/shared/sync/catalog-conformance.test.ts",
+      "cwd": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth",
+      "durationSeconds": 8.695754,
+      "exitCode": 0,
+      "stdout": "\n RUN  v3.2.7 /Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web\n\n \u2713 src/shared/sync/catalog-conformance.test.ts (5 tests) 2147ms\n \u2713 src/shared/sync/case-summary-materialization.test.ts (1 test) 1076ms\n   \u2713 case summary materialization > projects an over-wide transport row onto the approved PEM case summary  1075ms\n \u2713 src/shared/sync/frf-shape-transport.test.ts (23 tests) 13ms\n \u2713 src/shared/sync/replica-runtime.test.ts (24 tests) 11ms\n \u2713 src/shared/sync/replica-worker-owner.test.ts (13 tests) 8ms\n \u2713 src/shared/sync/chunk-writer.test.ts (20 tests) 5ms\n \u2713 src/shared/sync/graph-session-manager.test.ts (11 tests) 5ms\n \u2713 src/shared/sync/protected-replica-boundaries.integration.test.ts (2 tests) 6ms\n\n Test Files  8 passed (8)\n      Tests  99 passed (99)\n   Start at  09:55:17\n   Duration  7.66s (transform 168ms, setup 0ms, collect 310ms, tests 3.27s, environment 2.64s, prepare 353ms)\n\n",
+      "stderr": "(node:6148) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.\n(Use `node --trace-deprecation ...` to show where the warning was created)\n"
+    },
+    "fabric_shape_revocation": {
+      "command": "cargo test -p frf-app --test shape_revocation",
+      "cwd": "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric",
+      "durationSeconds": 13.45492,
+      "exitCode": 0,
+      "stdout": "\nrunning 4 tests\ntest grant_expiry_interrupts_a_nonempty_throttled_body ... ok\ntest observed_direct_kratos_revocation_drops_the_gate_owned_consumer ... ok\ntest logout_interrupts_a_nonempty_throttled_body ... ok\ntest membership_change_interrupts_a_nonempty_throttled_body ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n",
+      "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.11s\n     Running tests/shape_revocation.rs (/Volumes/my-passport/cargo-build/25/5c2ebd31dad868/debug/deps/shape_revocation-9f8ee4522cec8c73)\n"
+    }
+  },
+  "production_sync": {
+    "entrypoint": "web/src/app/providers/graph-provider.tsx",
+    "closureAggregateSha256": "337cdc470558f989acc0149c7098826226fa17ecf001fff4b3d321f349c9fe76",
+    "closureFiles": {
+      "web/src/app/providers/graph-provider.tsx": "74e46d667204ee639f8c460ac8187a078688905a7f4fbfead0b01be211978d07",
+      "web/src/app/providers/session-provider.tsx": "7f819b9d8a96872db23c746f286ac834ae15eb958e9239bedd9867b0cc44999f",
+      "web/src/features/drafts/services/memory-draft-repository.ts": "c1e31324f74cb02ed0bceb777d0eb994a49d1cc0b3957679472c80dd40ab4cf2",
+      "web/src/features/session/api/session-api.ts": "48d31eea38c0ff89d0e0e0faf53f2b69553068edf47e723828a93e63a409d4eb",
+      "web/src/features/session/model/session-parse.ts": "961c4044ff9ce36813ef0db0e1f42893bf6237bb29578b2fab4484c5f727ff98",
+      "web/src/features/session/model/startup-session.ts": "e0dcbb1dbbc0088ee960ec615a4411fb335fea4eccf688da9501fd8d8d1801be",
+      "web/src/features/session/services/logout-pending-control.ts": "a11cce9bdfdc01a2c2e9510559f3b94b3f04d9a192579decfbd9210e566f718f",
+      "web/src/features/session/services/session-hint-bus.ts": "ed0b55f399670131910d8425bb9c517f5d4e82fca0bddf5fe5a9350481fd85fd",
+      "web/src/features/session/services/session-service.ts": "68d359601b03a5f58338cbe0923e39af542a0f175b5e1b984d2a2cc4b8aae4ca",
+      "web/src/features/session/store/session-store.ts": "6b7a57c9573ca8d602c283910d6a76c00bde814e38dc25d1372c207983b66a1e",
+      "web/src/shared/api/http-client.ts": "7a2f9a0cf376fb0a6bbae84cdc910c1075954489fa1491b38fc40c7014a9dae5",
+      "web/src/shared/model/session.ts": "14418ede1b39cac730602c2671b3ddda846b6265b3b3717f3039b8c38ac11be9",
+      "web/src/shared/native-command-client.ts": "38a2c2d76aeaa34f96614352fcfb7b05f4303685eebf57396f21f0c078b9e5fe",
+      "web/src/shared/runtime-command-registry.ts": "2c7a0ee0424b25aa3a675faf82b360c7111b35ad5318819538c108f67c782fad",
+      "web/src/shared/session-revocation-events.ts": "e6c691d5b611aa9e8add31d3995d60529aa274b132e3ef67d357a93580ca6850",
+      "web/src/shared/sync/chunk-writer.ts": "e3b25011f44d25b969759599c0abd90664ea873cc0996da454572f6c4815826e",
+      "web/src/shared/sync/electric-shapes.ts": "830e2540b6e03d5356243a390c622b467fde5e637ecdceb5030afc492be9944c",
+      "web/src/shared/sync/frf-shape-transport.ts": "49751868d6d78da375c1750e6093e2c27e39403b48152f3de1d62fc1ed9e176c",
+      "web/src/shared/sync/graph-session-manager.ts": "cd6f14a9fbe5e3d483ea020f739628d91a28ecd5d9224cbc28f547e01aa18f79",
+      "web/src/shared/sync/lease-store-web.ts": "8cedbb5059876388374a95c5f004a3b15594f77761cadb8c16fb9fbc3fdbda29",
+      "web/src/shared/sync/materializer-adoption.ts": "2a255b0ef6eca4cf6d2a267bd9633a35eb7a7e5136897a14df3d6ad1d1f8160b",
+      "web/src/shared/sync/migration-ledger.ts": "206d0e3ce46181653db0b1b5d2c675c7a7018ae8e773c1d4c0c7d9da95567bc4",
+      "web/src/shared/sync/native-replica-client.ts": "527e2d8e5d5162b512630d4ade7b34668b7e58c11b99018a9426510643c30596",
+      "web/src/shared/sync/pglite-bootstrap.ts": "5d7cf6b33bfae8c0c6e74287950575c10741c2aa3e07dddca2b69045a799b0c6",
+      "web/src/shared/sync/pglite-schema.ts": "7754586386bbfd29144e7cb47f9f188a41bd8c6f17aa688dce48d6f4a0bf433e",
+      "web/src/shared/sync/replica-continuation.ts": "0cab01a263f395a41635f2f64b60c8adc434861a357e10de0cb3d61812b838af",
+      "web/src/shared/sync/replica-owner.ts": "4352138b06c24f55e6cfad5a0ada89ba04636e0e9657c3ccb494d14af39ab670",
+      "web/src/shared/sync/replica-rebuild.ts": "fe79cfc4573d9af144c20293e08e8dcb3e490a1c1ecd2988abd2d17273cdb76a",
+      "web/src/shared/sync/replica-runtime.ts": "97a8180893f0039ecb2e23ca2a1b86ca5d3d6a2432d50f5ae0d430d808a5e5fb",
+      "web/src/shared/sync/replica-wiring.ts": "ce52c79d4e2c113084913e9df34e1b2502b5c20838a0df748c22f1382e45484b",
+      "web/src/shared/sync/replica-worker-owner.ts": "616a71b27e461954efb701dc18f686dce81e818edd5ef0ff2f23076f96063f5b",
+      "web/src/shared/sync/runtime-quiescence.ts": "a9857aa502dd186050557b5b2313aaac862ba50c564d20a03fd3eb4b21c9aee7",
+      "web/src/shared/sync/shape-gateway.ts": "89918adbcbe73f70f5222ff481badc96424f063c902beaa93728625ebfb3ac86",
+      "web/src/shared/sync/storage-policy.ts": "74ebfba4eb1ad96efc032de39f3f3715ad5f861a0a776af3a6b2ed8b78bd58a0"
+    },
+    "competingGenericWatchMatches": [],
+    "shapeTransportWired": true,
+    "sqlMaterializerWired": true
+  },
+  "browser_memory_run": {
+    "exit_code": 0,
+    "stdout": "{\n  \"output\": \"/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c015-aso-protected-proof/task-4-mounted-browser-memory.json\",\n  \"result\": \"Passed\"\n}\n",
+    "stderr": ""
+  },
+  "browser_memory": {
+    "result": "Passed",
+    "runtime": {
+      "browser": "Google Chrome 152.0.7977.84",
+      "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "page": "/ra11c-browser-memory.html"
+    },
+    "measurement": {
+      "rssMethod": "RSS growth of the isolated Chromium renderer with the greatest campaign-time growth, sampled from macOS ps",
+      "heapMethod": "Chromium performance.memory.usedJSHeapSize with --enable-precise-memory-info",
+      "baselineRssBytes": 1357709312,
+      "peakRssBytes": 1808203776,
+      "incrementalRssBytes": 443367424,
+      "aggregateIncrementalRssBytes": 450494464,
+      "incrementalHeapBytes": 159776972,
+      "rssLimitBytes": 536870912,
+      "heapLimitBytes": 268435456,
+      "rssWithinBudget": true,
+      "targetRendererRssWithinBudget": true,
+      "aggregateRssWithinBudget": true,
+      "heapWithinBudget": true,
+      "peakStage": "cold-fold",
+      "stagePeakRssBytes": {
+        "baseline": 1357709312,
+        "pglite-opening": 1364246528,
+        "cold-fold": 1808203776,
+        "complete": 1632452608
+      },
+      "baselineSamplesBytes": [
+        1355038720,
+        1356070912,
+        1356431360,
+        1357430784,
+        1357709312
+      ],
+      "baselineProcessTree": {
+        "processCount": 10,
+        "rssBytes": 1357709312,
+        "processes": [
+          {
+            "pid": 6366,
+            "parentPid": 6357,
+            "rssBytes": 237436928,
+            "kind": "browser"
+          },
+          {
+            "pid": 6380,
+            "parentPid": 6366,
+            "rssBytes": 141574144,
+            "kind": "gpu"
+          },
+          {
+            "pid": 6381,
+            "parentPid": 6366,
+            "rssBytes": 108478464,
+            "kind": "utility"
+          },
+          {
+            "pid": 6382,
+            "parentPid": 6366,
+            "rssBytes": 82968576,
+            "kind": "utility"
+          },
+          {
+            "pid": 6383,
+            "parentPid": 6366,
+            "rssBytes": 91504640,
+            "kind": "utility"
+          },
+          {
+            "pid": 6385,
+            "parentPid": 6366,
+            "rssBytes": 181747712,
+            "kind": "renderer"
+          },
+          {
+            "pid": 6387,
+            "parentPid": 6366,
+            "rssBytes": 166412288,
+            "kind": "renderer"
+          },
+          {
+            "pid": 6388,
+            "parentPid": 6366,
+            "rssBytes": 102121472,
+            "kind": "renderer"
+          },
+          {
+            "pid": 6389,
+            "parentPid": 6366,
+            "rssBytes": 125698048,
+            "kind": "renderer"
+          },
+          {
+            "pid": 6390,
+            "parentPid": 6366,
+            "rssBytes": 119767040,
+            "kind": "renderer"
+          }
+        ]
+      },
+      "peakProcessTree": {
+        "processCount": 10,
+        "rssBytes": 1808203776,
+        "processes": [
+          {
+            "pid": 6366,
+            "parentPid": 6357,
+            "rssBytes": 241696768,
+            "kind": "browser"
+          },
+          {
+            "pid": 6380,
+            "parentPid": 6366,
+            "rssBytes": 144113664,
+            "kind": "gpu"
+          },
+          {
+            "pid": 6381,
+            "parentPid": 6366,
+            "rssBytes": 108838912,
+            "kind": "utility"
+          },
+          {
+            "pid": 6382,
+            "parentPid": 6366,
+            "rssBytes": 82968576,
+            "kind": "utility"
+          },
+          {
+            "pid": 6383,
+            "parentPid": 6366,
+            "rssBytes": 91439104,
+            "kind": "utility"
+          },
+          {
+            "pid": 6385,
+            "parentPid": 6366,
+            "rssBytes": 181747712,
+            "kind": "renderer"
+          },
+          {
+            "pid": 6387,
+            "parentPid": 6366,
+            "rssBytes": 609779712,
+            "kind": "renderer"
+          },
+          {
+            "pid": 6388,
+            "parentPid": 6366,
+            "rssBytes": 102121472,
+            "kind": "renderer"
+          },
+          {
+            "pid": 6389,
+            "parentPid": 6366,
+            "rssBytes": 125730816,
+            "kind": "renderer"
+          },
+          {
+            "pid": 6390,
+            "parentPid": 6366,
+            "rssBytes": 119767040,
+            "kind": "renderer"
+          }
+        ]
+      },
+      "rendererDeltas": [
+        {
+          "pid": 6385,
+          "baselineRssBytes": 181747712,
+          "peakRssBytes": 181813248,
+          "incrementalRssBytes": 65536
+        },
+        {
+          "pid": 6387,
+          "baselineRssBytes": 166412288,
+          "peakRssBytes": 609779712,
+          "incrementalRssBytes": 443367424
+        },
+        {
+          "pid": 6388,
+          "baselineRssBytes": 102121472,
+          "peakRssBytes": 102121472,
+          "incrementalRssBytes": 0
+        },
+        {
+          "pid": 6389,
+          "baselineRssBytes": 125698048,
+          "peakRssBytes": 125730816,
+          "incrementalRssBytes": 32768
+        },
+        {
+          "pid": 6390,
+          "baselineRssBytes": 119767040,
+          "peakRssBytes": 119767040,
+          "incrementalRssBytes": 0
+        }
+      ],
+      "targetRenderer": {
+        "pid": 6387,
+        "baselineRssBytes": 166412288,
+        "peakRssBytes": 609779712,
+        "incrementalRssBytes": 443367424
+      },
+      "targetRendererStageRssBytes": {
+        "baseline": 166412288,
+        "pglite-opening": 166854656,
+        "cold-fold": 609779712,
+        "complete": 583614464
+      }
+    },
+    "browserCampaign": {
+      "result": "Passed",
+      "counts": {
+        "annotation_types": 4,
+        "evidence_states": 3,
+        "cases": 360,
+        "documents": 2880,
+        "case_evidence": 4320,
+        "evidence_citations": 8640,
+        "annotations": 0
+      },
+      "graphCounts": {
+        "annotation_types": 4,
+        "evidence_states": 3,
+        "cases": 360,
+        "documents": 2880,
+        "case_evidence": 4320,
+        "evidence_citations": 8640,
+        "annotations": 0
+      },
+      "checkpointShapes": [
+        "annotation_types",
+        "annotations",
+        "case_evidence",
+        "cases",
+        "documents",
+        "evidence_citations",
+        "evidence_states"
+      ],
+      "generation": 4,
+      "runtime": {
+        "crossOriginIsolated": false,
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36"
+      },
+      "heap": {
+        "baseline": {
+          "totalBytes": 9375701,
+          "usedBytes": 7268561
+        },
+        "peak": {
+          "totalBytes": 177643089,
+          "usedBytes": 167045533
+        },
+        "deltaBytes": 159776972,
+        "peakStage": "sql-checkpoint-graph",
+        "stages": {
+          "baseline": {
+            "totalBytes": 9375701,
+            "usedBytes": 7268561
+          },
+          "pglite-opening": {
+            "totalBytes": 23602421,
+            "usedBytes": 18110429
+          },
+          "pglite-open": {
+            "totalBytes": 156928979,
+            "usedBytes": 149795347
+          },
+          "schema-ready": {
+            "totalBytes": 158975537,
+            "usedBytes": 150831117
+          },
+          "graph-ready": {
+            "totalBytes": 159125034,
+            "usedBytes": 151310446
+          },
+          "projector-ready": {
+            "totalBytes": 159126025,
+            "usedBytes": 151833981
+          },
+          "cold-fold": {
+            "totalBytes": 177643089,
+            "usedBytes": 167042301
+          },
+          "cold-fold-complete": {
+            "totalBytes": 177643089,
+            "usedBytes": 167045249
+          },
+          "sql-checkpoint-graph": {
+            "totalBytes": 177643089,
+            "usedBytes": 167045533
+          },
+          "revision-1": {
+            "totalBytes": 147988404,
+            "usedBytes": 130016972
+          },
+          "materialized": {
+            "totalBytes": 147988404,
+            "usedBytes": 130018916
+          },
+          "final": {
+            "totalBytes": 145198003,
+            "usedBytes": 127233743
+          }
+        }
+      },
+      "checks": {
+        "completeCheckpoint": true,
+        "graphParity": true,
+        "heapAvailable": true,
+        "heapWithinBudget": true,
+        "sqlParity": true
+      }
+    }
+  },
+  "materializer_runs": [
+    {
+      "phase": "initial",
+      "exit_code": 0,
+      "stdout": "\n RUN  v3.2.7 /Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web\n\n \u2713 src/shared/sync/replica-mounted.integration.test.ts (2 tests | 1 skipped) 2774ms\n   \u2713 mounted RA11c SQL materialization > commits the initial graph and rolls back a captured revision before process restart  2774ms\n\n Test Files  1 passed (1)\n      Tests  1 passed | 1 skipped (2)\n   Start at  09:55:53\n   Duration  3.28s (transform 95ms, setup 0ms, collect 149ms, tests 2.77s, environment 0ms, prepare 73ms)\n\n",
+      "stderr": "(node:6450) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.\n(Use `node --trace-deprecation ...` to show where the warning was created)\n"
+    },
+    {
+      "phase": "continuation",
+      "exit_code": 0,
+      "stdout": "\n RUN  v3.2.7 /Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web\n\n \u2713 src/shared/sync/replica-mounted.integration.test.ts (2 tests | 1 skipped) 2686ms\n   \u2713 mounted RA11c SQL materialization > reopens durable SQL in a new process and fences owner disposal through replacement  2686ms\n\n Test Files  1 passed (1)\n      Tests  1 passed | 1 skipped (2)\n   Start at  09:55:57\n   Duration  3.41s (transform 101ms, setup 0ms, collect 142ms, tests 2.69s, environment 0ms, prepare 157ms)\n\n",
+      "stderr": "(node:6536) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.\n(Use `node --trace-deprecation ...` to show where the warning was created)\n"
+    }
+  ],
+  "materializer_exit_code": 0,
+  "materializer": {
+    "result": "Passed",
+    "counts": {
+      "annotation_types": 4,
+      "evidence_states": 3,
+      "cases": 360,
+      "documents": 2880,
+      "case_evidence": 4320,
+      "evidence_citations": 8639,
+      "annotations": 0
+    },
+    "evidenceStates": [
+      "gap",
+      "met",
+      "void"
+    ],
+    "checkpointShapes": [
+      "annotation_types",
+      "annotations",
+      "case_evidence",
+      "cases",
+      "documents",
+      "evidence_citations",
+      "evidence_states"
+    ],
+    "generation": 7,
+    "checks": {
+      "initialSqlGraphParity": true,
+      "completeShapeCheckpoint": true,
+      "gateSummaryUpdatedInSqlAndGraph": true,
+      "evidenceStateReferenceIdentitiesPreserved": true,
+      "coldCrashLeftNoPartialBatch": true,
+      "crashRolledBackRowAndCheckpoint": true,
+      "restartResumedWithoutSkip": true,
+      "deleteForcedReplacement": true,
+      "disposedOwnerFencedPendingRevision": true,
+      "replacementOwnerAppliedPendingRevision": true,
+      "authorityFailureEventPublishedAndFenced": true,
+      "finalSqlAndGraphCountsMatchExpected": true,
+      "finalGenerationMatchesCheckpoint": true
+    },
+    "memory": {
+      "durableInitialProcess": {
+        "baseline": {
+          "heapUsedBytes": 16377400,
+          "rssBytes": 99303424
+        },
+        "peak": {
+          "heapUsedBytes": 82464088,
+          "rssBytes": 540229632
+        },
+        "rssDeltaBytes": 440926208,
+        "heapDeltaBytes": 66086688,
+        "stages": {
+          "baseline": {
+            "heapUsedBytes": 16377400,
+            "rssBytes": 99303424
+          },
+          "open-runtime": {
+            "heapUsedBytes": 16383992,
+            "rssBytes": 99303424
+          },
+          "initial-sync": {
+            "heapUsedBytes": 79967176,
+            "rssBytes": 517718016
+          },
+          "capture-revision": {
+            "heapUsedBytes": 82292496,
+            "rssBytes": 517816320
+          },
+          "crash-rollback": {
+            "heapUsedBytes": 49233072,
+            "rssBytes": 516521984
+          },
+          "final": {
+            "heapUsedBytes": 49234992,
+            "rssBytes": 516521984
+          }
+        },
+        "peakStage": "initial-sync"
+      },
+      "durableContinuationProcess": {
+        "baseline": {
+          "heapUsedBytes": 16349248,
+          "rssBytes": 98762752
+        },
+        "peak": {
+          "heapUsedBytes": 126738552,
+          "rssBytes": 444530688
+        },
+        "rssDeltaBytes": 345767936,
+        "heapDeltaBytes": 110389304,
+        "stages": {
+          "baseline": {
+            "heapUsedBytes": 16349248,
+            "rssBytes": 98762752
+          },
+          "restart-update": {
+            "heapUsedBytes": 63569080,
+            "rssBytes": 361922560
+          },
+          "delete-replacement": {
+            "heapUsedBytes": 121094368,
+            "rssBytes": 438173696
+          },
+          "replacement-owner": {
+            "heapUsedBytes": 126736952,
+            "rssBytes": 444530688
+          },
+          "final": {
+            "heapUsedBytes": 126738552,
+            "rssBytes": 444530688
+          }
+        },
+        "peakStage": "final"
+      }
+    }
+  },
+  "failure": "AssertionError: expired_handle_is_denied_after_fresh_grant_resolution",
+  "remaining_relational_rows": {
+    "cases": 0,
+    "case_evidence": 0,
+    "documents": 0,
+    "evidence_citations": 0,
+    "patients": 0,
+    "users": 0,
+    "practices": 0,
+    "policy_criteria": 0,
+    "policies": 0,
+    "policy_types": 0,
+    "document_types": 0,
+    "payers": 0
+  },
+  "role_state": {
+    "post": {
+      "bypassRls": false,
+      "canLogin": true,
+      "createDb": false,
+      "createRole": false,
+      "inherit": true,
+      "memberships": [
+        "aso_authority_event_reader"
+      ],
+      "replication": false,
+      "superuser": false
+    },
+    "pre": {
+      "bypassRls": false,
+      "canLogin": true,
+      "createDb": false,
+      "createRole": false,
+      "inherit": true,
+      "memberships": [
+        "aso_authority_event_reader"
+      ],
+      "replication": false,
+      "superuser": false
+    },
+    "restored": true
+  },
+  "service_state": {
+    "managed": [
+      "db",
+      "electric",
+      "flint-gate",
+      "flint-gate-init",
+      "iggy-server",
+      "kratos",
+      "kratos-migrate",
+      "realtime-fabric",
+      "redis"
+    ],
+    "preExisting": [
+      "db",
+      "electric",
+      "flint-gate",
+      "flint-gate-init",
+      "iggy-server",
+      "kratos",
+      "kratos-migrate",
+      "realtime-fabric",
+      "redis"
+    ],
+    "preRunning": [
+      "db",
+      "electric",
+      "flint-gate",
+      "iggy-server",
+      "kratos",
+      "realtime-fabric",
+      "redis"
+    ],
+    "preContainers": {
+      "db": {
+        "configHash": "71024bd8a4842bd8338381850243e2f5576471e6445bce9c934bb192164cdbf1",
+        "containerId": "a5057fb060f931113ebb43f61cd85a9492210396def763268d2da4366707b767",
+        "image": "aso-prior-auth-db",
+        "imageDigest": "sha256:259ae7e1210e94d2bbe2ce31294d418fb9da7f71a5b8fa6ee23624376bb705a2",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/bootstrap,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docs/design/schema,aso-prior-auth_db_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "electric": {
+        "configHash": "d60cb6ff8b1bd5260add277927b5aa3d941d8305591ee08d56d4870e8820bda7",
+        "containerId": "acc8b14d3b6a995571a6076cd09e89997a9b83c9b09f63152aeb70e01c801396",
+        "image": "electricsql/electric:1.8.0",
+        "imageDigest": "sha256:9644bb77f2476f827e393d50d472615f82479edd44593b7edfe71e6b4e0433bd",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "flint-gate": {
+        "configHash": "da4702acb811331d841af5d054d16f528bcf2914b6eaaaa4c991c1bacaaafdb0",
+        "containerId": "35ec3843950a99b32e56c9e545b32a008d482114ac523992546f7316f399cf92",
+        "image": "aso-prior-auth-flint-gate",
+        "imageDigest": "sha256:5ad074b3c4861b99411997e8e1731980f6e9b2da85068ec3a313f1d7aeea4f50",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml",
+        "networks": "aso-prior-auth_ra05-backend,aso-prior-auth_ra05-client",
+        "state": "running"
+      },
+      "flint-gate-init": {
+        "configHash": "6fcb990e3fe55f7e784d8ecb7408fa44a4a3d77dfdd312a91f55a130ff027365",
+        "containerId": "dd9a772eb093ee5b8810b5aa935442e1cfea73c60cf1696b4d4d66849a504e70",
+        "image": "aso-prior-auth-flint-gate-init",
+        "imageDigest": "sha256:565e7065581ea6dbf4541e1f2949976e36d5234806d3b1735c658bb013d6d8e9",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml,92ce6cd5919a7252dbc8b077f4e0818edcae130278b2e33a6c44ae531ea2ac5f",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "iggy-server": {
+        "configHash": "1d22f5e5430f49f6c068461421480c5209ae09f3364cd26fa9d5fc40ec522e5b",
+        "containerId": "3935f5dc9884c1d76a462ecfecac489a01dc3bfc2a9310377311792a088f5c88",
+        "image": "iggyrs/iggy@sha256:68a314c1380be5a792a134f3bd346ded42bd49d9f7114c86f70b48fc85bc5272",
+        "imageDigest": "sha256:f7c54e3042254f26665400b6e62a4f8317d90671b5750f8a281bee52f0b16978",
+        "mounts": "aso-prior-auth_iggy_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos": {
+        "configHash": "5dc669aa48d19b70c18f8f21c4ae1f669d442b8cc0c6cae5ea6393831ed70637",
+        "containerId": "38a654cc623d5d448a728c55c4bc86d89154c755322a9789d4d50090fff07012",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/kratos,1df237fbb2898958c7e1d1a8514ccd3b70dae427f207616ac40293db6af290aa,ce597b8bbf4de5eaabe9494d19e77869a572677cbae8edaa1b12e5f4ee486750",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos-migrate": {
+        "configHash": "6b8c7662f7f0ab711311bed097e55d91c234f5454c912a9fd22745584dadb4cb",
+        "containerId": "86500451cbf55720eed5e2e353131e8745f56ae4682048e2fb703a53d5fc2767",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "7af22d63ebf7d088083c40d1b8a2563b521b211e5dcff719ec2f495eb78b1715,acf23160aad4dbc661cad1e0e1227dcb6bcc2983b4248bd4f77b05d3f70d18d9",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "realtime-fabric": {
+        "configHash": "22e4c9bf35e31c039cd958e8fcbd8f57ab50a8a9848ec5ebf6c8f831a3353bc1",
+        "containerId": "87be1687862e68733ae7e67bada09ad83a9226cb0ac1ed36d573f36f9786aa2a",
+        "image": "aso-prior-auth-realtime-fabric",
+        "imageDigest": "sha256:b362432ea841b468c87348a8be75426a523834bd525d2bcaa8a36683f78385a6",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/frf/shape-catalog.json",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "redis": {
+        "configHash": "add989d567706c819b26efe4d3c28d70cac1c8bd686619cdafeed9558b774e39",
+        "containerId": "2e7beec436b3a70869050290bb9685945514d11fe517c4b4d5a4ecbf0eeeb2bc",
+        "image": "redis@sha256:becdda6c7f4b3fb42e42fd7f120bbf5c54c4caaaf16f26da24e4563d2c1f0576",
+        "imageDigest": "sha256:59c08762bdbcf53fa132aa0bae464a57a1309dc3fff8a034bb3e16d7a0b30ec5",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      }
+    },
+    "postContainers": {
+      "db": {
+        "configHash": "71024bd8a4842bd8338381850243e2f5576471e6445bce9c934bb192164cdbf1",
+        "containerId": "a5057fb060f931113ebb43f61cd85a9492210396def763268d2da4366707b767",
+        "image": "aso-prior-auth-db",
+        "imageDigest": "sha256:259ae7e1210e94d2bbe2ce31294d418fb9da7f71a5b8fa6ee23624376bb705a2",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/bootstrap,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docs/design/schema,aso-prior-auth_db_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "electric": {
+        "configHash": "d60cb6ff8b1bd5260add277927b5aa3d941d8305591ee08d56d4870e8820bda7",
+        "containerId": "acc8b14d3b6a995571a6076cd09e89997a9b83c9b09f63152aeb70e01c801396",
+        "image": "electricsql/electric:1.8.0",
+        "imageDigest": "sha256:9644bb77f2476f827e393d50d472615f82479edd44593b7edfe71e6b4e0433bd",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "flint-gate": {
+        "configHash": "da4702acb811331d841af5d054d16f528bcf2914b6eaaaa4c991c1bacaaafdb0",
+        "containerId": "35ec3843950a99b32e56c9e545b32a008d482114ac523992546f7316f399cf92",
+        "image": "aso-prior-auth-flint-gate",
+        "imageDigest": "sha256:5ad074b3c4861b99411997e8e1731980f6e9b2da85068ec3a313f1d7aeea4f50",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml",
+        "networks": "aso-prior-auth_ra05-backend,aso-prior-auth_ra05-client",
+        "state": "running"
+      },
+      "flint-gate-init": {
+        "configHash": "6fcb990e3fe55f7e784d8ecb7408fa44a4a3d77dfdd312a91f55a130ff027365",
+        "containerId": "dd9a772eb093ee5b8810b5aa935442e1cfea73c60cf1696b4d4d66849a504e70",
+        "image": "aso-prior-auth-flint-gate-init",
+        "imageDigest": "sha256:565e7065581ea6dbf4541e1f2949976e36d5234806d3b1735c658bb013d6d8e9",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml,92ce6cd5919a7252dbc8b077f4e0818edcae130278b2e33a6c44ae531ea2ac5f",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "iggy-server": {
+        "configHash": "1d22f5e5430f49f6c068461421480c5209ae09f3364cd26fa9d5fc40ec522e5b",
+        "containerId": "3935f5dc9884c1d76a462ecfecac489a01dc3bfc2a9310377311792a088f5c88",
+        "image": "iggyrs/iggy@sha256:68a314c1380be5a792a134f3bd346ded42bd49d9f7114c86f70b48fc85bc5272",
+        "imageDigest": "sha256:f7c54e3042254f26665400b6e62a4f8317d90671b5750f8a281bee52f0b16978",
+        "mounts": "aso-prior-auth_iggy_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos": {
+        "configHash": "5dc669aa48d19b70c18f8f21c4ae1f669d442b8cc0c6cae5ea6393831ed70637",
+        "containerId": "38a654cc623d5d448a728c55c4bc86d89154c755322a9789d4d50090fff07012",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/kratos,1df237fbb2898958c7e1d1a8514ccd3b70dae427f207616ac40293db6af290aa,ce597b8bbf4de5eaabe9494d19e77869a572677cbae8edaa1b12e5f4ee486750",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos-migrate": {
+        "configHash": "6b8c7662f7f0ab711311bed097e55d91c234f5454c912a9fd22745584dadb4cb",
+        "containerId": "86500451cbf55720eed5e2e353131e8745f56ae4682048e2fb703a53d5fc2767",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "7af22d63ebf7d088083c40d1b8a2563b521b211e5dcff719ec2f495eb78b1715,acf23160aad4dbc661cad1e0e1227dcb6bcc2983b4248bd4f77b05d3f70d18d9",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "realtime-fabric": {
+        "configHash": "22e4c9bf35e31c039cd958e8fcbd8f57ab50a8a9848ec5ebf6c8f831a3353bc1",
+        "containerId": "87be1687862e68733ae7e67bada09ad83a9226cb0ac1ed36d573f36f9786aa2a",
+        "image": "aso-prior-auth-realtime-fabric",
+        "imageDigest": "sha256:b362432ea841b468c87348a8be75426a523834bd525d2bcaa8a36683f78385a6",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/frf/shape-catalog.json",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "redis": {
+        "configHash": "add989d567706c819b26efe4d3c28d70cac1c8bd686619cdafeed9558b774e39",
+        "containerId": "2e7beec436b3a70869050290bb9685945514d11fe517c4b4d5a4ecbf0eeeb2bc",
+        "image": "redis@sha256:becdda6c7f4b3fb42e42fd7f120bbf5c54c4caaaf16f26da24e4563d2c1f0576",
+        "imageDigest": "sha256:59c08762bdbcf53fa132aa0bae464a57a1309dc3fff8a034bb3e16d7a0b30ec5",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      }
+    },
+    "postExisting": [
+      "db",
+      "electric",
+      "flint-gate",
+      "flint-gate-init",
+      "iggy-server",
+      "kratos",
+      "kratos-migrate",
+      "realtime-fabric",
+      "redis"
+    ],
+    "postRunning": [
+      "db",
+      "electric",
+      "flint-gate",
+      "iggy-server",
+      "kratos",
+      "realtime-fabric",
+      "redis"
+    ],
+    "removed": [],
+    "restarted": [
+      "flint-gate",
+      "realtime-fabric"
+    ],
+    "restored": true,
+    "stopped": []
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-app/src/entity_type_watch.rs",
+      "line": 370,
+      "claim": "Snapshot admission fails for an authorized empty snapshot because it tries to build a snapshot_id using a zero synthetic barrier and then still emits SnapshotComplete, but the accepted/start checkpoint semantics expose a post-snapshot checkpoint that can skip unseen filtered history.",
+      "evidence": "In `snapshot_frames`, `barrier` is derived only from authorized deliveries via `disclosed_barrier`; when there are no authorized rows it becomes `commit_lsn: 0` (snapshot.rs lines 9-21), while the `SnapshotComplete` checkpoint is issued from the durable projection cursor (`cursor.as_ref().map(|value| value.broker_offset)`) at lines 390-394. This advances the client past filtered/out-of-scope rows without any visible row or barrier position, conflicting with acceptance B's reconnect/resume requirement and the evidence claim that filtered rows advance only inside an opaque checkpoint without causing skipped protected delivery.",
+      "suggested_fix": "For empty/fully-filtered snapshots, either make the completion checkpoint the same pre-snapshot checkpoint as `Accepted.start_checkpoint`, or include an explicit resnapshot/filtered-progress contract and prove resume cannot skip newly authorized rows after authorization changes."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

@@ -14,7 +14,7 @@ use frf_domain::{
     AgentEvent, AgentEventKind, AgentProtocol, Channel, ChannelId, Cursor, EventEnvelope, Offset,
     SignalEnvelope,
 };
-use frf_gateway::{AppState, GatewayConfig};
+use frf_gateway::{AppState, GatewayConfig, build_router};
 use frf_ports::{
     AgentEventBus, AgentEventStream, AuthzProvider, DynMediaSignaler, IdentityVerifier, LogBroker,
     MediaSignaler, NoOpPolicyProvider, PortError, RelationTuple, SignalStream, VerifiedClaims,
@@ -203,8 +203,23 @@ fn make_state(
         // ADR-009 lane not exercised by the signal-mux tests.
         #[cfg(feature = "shape-facade")]
         shape_usecase: None,
+        cdc_readiness: tokio::sync::watch::channel(true).1,
         config: Arc::new(GatewayConfig::test_default()),
     })
+}
+
+#[tokio::test]
+async fn data_profile_does_not_mount_agent_media_or_admin_routes() {
+    let server = axum_test::TestServer::new(build_router(make_state(
+        TenantId::new(),
+        SessionId::new(),
+        Vec::new(),
+    )))
+    .expect("test server");
+
+    for path in ["/ws/v1/agents", "/ws/v1/signal", "/"] {
+        server.get(path).await.assert_status_not_found();
+    }
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────

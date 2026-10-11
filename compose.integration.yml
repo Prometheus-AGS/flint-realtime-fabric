@@ -1,0 +1,16 @@
+services:
+  iggy:
+    image: ${FRF_IGGY_IMAGE:-iggyrs/iggy:latest}
+    ports:
+      - target: 8090
+        host_ip: 127.0.0.1
+        protocol: tcp
+    environment:
+      IGGY_SYSTEM_PATH: /data
+      IGGY_ROOT_USERNAME: ${FRF_IGGY_USERNAME:?FRF_IGGY_USERNAME is required}
+      IGGY_ROOT_PASSWORD: ${FRF_IGGY_PASSWORD:?FRF_IGGY_PASSWORD is required}
+    volumes:
+      - iggy-data:/data
+
+volumes:
+  iggy-data:

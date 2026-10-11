@@ -20,6 +20,8 @@ members = [
     "crates/frf-wallet",
     "crates/frf-store-redb",
     "crates/frf-store-surreal",
+    "crates/frf-projection-surreal",
+    "crates/frf-watch-broker",
     "crates/frf-ffi",
     "crates/frf-media-livekit",
     "crates/frf-media-str0m",
@@ -36,6 +38,7 @@ version = "0.1.0"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/prometheusags/flint-realtime-fabric"
+# Keep this exact pin synchronized with the GitHub Actions MSRV job.
 rust-version = "1.94"
 
 # Centralized lint policy — every crate opts in via `[lints] workspace = true`.
@@ -74,6 +77,11 @@ ractor = "0.15"
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+serde_json_canonicalizer = "0.3.2"
+base64 = "0.22"
+sha2 = "0.10"
+aes-gcm = "0.10"
+getrandom = "0.3"
 
 # Bytes / networking
 bytes = "1.11"
@@ -149,7 +157,7 @@ loro = { version = "1.13.1" }
 str0m = { version = "0.21" }
 
 # Phase 8: Cedar policy engine
-cedar-policy = { version = "4" }
+cedar-policy = { version = "=4.11.2" }
 loro-ffi = { version = "1.13.1" }
 redb = { version = "4.1.0" }
 surrealdb = { version = "=3.3.0" }

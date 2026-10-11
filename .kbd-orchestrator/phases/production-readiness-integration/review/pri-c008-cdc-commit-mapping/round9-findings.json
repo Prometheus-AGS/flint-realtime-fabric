@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-postgres-cdc/src/catalog_validation.rs",
+      "line": 18,
+      "claim": "CDC source epochs containing hyphens are rejected, so the new integration test and the documented example epoch fail catalog validation before replication starts.",
+      "evidence": "validate_config permits only ASCII alphanumeric characters or `\"._:\"` (`.all(|character| character.is_ascii_alphanumeric() || \"._:\".contains(character))`), but the test config uses hyphenated epochs such as `\"c008-core-v1\"` in `crates/frf-gateway/tests/cdc_integration.rs` and `.env.example` sets `FRF_CDC_SOURCE_EPOCH=replace-with-stable-slot-epoch`.",
+      "suggested_fix": "Either include `-` in the allowed epoch character set (for example `\"._:-\"`) or change all configured/test/example epochs to match the validator."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "compose.yml",
+      "line": 46,
+      "claim": "The reference Compose profile still requires PostgreSQL CDC DSN inputs even when CDC is disabled by default.",
+      "evidence": "The diff changes `CDC_ENABLED` to `\"${FRF_CDC_ENABLED:-false}\"`, but `CDC_REPLICATION_URL` still interpolates `${FRF_POSTGRES_USER:?FRF_POSTGRES_USER is required}`, `${FRF_POSTGRES_PASSWORD:?FRF_POSTGRES_PASSWORD is required}`, and `${FRF_POSTGRES_DB:?FRF_POSTGRES_DB is required}` unconditionally; acceptance/evidence states the profile now defaults CDC off and accepts empty disabled-mode inputs.",
+      "suggested_fix": "Remove `:?` requirements from the CDC_REPLICATION_URL interpolation when CDC is disabled, e.g. default the URL to an empty string unless `FRF_CDC_ENABLED=true`, and rely on gateway validation to require it only when enabled."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

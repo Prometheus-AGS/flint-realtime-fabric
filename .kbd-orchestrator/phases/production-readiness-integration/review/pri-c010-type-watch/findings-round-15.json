@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "compose.yml",
+      "line": 58,
+      "claim": "The production compose file requires `FRF_ENTITY_WATCH_CHECKPOINT_KEY` unconditionally, contradicting the gateway validation/docs that require it only when CDC is enabled and breaking non-CDC deployments.",
+      "evidence": "compose.yml adds `ENTITY_WATCH_CHECKPOINT_KEY: \"${FRF_ENTITY_WATCH_CHECKPOINT_KEY:?FRF_ENTITY_WATCH_CHECKPOINT_KEY is required}\"`, while `crates/frf-gateway/src/config/validation.rs` enforces the key only inside `if self.cdc_enabled { ... }` and `docs/ENVIRONMENT.md` describes the variable as required for CDC.",
+      "suggested_fix": "Make the compose requirement conditional via the CDC/full deployment profile or provide a separate CDC compose overlay; do not use `${VAR:?}` in the base service unless the key is mandatory for every gateway start."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-watch-broker/src/lib.rs",
+      "line": 52,
+      "claim": "The broker watch adapter turns a different-tenant entity event into a terminal permission error before the app-layer tenant filter can safely ignore it, so a cross-tenant event on the shared entity channel can kill authorized watches instead of being filtered.",
+      "evidence": "`BrokerEntityTypeWatchSource::subscribe` returns `PortError::PermissionDenied(\"entity watch envelope tenant mismatch\")` when `mutation.tenant_id != envelope.channel.tenant_id`, but acceptance A requires other tenants to receive no protected payload and the application stream code has explicit filtering for `delivery.mutation.tenant_id != producer.request.tenant_id` only after the adapter emits a delivery.",
+      "suggested_fix": "Do not reject well-formed entity mutations solely because their tenant differs from the channel tenant; pass the delivery to the use case for tenant filtering, or make the broker channel partitioning guarantee per-tenant and document/enforce it at publish time instead of terminating subscribers."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

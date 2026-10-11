@@ -1,0 +1,21 @@
+{
+  "captured_at": "2026-09-15",
+  "rustsec_database_commit": "e2e640471715167f73e22eaf761f2e547adafeec",
+  "repositories": {
+    "fabric_rust": {"revision":"52ab9b3874abbe35bbca73720d85578f3db70943","vulnerabilities":8,"unmaintained":7,"unsound":4,"yanked":2},
+    "fabric_node_production": {"revision":"52ab9b3874abbe35bbca73720d85578f3db70943","critical":0,"high":0,"moderate":0,"low":0},
+    "gate_rust": {"revision":"97d65437c937a285fb000f5e42fddc8af4ff9934","vulnerabilities":10,"unmaintained":1,"unsound":4,"yanked":1},
+    "forge_rust": {"revision":"dc313be3a044c65b05d845a9c34350bf5ca3ca3e","vulnerabilities":6,"unmaintained":0,"unsound":1,"yanked":3},
+    "pem_node_production": {"revision":"071b9e5b06c31f6c7d9d191bdaa4a2e188d1d565","critical":2,"high":13,"moderate":12,"low":5},
+    "aso_web_production": {"revision":"d95242542060d1e19a6efe9143f57c015d6162f4","critical":0,"high":7,"moderate":6,"low":0}
+  },
+  "material_findings": [
+    "Gate contains affected h2, quinn-proto, rustls, rustls-webpki, rsa and crossbeam-epoch packages.",
+    "Forge contains affected h2/rustls and wasmtime 46.0.1; fixed compatible wasmtime releases start at 46.0.3.",
+    "PEM's production audit includes two critical Next.js advisories plus high/moderate findings in its monorepo graph.",
+    "ASO web resolves react-router below the fixed versions for thirteen high/moderate advisories.",
+    "Fabric's production Node dependency graph reported no advisory at capture time; its Rust graph remains blocked."
+  ],
+  "result": "BLOCKED",
+  "policy": "Each repository must clear or source-boundly prove non-applicability of its production dependency findings before c023. Counts are inventory, not risk acceptance."
+}

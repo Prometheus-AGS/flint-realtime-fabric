@@ -6,11 +6,18 @@ use serde::Deserialize;
 
 use super::ShapeUseCaseError;
 
-const APPROVED_REFERENCE_PROJECTIONS: [(&str, &str, [&str; 3]); 1] = [(
-    "evidence_states",
-    "aso.evidence_states",
-    ["key", "label", "meaning"],
-)];
+const APPROVED_REFERENCE_PROJECTIONS: [(&str, &str, &[&str]); 2] = [
+    (
+        "annotation_types",
+        "aso.annotation_types",
+        &["id", "key", "name", "description"],
+    ),
+    (
+        "evidence_states",
+        "aso.evidence_states",
+        &["key", "label", "meaning"],
+    ),
+];
 
 /// One shape a client may request, as declared by server policy.
 #[derive(Debug, Clone, Deserialize)]
@@ -108,7 +115,7 @@ fn approved_reference(shape: &str, policy: &ShapePolicy) -> bool {
                 && policy
                     .columns
                     .iter()
-                    .zip(approved_columns)
+                    .zip(*approved_columns)
                     .all(|(actual, approved)| actual == approved)
                 && policy.allowed_params.is_empty()
                 && policy.relation == "view"
@@ -249,10 +256,21 @@ mod tests {
     #[test]
     fn explicit_reference_without_scope_is_accepted() {
         let catalog = ShapeCatalog::from_json(
-            r#"{"evidence_states":{"table":"aso.evidence_states","columns":["key","label","meaning"],"allowed_params":[],"relation":"view","object_namespace":"practice","reference":true}}"#,
+            r#"{"annotation_types":{"table":"aso.annotation_types","columns":["id","key","name","description"],"allowed_params":[],"relation":"view","object_namespace":"practice","reference":true},"evidence_states":{"table":"aso.evidence_states","columns":["key","label","meaning"],"allowed_params":[],"relation":"view","object_namespace":"practice","reference":true}}"#,
         )
         .expect("explicit reference projection");
-        assert_eq!(catalog.len(), 1);
+        assert_eq!(catalog.len(), 2);
+    }
+
+    #[test]
+    fn annotation_type_schema_is_not_an_approved_reference_column() {
+        let error = ShapeCatalog::from_json(
+            r#"{"annotation_types":{"table":"aso.annotation_types","columns":["id","key","name","description","schema"],"allowed_params":[],"relation":"view","object_namespace":"practice","reference":true}}"#,
+        )
+        .expect_err("type schemas are outside the approved browser projection");
+        assert!(
+            matches!(error, ShapeUseCaseError::InvalidRequest(message) if message.contains("not an approved reference projection"))
+        );
     }
 
     #[test]

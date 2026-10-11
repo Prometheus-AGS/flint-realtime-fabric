@@ -1,0 +1,31 @@
+{
+  "mode": "post-qa-focused-review",
+  "target": "pri-c003-scope-research-contract",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "isolation_mode": "harness-native:fresh-context-prior-plus-final-qa-delta",
+  "producer_model": "gpt-6-recorded-by-prior-review-artifacts",
+  "cross_model_check": "fresh-context reviewer model is distinct from the gpt-6 producer model",
+  "generated_at": "2026-09-15T09:12:06Z",
+  "counts": {
+    "critical": 0,
+    "warning": 1,
+    "suggestion": 0
+  },
+  "summary": "Final QA does not introduce an archive blocker. The refiner records all blocking c003 constraints passing, and the final receipt preserves the key boundary: c003 completes only the research/decision slice while production readiness remains blocked by later implementation and dependency gates.",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c003-scope-research-contract/receipt.md",
+      "line": 16,
+      "claim": "Gate and ASO source drift after the c003 baseline remains a later-gate recapture requirement.",
+      "evidence": "The receipt records Gate status SHA-256 1a2518bb485510fb39123dcf29179517e1f93629ae995eeaf4f919aac38 and ASO status SHA-256 6881e7592666d1f7fd15745886563b6c253b21619d6a6d8bdd6516086297c2bf, then states later changes must recapture and isolate those worktrees before using them as implementation evidence.",
+      "impact": "Not a c003 archive blocker because the final receipt is explicitly a dated research receipt and does not certify a deployable release."
+    }
+  ],
+  "qa_checks": [
+    "refiner state.json: converged, iteration 1, blocking_violations 0",
+    "refinement_log.md: A/B/P1/P2/P3/S1 PASS",
+    "receipt.md: Implementation COMPLETE for research/decision slice; production readiness BLOCKED"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-gateway/src/entity_projection_runtime.rs",
+      "line": 58,
+      "claim": "The production gateway composes the projector with ConfiguredLogBroker, but the new required high-water capability is only implemented for IggyBroker, so the projector will fail readiness/startup through the default LogBroker::head_offset error.",
+      "evidence": "entity_projection_runtime::start constructs `EntityProjector::new(broker, Arc::clone(&store))` with `broker: Arc<ConfiguredLogBroker>`; EntityProjector::run_until_shutdown calls `self.broker.head_offset(...)`; `crates/frf-ports/src/log_broker.rs` adds a default `head_offset` implementation returning `PortError::Transport(\"broker does not expose a channel high-water offset\")`; the diff only adds an override in `crates/frf-broker-iggy/src/broker.rs` for `IggyBroker` and contains no change to `crates/frf-gateway/src/configured_broker.rs` to delegate it.",
+      "suggested_fix": "Implement `LogBroker::head_offset` on `ConfiguredLogBroker` and delegate to the wrapped Iggy broker, and add a gateway-level test that uses ConfiguredLogBroker rather than IggyBroker directly."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

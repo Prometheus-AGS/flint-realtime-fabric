@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "runId": "20260915084331-29908",
+  "sourceCommit": "c5b184535e95e61f3a3ca327d648ced8980cda3c",
+  "startedAt": "2026-09-15T08:43:31Z",
+  "finishedAt": "2026-09-15T08:43:37Z",
+  "exitStatus": 0,
+  "topology": {
+    "composeProject": "frf-pri-20260915084331-29908",
+    "composeFile": "compose.integration.yml",
+    "iggyEndpoint": "127.0.0.1:32771",
+    "imageId": "sha256:f7c54e3042254f26665400b6e62a4f8317d90671b5750f8a281bee52f0b16978",
+    "imageDigest": "iggyrs/iggy@sha256:68a314c1380be5a792a134f3bd346ded42bd49d9f7114c86f70b48fc85bc5272"
+  },
+  "scenarios": {
+    "required": 2,
+    "completed": 2,
+    "disabledDeliveryExit": "101",
+    "restoredDeliveryExit": "0"
+  },
+  "cleanup": {
+    "status": "owned-resources-removed",
+    "scope": "containers and volumes labeled com.docker.compose.project=frf-pri-20260915084331-29908"
+  },
+  "sha256": {
+    "compose": "13ab1dbccd210e21959d7c117fd4cfef9d57e9d61fb06f011a8c024214b7c5ec",
+    "test": "7071d864b0cb33bde3bed89616e526a5a60c9dd8e36d5f6be116eccfe55f0d1d",
+    "runner": "f54bd44d3ce83d2b1d54c43e1b8a53f873962b37827f551f3966035d20357988",
+    "disabledDeliveryLog": "0e1b33f08e6a6d54674e070e3a963c6b1587ef99430f94c6893d3a04f3055670",
+    "restoredDeliveryLog": "19ef074f24625e1c47d5293b9815897d93294d102cc718a2348db74e1395481a",
+    "composeLog": "121f8c4de8eb11466e7c96bdc464d1efc12e2e9c3b1c17ef3013912b95448952"
+  },
+  "credentials": "disposable Iggy credentials, RS256 keypair and JWT removed after cleanup"
+}

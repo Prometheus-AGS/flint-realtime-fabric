@@ -1,0 +1,39 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/pri-c005-authority-lifetime/tasks.md",
+      "line": 9,
+      "claim": "The change leaves a required acceptance task incomplete while claiming production-readiness convergence.",
+      "evidence": "Acceptance criterion task 5 requires saving the source-bound receipt and running quality/OpenSpec checks, but the diff adds `- [ ] 5. Save a source-bound receipt ... run applicable local quality checks and openspec validate ...`.",
+      "suggested_fix": "Complete the task and mark it checked only after the required receipt and local validation evidence are present, or keep the change open."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "scripts/run-authority-lifetime.sh",
+      "line": 190,
+      "claim": "The script commits a hardcoded database password, violating the blocking no-hardcoded-secrets constraint.",
+      "evidence": "Constraint S1 says `No hardcoded secrets ... Secrets come from env / a secret manager`; the script runs Postgres with `-e POSTGRES_PASSWORD=flint-c005` and later embeds `postgres://flint:flint-c005@127.0.0.1:$postgres_port/flint_gate` in generated config.",
+      "suggested_fix": "Generate a per-run random password or require it from an environment variable, and pass it consistently to Postgres and the generated Gate config without committing a static credential."
+    },
+    {
+      "severity": "WARNING",
+      "file": "crates/frf-authz-keto/src/provider.rs",
+      "line": 144,
+      "claim": "Keto tuple deletion builds a query string by interpolation without URL-encoding tuple fields.",
+      "evidence": "The diff formats `...object={}&relation={}&subject_id={}` directly from `tuple.object`, `tuple.relation`, and `tuple.subject`; subjects originate from verified claims and are unescaped strings.",
+      "suggested_fix": "Build the request with `reqwest::RequestBuilder::query` or `url::form_urlencoded` so object, relation, and subject values are percent-encoded."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

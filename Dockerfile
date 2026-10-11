@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # ── Stage 1: build the admin UI (embedded into the gateway via rust-embed) ────
 # frf-gateway `#[derive(RustEmbed)]`s `admin-ui/dist` at compile time (release), so the UI must
 # be built before the Rust stage. admin-ui is a pnpm workspace member (root pnpm-workspace.yaml).
@@ -47,18 +48,24 @@ COPY --from=ui-builder /build/admin-ui/dist ./admin-ui/dist
 # Leave empty for production images.
 ARG CARGO_FEATURES=""
 
-# Build the gateway binary in release mode
-RUN if [ -n "$CARGO_FEATURES" ]; then \
+# Build the gateway binary in release mode. Persist Cargo downloads and compiled
+# objects across source-only rebuilds, then copy the final binary outside the
+# cache mount so the runtime stage can consume it.
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
+    --mount=type=cache,target=/build/target,sharing=locked \
+    if [ -n "$CARGO_FEATURES" ]; then \
         cargo build --release -p frf-gateway --features "$CARGO_FEATURES"; \
     else \
         cargo build --release -p frf-gateway; \
-    fi
+    fi \
+    && cp target/release/frf-gateway /tmp/frf-gateway
 
 FROM debian:trixie-slim@sha256:020c0d20b9880058cbe785a9db107156c3c75c2ac944a6aa7ab59f2add76a7bd
 
 RUN apt-get update && apt-get install -y ca-certificates curl libpq5 && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /build/target/release/frf-gateway /usr/local/bin/frf-gateway
+COPY --from=builder /tmp/frf-gateway /usr/local/bin/frf-gateway
 
 EXPOSE 8080 9090
 

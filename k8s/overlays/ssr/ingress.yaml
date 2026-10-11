@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frf-shape
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [fabric.invalid]
+      secretName: frf-shape-tls
+  rules:
+    - host: fabric.invalid
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # Public traffic enters Gate; its protected route is the only
+                # caller admitted to the internal frf-gateway Service.
+                name: flint-gate-proxy
+                port:
+                  number: 4456

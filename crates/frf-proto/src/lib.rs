@@ -9,6 +9,10 @@ pub mod flint {
     pub mod v1 {
         include!(concat!(env!("OUT_DIR"), "/flint.v1.rs"));
     }
+    pub mod v2 {
+        include!(concat!(env!("OUT_DIR"), "/flint.v2.rs"));
+    }
 }
 
 pub use flint::v1 as fv1;
+pub use flint::v2 as fv2;

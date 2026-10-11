@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-gateway/tests/entity_type_watch_integration.rs",
+      "line": 12,
+      "claim": "The new integration test imports `IggyBroker` from the crate root even though `frf-broker-iggy` does not re-export it there, so all-target test compilation fails.",
+      "evidence": "The test adds `use frf_broker_iggy::IggyBroker;`, while `crates/frf-broker-iggy/src/lib.rs` only exposes `pub mod broker;` and the diff adds no `pub use broker::IggyBroker;`; R1 requires `cargo check --workspace` clean and R2 requires all-target Clippy/tests compilation.",
+      "suggested_fix": "Either change the import to `use frf_broker_iggy::broker::IggyBroker;` or add `pub use broker::IggyBroker;` in `crates/frf-broker-iggy/src/lib.rs`."
+    },
+    {
+      "severity": "WARNING",
+      "file": "crates/frf-gateway/src/config/mod.rs",
+      "line": 349,
+      "claim": "Invalid watch configuration environment values are silently replaced with defaults instead of failing startup.",
+      "evidence": "`ENTITY_WATCH_CHECKPOINT_GENERATION`, `ENTITY_WATCH_RETENTION_SECONDS`, and `ENTITY_WATCH_BUFFER_CAPACITY` are parsed with `.and_then(|value| value.parse().ok()).unwrap_or(...)`, so malformed operator input is masked before `validation.rs` checks the resulting value; the reviewer mandate flags silent failure, and the acceptance requires advertised retention to derive from the same validated gateway value.",
+      "suggested_fix": "Parse these variables through a fallible helper that reports the variable name on parse failure, then validate the parsed value instead of defaulting on invalid input."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

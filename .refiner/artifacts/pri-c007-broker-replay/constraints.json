@@ -1,0 +1,20 @@
+{
+  "artifact_type": "code",
+  "constraints": [
+    {"id":"A","description":"Polling never checkpoints before application acknowledgement; crash-before-ack and restart-after-ack replay follow the inclusive cursor contract.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"owned live Iggy crash/restart scenarios"}},
+    {"id":"B","description":"Delivered offsets are broker positions and stable event identity prevents producer retry/restart from reusing or duplicating positions.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"owned live position and persisted deduplication scenarios"}},
+    {"id":"C","description":"Named consumers, single-partition ordering, expiry/resnapshot and cancellation obey the frozen c006 recovery contract.","severity":"blocking","type":"semantic","validation":{"requires_code_execution":true,"validation_method":"owned live consumer, expiry and cancellation scenarios plus focused unit tests"}},
+    {"id":"D","description":"The fixture records and uses actual matching-server durability, cleaner, deduplication, retention and cleanup settings.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"rendered config, runtime logs and source-bound receipt"}},
+    {"id":"P1","description":"Focused and workspace Rust gates, format, shell, Compose, file-size, diff and OpenSpec checks pass locally.","severity":"blocking","type":"structural","validation":{"requires_code_execution":true,"validation_method":"recorded local quality matrix"}}
+  ],
+  "global_rules": [
+    "Runtime tests execute locally; CI results are not evidence.",
+    "The fixture must own and remove all broker resources it creates.",
+    "An expired explicit cursor fails closed with resnapshot_required.",
+    "c007 does not claim later CDC, entity watch, operations or release gates."
+  ],
+  "termination_conditions": [
+    "All blocking c007 constraints pass.",
+    "Independent review has no unresolved critical finding."
+  ]
+}

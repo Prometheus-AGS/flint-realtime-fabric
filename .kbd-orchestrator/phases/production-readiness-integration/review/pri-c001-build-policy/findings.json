@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "dagger/README.md",
+      "line": 29,
+      "claim": "The documented remote Clippy gate does not match the actual GitHub Actions Clippy matrix.",
+      "evidence": "`dagger/README.md` lists `cargo clippy --all-targets --all-features -- -D warnings -W clippy::pedantic`, while `.github/workflows/ci.yml` runs `cargo clippy --workspace --lib --bins`, a separate `--features frf-gateway/dev-endpoints` pass, and `cargo clippy --workspace --tests`; constraint T2 requires docs to match code.",
+      "suggested_fix": "Replace the README Clippy command with the exact three-command matrix used by `.github/workflows/ci.yml`, or change CI to match the documented command."
+    },
+    {
+      "severity": "WARNING",
+      "file": "crates/frf-gateway/src/routes/dev.rs",
+      "line": 170,
+      "claim": "The new dev signal subject behavior is not covered by any added test.",
+      "evidence": "The diff adds `subject: None` to the constructed `SignalEnvelope` in `dev.rs`, but no test file is added or modified to assert the dev injection envelope subject behavior; constraint T1 says new logic carries unit/integration tests.",
+      "suggested_fix": "Add a unit or route-level test that exercises the dev inject path and verifies the emitted `SignalEnvelope` includes `subject: None`."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

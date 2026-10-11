@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "runId": "c005-authority-runtime",
+  "startedAt": "2026-09-15T14:15:54Z",
+  "finishedAt": "2026-09-15T14:16:38Z",
+  "exitStatus": 0,
+  "scenariosCompleted": 7,
+  "source": {
+    "fabric": "315f8494fafcad9c7f8f42b58b791607f79cd9d9",
+    "fabricTrackedDiffSha256": "260e9491192dfc1862fd93db7609db8183b6adbe01c1616dc862a6c050b8e1d9",
+    "fabricScopedStatusSha256": "0490fbfdfce54af4dfd8fe8d0d3ec9d2046b6060b35598855cfff360abcd1a38",
+    "gate": "de88f40dbfe77bc03203bafc2b64de9815fe27b2"
+  },
+  "images": {
+    "postgres": "postgres@sha256:d9c304353c031b21e9a7e33dc4781e272a9fa802a2ab9703fe4199d72ba1422c",
+    "keto": "oryd/keto@sha256:bfdb8b9e283aedbd9e1d005c44eb1bbefd2096b2cb5b5aa0b7360b6e39c178d2"
+  },
+  "sha256": {
+    "test": "db801bb137abdd4af3e5e31119c1c0d15f4342441ace1d70f06911c60c55e660",
+    "runner": "45edfedb36f41ac11231309c06dffb0567e87e9a7c1a08c14ff3bebb1547c692",
+    "mintFixture": "7e31af4579d1d550f85e9a4f487141fe73f4dcd47995da7f4732e3787d516757",
+    "gateLog": "0928f38b7333f3434454a7d239681d08a6bb347cb49ad4659bdfcba98726903c",
+    "testBuildLog": "b8f3385d5cced715f1808a035905b391af60951651260116e31adea15c863160",
+    "testLog": "24a79943f3c1f28e3e3df6cccb25ca9a3a1a93e8fc6248b98d9f1a2feafa45cd"
+  },
+  "credentials": "ephemeral RSA keys and tokens removed during cleanup",
+  "cleanup": "owned processes, containers, secrets and detached Gate worktree removed"
+}
