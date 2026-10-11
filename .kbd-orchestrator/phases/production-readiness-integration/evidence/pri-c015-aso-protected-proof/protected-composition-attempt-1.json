@@ -1,0 +1,71 @@
+{
+  "result": "Failed",
+  "verification_tier": 1,
+  "observed_at": "2026-09-17T14:50:59.451005+00:00",
+  "scope": "Real Kratos v26.2.0, Gate RS256 minter, FRF verifier and Electric 1.8.0",
+  "command": "python3 scripts/test-authorized-shape-composition.py",
+  "checks": {
+    "kratos_version_is_pinned": {
+      "result": "Passed",
+      "status": 200,
+      "version": "v26.2.0"
+    },
+    "gate_serves_configured_rs256_key": {
+      "result": "Passed",
+      "status": 200,
+      "algorithms": [
+        "RS256"
+      ],
+      "key_ids": [
+        "aso-ra05-local"
+      ]
+    },
+    "a_identity_created": {
+      "result": "Passed",
+      "status": 201
+    },
+    "a_login_flow_created": {
+      "result": "Passed",
+      "status": 200
+    },
+    "a_login_completed": {
+      "result": "Passed",
+      "status": 200
+    },
+    "a_session_is_authoritative": {
+      "result": "Passed",
+      "status": 200,
+      "identity_match": true
+    },
+    "b_identity_created": {
+      "result": "Passed",
+      "status": 201
+    },
+    "b_login_flow_created": {
+      "result": "Passed",
+      "status": 200
+    },
+    "b_login_completed": {
+      "result": "Passed",
+      "status": 200
+    },
+    "b_session_is_authoritative": {
+      "result": "Passed",
+      "status": 200,
+      "identity_match": true
+    },
+    "real_gate_token_is_accepted_by_frf": {
+      "result": "Failed",
+      "status": 403,
+      "electric_handle_present": false,
+      "electric_offset_present": false
+    }
+  },
+  "cleanup": {
+    "grant_callback": "Passed",
+    "synthetic_identities": "Passed",
+    "deleted_identity_count": 2
+  },
+  "failure": "AssertionError: real_gate_token_is_accepted_by_frf",
+  "callback_call_count": 0
+}

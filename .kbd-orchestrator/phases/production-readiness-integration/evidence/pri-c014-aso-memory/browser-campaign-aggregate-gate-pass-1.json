@@ -1,0 +1,1057 @@
+{
+  "result": "Passed",
+  "verification_tier": 1,
+  "observed_at": "2026-09-17T14:12:57.636754+00:00",
+  "scope": "Synthetic Postgres through real Kratos, Gate, FRF and Electric into the production SQL materializer and PEM projector",
+  "command": "python3 scripts/test-ra11c-materialization.py --output /Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c014-aso-memory/browser-campaign.json --timeout-seconds 180",
+  "checks": {
+    "gate_ready": {
+      "result": "Passed"
+    },
+    "realtime_fabric_ready": {
+      "result": "Passed"
+    },
+    "ra11a_identity_created": {
+      "result": "Passed",
+      "status": 201
+    },
+    "ra11a_login_flow_created": {
+      "result": "Passed",
+      "status": 200
+    },
+    "ra11a_login_completed": {
+      "result": "Passed",
+      "status": 200
+    },
+    "ra11a_session_is_authoritative": {
+      "result": "Passed",
+      "status": 200,
+      "identity_match": true
+    },
+    "representative_dataset_committed": {
+      "result": "Passed",
+      "observed": "360,4320,2880,8640"
+    },
+    "mounted_materializer_passed": {
+      "result": "Passed",
+      "exit_code": 0
+    },
+    "browser_memory_passed": {
+      "result": "Passed",
+      "exit_code": 0
+    },
+    "campaign_inputs_unchanged": {
+      "result": "Passed",
+      "beforeAggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd",
+      "afterAggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd"
+    }
+  },
+  "cleanup": {
+    "synthetic_relational_rows": "Passed",
+    "isolated_pglite_store": "Passed",
+    "campaign_services": "Passed",
+    "grant_callback": "Passed",
+    "synthetic_identities": "Passed",
+    "deleted_identity_count": 1
+  },
+  "dataset": {
+    "counts": {
+      "cases": 360,
+      "case_evidence": 4320,
+      "documents": 2880,
+      "evidence_citations": 8640,
+      "evidence_states": 3
+    },
+    "total_rows": 16203
+  },
+  "isolated_data_dir": ".runtime/ra11a-data/ra11c-materialization",
+  "campaign_input_fingerprints": {
+    "before": {
+      "aggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd",
+      "files": {
+        "docker-compose.ra05.yaml": {
+          "bytes": 6131,
+          "sha256": "1815b800b226a0b356d903062f172d9377108194fa5bbf9f1b18cdd9687a50bc"
+        },
+        "docker-compose.yaml": {
+          "bytes": 9907,
+          "sha256": "6f642f9f561b78a46fae7f1f3863dcdcd633c9dd2730954a58ee87b1bbda7e8b"
+        },
+        "docker/flint-gate/config.ra05.yaml": {
+          "bytes": 2843,
+          "sha256": "347d3dd0d30f2221fbbe39237f967b0511e703ab5ecee8e327a87b78ff3dafa1"
+        },
+        "docker/frf/shape-catalog.json": {
+          "bytes": 2460,
+          "sha256": "7c50cc69ff87cfd5db56fc847c17ac035f97bd900ae71a7eee286fca286ce453"
+        },
+        "scripts/ra05-stack.sh": {
+          "bytes": 922,
+          "sha256": "824377cc9561e71474da079219527a4b1846a02592653e5a5ec430a2fc7cf2f4"
+        },
+        "scripts/ra06c_campaign_config.py": {
+          "bytes": 4379,
+          "sha256": "cd99908ae918fb7a4d1eff48500aad329ac923ad477bb1f2bfb77e8706fa9b4e"
+        },
+        "scripts/test-authorized-shape-composition.py": {
+          "bytes": 16064,
+          "sha256": "bbac93420ab50c53624c3c06c9c27d61ef94ca2fa28dfeb4031cbe09346f09d7"
+        },
+        "scripts/test-ra11a-sync-conformance.py": {
+          "bytes": 33272,
+          "sha256": "b21d01815058e7307f30989b11ce35c3954e3910e50f47a2bc05158e6915261a"
+        },
+        "scripts/test-ra11c-browser-memory.py": {
+          "bytes": 13301,
+          "sha256": "10e3c049d5c4299e34bb1024377d06912a4fb5ff05b5f4de3ea4860fc1b24205"
+        },
+        "scripts/test-ra11c-materialization.py": {
+          "bytes": 10019,
+          "sha256": "be8af39283fe56e1fac1c384a755986df5e10712770f96ca02962730f2b9bdf1"
+        },
+        "web/package.json": {
+          "bytes": 1928,
+          "sha256": "c8c7a697a514ddc18246f35e2c12db5eaa07bfa2f63ab131034b42c1c8be6641"
+        },
+        "web/pnpm-lock.yaml": {
+          "bytes": 315803,
+          "sha256": "fbe014d8cde45225e4c8884edd5193ddcd387295f065fbbb27690fd0269c2547"
+        },
+        "web/public/pglite-base.tgz": {
+          "bytes": 4529203,
+          "sha256": "f4818a049c2e017209433b00518760dbd8694d20c88fdc59b3bc2aea299f635f"
+        },
+        "web/ra11c-browser-memory.html": {
+          "bytes": 366,
+          "sha256": "4a26bd7963b6efb023a4a5f152170a9e350e9737a18f982b97b449e17662dd72"
+        },
+        "web/src/shared/session-revocation-events.ts": {
+          "bytes": 1035,
+          "sha256": "e6c691d5b611aa9e8add31d3995d60529aa274b132e3ef67d357a93580ca6850"
+        },
+        "web/src/shared/sync/chunk-writer.ts": {
+          "bytes": 9375,
+          "sha256": "e3b25011f44d25b969759599c0abd90664ea873cc0996da454572f6c4815826e"
+        },
+        "web/src/shared/sync/electric-shapes.ts": {
+          "bytes": 4440,
+          "sha256": "830e2540b6e03d5356243a390c622b467fde5e637ecdceb5030afc492be9944c"
+        },
+        "web/src/shared/sync/frf-shape-transport.ts": {
+          "bytes": 11521,
+          "sha256": "49751868d6d78da375c1750e6093e2c27e39403b48152f3de1d62fc1ed9e176c"
+        },
+        "web/src/shared/sync/migration-ledger.ts": {
+          "bytes": 10722,
+          "sha256": "206d0e3ce46181653db0b1b5d2c675c7a7018ae8e773c1d4c0c7d9da95567bc4"
+        },
+        "web/src/shared/sync/pglite-bootstrap.ts": {
+          "bytes": 1513,
+          "sha256": "5d7cf6b33bfae8c0c6e74287950575c10741c2aa3e07dddca2b69045a799b0c6"
+        },
+        "web/src/shared/sync/pglite-schema.ts": {
+          "bytes": 10640,
+          "sha256": "7754586386bbfd29144e7cb47f9f188a41bd8c6f17aa688dce48d6f4a0bf433e"
+        },
+        "web/src/shared/sync/replica-browser-memory.ts": {
+          "bytes": 10469,
+          "sha256": "a8d17a9a591b08cce218f843621b35cf9b9788320b241a0eb98bb4f6e56a2208"
+        },
+        "web/src/shared/sync/replica-mounted-runtime.ts": {
+          "bytes": 11193,
+          "sha256": "7caaaa829f37e7f393bd3f56f9de015ef6503acdd5536cbca4e9f2f9d37756c0"
+        },
+        "web/src/shared/sync/replica-mounted.integration.test.ts": {
+          "bytes": 20873,
+          "sha256": "5e394e3e505b7f6cb9daf32ba8dd8c61a4398e94457325f18f42c52470c93849"
+        },
+        "web/src/shared/sync/replica-owner.ts": {
+          "bytes": 6973,
+          "sha256": "4352138b06c24f55e6cfad5a0ada89ba04636e0e9657c3ccb494d14af39ab670"
+        },
+        "web/src/shared/sync/replica-rebuild.ts": {
+          "bytes": 4300,
+          "sha256": "fe79cfc4573d9af144c20293e08e8dcb3e490a1c1ecd2988abd2d17273cdb76a"
+        },
+        "web/src/shared/sync/replica-runtime.ts": {
+          "bytes": 17374,
+          "sha256": "97a8180893f0039ecb2e23ca2a1b86ca5d3d6a2432d50f5ae0d430d808a5e5fb"
+        },
+        "web/src/shared/sync/replica-wiring.ts": {
+          "bytes": 5040,
+          "sha256": "ce52c79d4e2c113084913e9df34e1b2502b5c20838a0df748c22f1382e45484b"
+        },
+        "web/src/shared/sync/replica-worker-owner.ts": {
+          "bytes": 15889,
+          "sha256": "616a71b27e461954efb701dc18f686dce81e818edd5ef0ff2f23076f96063f5b"
+        },
+        "web/src/shared/sync/storage-policy.ts": {
+          "bytes": 3705,
+          "sha256": "74ebfba4eb1ad96efc032de39f3f3715ad5f861a0a776af3a6b2ed8b78bd58a0"
+        },
+        "web/vite.config.ts": {
+          "bytes": 1991,
+          "sha256": "89da9c620bb5d18f0b8eaf8d4fba7805bac56dcd23ffc87e0cce2e17ad01d8fd"
+        }
+      }
+    },
+    "after": {
+      "aggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd",
+      "files": {
+        "docker-compose.ra05.yaml": {
+          "bytes": 6131,
+          "sha256": "1815b800b226a0b356d903062f172d9377108194fa5bbf9f1b18cdd9687a50bc"
+        },
+        "docker-compose.yaml": {
+          "bytes": 9907,
+          "sha256": "6f642f9f561b78a46fae7f1f3863dcdcd633c9dd2730954a58ee87b1bbda7e8b"
+        },
+        "docker/flint-gate/config.ra05.yaml": {
+          "bytes": 2843,
+          "sha256": "347d3dd0d30f2221fbbe39237f967b0511e703ab5ecee8e327a87b78ff3dafa1"
+        },
+        "docker/frf/shape-catalog.json": {
+          "bytes": 2460,
+          "sha256": "7c50cc69ff87cfd5db56fc847c17ac035f97bd900ae71a7eee286fca286ce453"
+        },
+        "scripts/ra05-stack.sh": {
+          "bytes": 922,
+          "sha256": "824377cc9561e71474da079219527a4b1846a02592653e5a5ec430a2fc7cf2f4"
+        },
+        "scripts/ra06c_campaign_config.py": {
+          "bytes": 4379,
+          "sha256": "cd99908ae918fb7a4d1eff48500aad329ac923ad477bb1f2bfb77e8706fa9b4e"
+        },
+        "scripts/test-authorized-shape-composition.py": {
+          "bytes": 16064,
+          "sha256": "bbac93420ab50c53624c3c06c9c27d61ef94ca2fa28dfeb4031cbe09346f09d7"
+        },
+        "scripts/test-ra11a-sync-conformance.py": {
+          "bytes": 33272,
+          "sha256": "b21d01815058e7307f30989b11ce35c3954e3910e50f47a2bc05158e6915261a"
+        },
+        "scripts/test-ra11c-browser-memory.py": {
+          "bytes": 13301,
+          "sha256": "10e3c049d5c4299e34bb1024377d06912a4fb5ff05b5f4de3ea4860fc1b24205"
+        },
+        "scripts/test-ra11c-materialization.py": {
+          "bytes": 10019,
+          "sha256": "be8af39283fe56e1fac1c384a755986df5e10712770f96ca02962730f2b9bdf1"
+        },
+        "web/package.json": {
+          "bytes": 1928,
+          "sha256": "c8c7a697a514ddc18246f35e2c12db5eaa07bfa2f63ab131034b42c1c8be6641"
+        },
+        "web/pnpm-lock.yaml": {
+          "bytes": 315803,
+          "sha256": "fbe014d8cde45225e4c8884edd5193ddcd387295f065fbbb27690fd0269c2547"
+        },
+        "web/public/pglite-base.tgz": {
+          "bytes": 4529203,
+          "sha256": "f4818a049c2e017209433b00518760dbd8694d20c88fdc59b3bc2aea299f635f"
+        },
+        "web/ra11c-browser-memory.html": {
+          "bytes": 366,
+          "sha256": "4a26bd7963b6efb023a4a5f152170a9e350e9737a18f982b97b449e17662dd72"
+        },
+        "web/src/shared/session-revocation-events.ts": {
+          "bytes": 1035,
+          "sha256": "e6c691d5b611aa9e8add31d3995d60529aa274b132e3ef67d357a93580ca6850"
+        },
+        "web/src/shared/sync/chunk-writer.ts": {
+          "bytes": 9375,
+          "sha256": "e3b25011f44d25b969759599c0abd90664ea873cc0996da454572f6c4815826e"
+        },
+        "web/src/shared/sync/electric-shapes.ts": {
+          "bytes": 4440,
+          "sha256": "830e2540b6e03d5356243a390c622b467fde5e637ecdceb5030afc492be9944c"
+        },
+        "web/src/shared/sync/frf-shape-transport.ts": {
+          "bytes": 11521,
+          "sha256": "49751868d6d78da375c1750e6093e2c27e39403b48152f3de1d62fc1ed9e176c"
+        },
+        "web/src/shared/sync/migration-ledger.ts": {
+          "bytes": 10722,
+          "sha256": "206d0e3ce46181653db0b1b5d2c675c7a7018ae8e773c1d4c0c7d9da95567bc4"
+        },
+        "web/src/shared/sync/pglite-bootstrap.ts": {
+          "bytes": 1513,
+          "sha256": "5d7cf6b33bfae8c0c6e74287950575c10741c2aa3e07dddca2b69045a799b0c6"
+        },
+        "web/src/shared/sync/pglite-schema.ts": {
+          "bytes": 10640,
+          "sha256": "7754586386bbfd29144e7cb47f9f188a41bd8c6f17aa688dce48d6f4a0bf433e"
+        },
+        "web/src/shared/sync/replica-browser-memory.ts": {
+          "bytes": 10469,
+          "sha256": "a8d17a9a591b08cce218f843621b35cf9b9788320b241a0eb98bb4f6e56a2208"
+        },
+        "web/src/shared/sync/replica-mounted-runtime.ts": {
+          "bytes": 11193,
+          "sha256": "7caaaa829f37e7f393bd3f56f9de015ef6503acdd5536cbca4e9f2f9d37756c0"
+        },
+        "web/src/shared/sync/replica-mounted.integration.test.ts": {
+          "bytes": 20873,
+          "sha256": "5e394e3e505b7f6cb9daf32ba8dd8c61a4398e94457325f18f42c52470c93849"
+        },
+        "web/src/shared/sync/replica-owner.ts": {
+          "bytes": 6973,
+          "sha256": "4352138b06c24f55e6cfad5a0ada89ba04636e0e9657c3ccb494d14af39ab670"
+        },
+        "web/src/shared/sync/replica-rebuild.ts": {
+          "bytes": 4300,
+          "sha256": "fe79cfc4573d9af144c20293e08e8dcb3e490a1c1ecd2988abd2d17273cdb76a"
+        },
+        "web/src/shared/sync/replica-runtime.ts": {
+          "bytes": 17374,
+          "sha256": "97a8180893f0039ecb2e23ca2a1b86ca5d3d6a2432d50f5ae0d430d808a5e5fb"
+        },
+        "web/src/shared/sync/replica-wiring.ts": {
+          "bytes": 5040,
+          "sha256": "ce52c79d4e2c113084913e9df34e1b2502b5c20838a0df748c22f1382e45484b"
+        },
+        "web/src/shared/sync/replica-worker-owner.ts": {
+          "bytes": 15889,
+          "sha256": "616a71b27e461954efb701dc18f686dce81e818edd5ef0ff2f23076f96063f5b"
+        },
+        "web/src/shared/sync/storage-policy.ts": {
+          "bytes": 3705,
+          "sha256": "74ebfba4eb1ad96efc032de39f3f3715ad5f861a0a776af3a6b2ed8b78bd58a0"
+        },
+        "web/vite.config.ts": {
+          "bytes": 1991,
+          "sha256": "89da9c620bb5d18f0b8eaf8d4fba7805bac56dcd23ffc87e0cce2e17ad01d8fd"
+        }
+      }
+    }
+  },
+  "effective_arguments": {
+    "callbackPort": 8788,
+    "campaignSecrets": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra06c/campaign-secrets.json",
+    "dataDir": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra11a-data/ra11c-materialization",
+    "output": "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c014-aso-memory/browser-campaign.json",
+    "timeoutSeconds": 180
+  },
+  "browser_memory_run": {
+    "exit_code": 0,
+    "stdout": "{\n  \"output\": \"/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c014-aso-memory/task-4-mounted-browser-memory.json\",\n  \"result\": \"Passed\"\n}\n",
+    "stderr": ""
+  },
+  "browser_memory": {
+    "result": "Passed",
+    "runtime": {
+      "browser": "Google Chrome 152.0.7977.84",
+      "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "page": "/ra11c-browser-memory.html"
+    },
+    "measurement": {
+      "rssMethod": "RSS growth of the isolated Chromium renderer with the greatest campaign-time growth, sampled from macOS ps",
+      "heapMethod": "Chromium performance.memory.usedJSHeapSize with --enable-precise-memory-info",
+      "baselineRssBytes": 1361674240,
+      "peakRssBytes": 1534623744,
+      "incrementalRssBytes": 406781952,
+      "aggregateIncrementalRssBytes": 172949504,
+      "incrementalHeapBytes": 185001736,
+      "rssLimitBytes": 536870912,
+      "heapLimitBytes": 268435456,
+      "rssWithinBudget": true,
+      "targetRendererRssWithinBudget": true,
+      "aggregateRssWithinBudget": true,
+      "heapWithinBudget": true,
+      "peakStage": "complete",
+      "stagePeakRssBytes": {
+        "baseline": 1361674240,
+        "pglite-opening": 1364557824,
+        "cold-fold": 1477509120,
+        "complete": 1534623744
+      },
+      "baselineSamplesBytes": [
+        1350762496,
+        1354809344,
+        1355956224,
+        1356120064,
+        1361674240
+      ],
+      "baselineProcessTree": {
+        "processCount": 10,
+        "rssBytes": 1361674240,
+        "processes": [
+          {
+            "pid": 3712,
+            "parentPid": 3702,
+            "rssBytes": 237699072,
+            "kind": "browser"
+          },
+          {
+            "pid": 3718,
+            "parentPid": 3712,
+            "rssBytes": 145899520,
+            "kind": "gpu"
+          },
+          {
+            "pid": 3719,
+            "parentPid": 3712,
+            "rssBytes": 108298240,
+            "kind": "utility"
+          },
+          {
+            "pid": 3723,
+            "parentPid": 3712,
+            "rssBytes": 82935808,
+            "kind": "utility"
+          },
+          {
+            "pid": 3724,
+            "parentPid": 3712,
+            "rssBytes": 91488256,
+            "kind": "utility"
+          },
+          {
+            "pid": 3726,
+            "parentPid": 3712,
+            "rssBytes": 181190656,
+            "kind": "renderer"
+          },
+          {
+            "pid": 3728,
+            "parentPid": 3712,
+            "rssBytes": 166412288,
+            "kind": "renderer"
+          },
+          {
+            "pid": 3729,
+            "parentPid": 3712,
+            "rssBytes": 102023168,
+            "kind": "renderer"
+          },
+          {
+            "pid": 3730,
+            "parentPid": 3712,
+            "rssBytes": 125796352,
+            "kind": "renderer"
+          },
+          {
+            "pid": 3732,
+            "parentPid": 3712,
+            "rssBytes": 119930880,
+            "kind": "renderer"
+          }
+        ]
+      },
+      "peakProcessTree": {
+        "processCount": 10,
+        "rssBytes": 1534623744,
+        "processes": [
+          {
+            "pid": 3712,
+            "parentPid": 3702,
+            "rssBytes": 210436096,
+            "kind": "browser"
+          },
+          {
+            "pid": 3718,
+            "parentPid": 3712,
+            "rssBytes": 108691456,
+            "kind": "gpu"
+          },
+          {
+            "pid": 3719,
+            "parentPid": 3712,
+            "rssBytes": 90079232,
+            "kind": "utility"
+          },
+          {
+            "pid": 3723,
+            "parentPid": 3712,
+            "rssBytes": 64831488,
+            "kind": "utility"
+          },
+          {
+            "pid": 3724,
+            "parentPid": 3712,
+            "rssBytes": 72663040,
+            "kind": "utility"
+          },
+          {
+            "pid": 3726,
+            "parentPid": 3712,
+            "rssBytes": 135856128,
+            "kind": "renderer"
+          },
+          {
+            "pid": 3728,
+            "parentPid": 3712,
+            "rssBytes": 573194240,
+            "kind": "renderer"
+          },
+          {
+            "pid": 3729,
+            "parentPid": 3712,
+            "rssBytes": 79921152,
+            "kind": "renderer"
+          },
+          {
+            "pid": 3730,
+            "parentPid": 3712,
+            "rssBytes": 105185280,
+            "kind": "renderer"
+          },
+          {
+            "pid": 3732,
+            "parentPid": 3712,
+            "rssBytes": 93765632,
+            "kind": "renderer"
+          }
+        ]
+      },
+      "rendererDeltas": [
+        {
+          "pid": 3726,
+          "baselineRssBytes": 181190656,
+          "peakRssBytes": 181190656,
+          "incrementalRssBytes": 0
+        },
+        {
+          "pid": 3728,
+          "baselineRssBytes": 166412288,
+          "peakRssBytes": 573194240,
+          "incrementalRssBytes": 406781952
+        },
+        {
+          "pid": 3729,
+          "baselineRssBytes": 102023168,
+          "peakRssBytes": 102023168,
+          "incrementalRssBytes": 0
+        },
+        {
+          "pid": 3730,
+          "baselineRssBytes": 125796352,
+          "peakRssBytes": 125796352,
+          "incrementalRssBytes": 0
+        },
+        {
+          "pid": 3732,
+          "baselineRssBytes": 119930880,
+          "peakRssBytes": 119930880,
+          "incrementalRssBytes": 0
+        }
+      ],
+      "targetRenderer": {
+        "pid": 3728,
+        "baselineRssBytes": 166412288,
+        "peakRssBytes": 573194240,
+        "incrementalRssBytes": 406781952
+      },
+      "targetRendererStageRssBytes": {
+        "baseline": 166412288,
+        "pglite-opening": 166936576,
+        "cold-fold": 511868928,
+        "complete": 573194240
+      }
+    },
+    "browserCampaign": {
+      "result": "Passed",
+      "counts": {
+        "annotation_types": 4,
+        "evidence_states": 3,
+        "cases": 360,
+        "documents": 2880,
+        "case_evidence": 4320,
+        "evidence_citations": 8640,
+        "annotations": 0
+      },
+      "graphCounts": {
+        "annotation_types": 4,
+        "evidence_states": 3,
+        "cases": 360,
+        "documents": 2880,
+        "case_evidence": 4320,
+        "evidence_citations": 8640,
+        "annotations": 0
+      },
+      "checkpointShapes": [
+        "annotation_types",
+        "annotations",
+        "case_evidence",
+        "cases",
+        "documents",
+        "evidence_citations",
+        "evidence_states"
+      ],
+      "generation": 4,
+      "runtime": {
+        "crossOriginIsolated": false,
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36"
+      },
+      "heap": {
+        "baseline": {
+          "totalBytes": 9113557,
+          "usedBytes": 7268561
+        },
+        "peak": {
+          "totalBytes": 201040437,
+          "usedBytes": 192270297
+        },
+        "deltaBytes": 185001736,
+        "peakStage": "pglite-open",
+        "stages": {
+          "baseline": {
+            "totalBytes": 9113557,
+            "usedBytes": 7268561
+          },
+          "pglite-opening": {
+            "totalBytes": 23602421,
+            "usedBytes": 18139217
+          },
+          "pglite-open": {
+            "totalBytes": 201040437,
+            "usedBytes": 192270297
+          },
+          "schema-ready": {
+            "totalBytes": 76236717,
+            "usedBytes": 63148241
+          },
+          "graph-ready": {
+            "totalBytes": 76386222,
+            "usedBytes": 63639862
+          },
+          "projector-ready": {
+            "totalBytes": 76387221,
+            "usedBytes": 64042605
+          },
+          "cold-fold": {
+            "totalBytes": 90497447,
+            "usedBytes": 79999011
+          },
+          "cold-fold-complete": {
+            "totalBytes": 90497447,
+            "usedBytes": 80001959
+          },
+          "sql-checkpoint-graph": {
+            "totalBytes": 90497447,
+            "usedBytes": 80002243
+          },
+          "revision-1": {
+            "totalBytes": 135482183,
+            "usedBytes": 113059163
+          },
+          "materialized": {
+            "totalBytes": 135482183,
+            "usedBytes": 113061107
+          },
+          "final": {
+            "totalBytes": 132949114,
+            "usedBytes": 110559046
+          }
+        }
+      },
+      "checks": {
+        "completeCheckpoint": true,
+        "graphParity": true,
+        "heapAvailable": true,
+        "heapWithinBudget": true,
+        "sqlParity": true
+      }
+    }
+  },
+  "materializer_runs": [
+    {
+      "phase": "initial",
+      "exit_code": 0,
+      "stdout": "\n RUN  v3.2.7 /Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web\n\n \u2713 src/shared/sync/replica-mounted.integration.test.ts (2 tests | 1 skipped) 2454ms\n   \u2713 mounted RA11c SQL materialization > commits the initial graph and rolls back a captured revision before process restart  2453ms\n\n Test Files  1 passed (1)\n      Tests  1 passed | 1 skipped (2)\n   Start at  09:12:45\n   Duration  3.02s (transform 99ms, setup 0ms, collect 148ms, tests 2.45s, environment 0ms, prepare 78ms)\n\n",
+      "stderr": "(node:3850) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.\n(Use `node --trace-deprecation ...` to show where the warning was created)\n"
+    },
+    {
+      "phase": "continuation",
+      "exit_code": 0,
+      "stdout": "\n RUN  v3.2.7 /Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web\n\n \u2713 src/shared/sync/replica-mounted.integration.test.ts (2 tests | 1 skipped) 2557ms\n   \u2713 mounted RA11c SQL materialization > reopens durable SQL in a new process and fences owner disposal through replacement  2557ms\n\n Test Files  1 passed (1)\n      Tests  1 passed | 1 skipped (2)\n   Start at  09:12:49\n   Duration  3.09s (transform 117ms, setup 0ms, collect 161ms, tests 2.56s, environment 0ms, prepare 122ms)\n\n",
+      "stderr": "(node:3957) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.\n(Use `node --trace-deprecation ...` to show where the warning was created)\n"
+    }
+  ],
+  "materializer_exit_code": 0,
+  "materializer": {
+    "result": "Passed",
+    "counts": {
+      "annotation_types": 4,
+      "evidence_states": 3,
+      "cases": 360,
+      "documents": 2880,
+      "case_evidence": 4320,
+      "evidence_citations": 8639,
+      "annotations": 0
+    },
+    "evidenceStates": [
+      "gap",
+      "met",
+      "void"
+    ],
+    "checkpointShapes": [
+      "annotation_types",
+      "annotations",
+      "case_evidence",
+      "cases",
+      "documents",
+      "evidence_citations",
+      "evidence_states"
+    ],
+    "generation": 7,
+    "checks": {
+      "initialSqlGraphParity": true,
+      "completeShapeCheckpoint": true,
+      "gateSummaryUpdatedInSqlAndGraph": true,
+      "evidenceStateReferenceIdentitiesPreserved": true,
+      "coldCrashLeftNoPartialBatch": true,
+      "crashRolledBackRowAndCheckpoint": true,
+      "restartResumedWithoutSkip": true,
+      "deleteForcedReplacement": true,
+      "disposedOwnerFencedPendingRevision": true,
+      "replacementOwnerAppliedPendingRevision": true,
+      "authorityFailureEventPublishedAndFenced": true,
+      "finalSqlAndGraphCountsMatchExpected": true,
+      "finalGenerationMatchesCheckpoint": true
+    },
+    "memory": {
+      "durableInitialProcess": {
+        "baseline": {
+          "heapUsedBytes": 16376784,
+          "rssBytes": 99565568
+        },
+        "peak": {
+          "heapUsedBytes": 92443224,
+          "rssBytes": 577044480
+        },
+        "rssDeltaBytes": 477478912,
+        "heapDeltaBytes": 76066440,
+        "stages": {
+          "baseline": {
+            "heapUsedBytes": 16376784,
+            "rssBytes": 99565568
+          },
+          "open-runtime": {
+            "heapUsedBytes": 16383376,
+            "rssBytes": 99565568
+          },
+          "initial-sync": {
+            "heapUsedBytes": 89759448,
+            "rssBytes": 576815104
+          },
+          "capture-revision": {
+            "heapUsedBytes": 92079344,
+            "rssBytes": 577011712
+          },
+          "crash-rollback": {
+            "heapUsedBytes": 49637456,
+            "rssBytes": 574898176
+          },
+          "final": {
+            "heapUsedBytes": 49639072,
+            "rssBytes": 574898176
+          }
+        },
+        "peakStage": "capture-revision"
+      },
+      "durableContinuationProcess": {
+        "baseline": {
+          "heapUsedBytes": 16349408,
+          "rssBytes": 99008512
+        },
+        "peak": {
+          "heapUsedBytes": 115719032,
+          "rssBytes": 444579840
+        },
+        "rssDeltaBytes": 345571328,
+        "heapDeltaBytes": 99369624,
+        "stages": {
+          "baseline": {
+            "heapUsedBytes": 16349408,
+            "rssBytes": 99008512
+          },
+          "restart-update": {
+            "heapUsedBytes": 80101464,
+            "rssBytes": 364691456
+          },
+          "delete-replacement": {
+            "heapUsedBytes": 111918240,
+            "rssBytes": 439664640
+          },
+          "replacement-owner": {
+            "heapUsedBytes": 115717432,
+            "rssBytes": 444579840
+          },
+          "final": {
+            "heapUsedBytes": 115719032,
+            "rssBytes": 444579840
+          }
+        },
+        "peakStage": "final"
+      }
+    }
+  },
+  "remaining_relational_rows": {
+    "cases": 0,
+    "case_evidence": 0,
+    "documents": 0,
+    "evidence_citations": 0,
+    "patients": 0,
+    "users": 0,
+    "practices": 0,
+    "policy_criteria": 0,
+    "policies": 0,
+    "policy_types": 0,
+    "document_types": 0,
+    "payers": 0
+  },
+  "role_state": {
+    "post": {
+      "bypassRls": false,
+      "canLogin": true,
+      "createDb": false,
+      "createRole": false,
+      "inherit": true,
+      "memberships": [
+        "aso_authority_event_reader"
+      ],
+      "replication": false,
+      "superuser": false
+    },
+    "pre": {
+      "bypassRls": false,
+      "canLogin": true,
+      "createDb": false,
+      "createRole": false,
+      "inherit": true,
+      "memberships": [
+        "aso_authority_event_reader"
+      ],
+      "replication": false,
+      "superuser": false
+    },
+    "restored": true
+  },
+  "service_state": {
+    "managed": [
+      "db",
+      "electric",
+      "flint-gate",
+      "flint-gate-init",
+      "iggy-server",
+      "kratos",
+      "kratos-migrate",
+      "realtime-fabric",
+      "redis"
+    ],
+    "preExisting": [
+      "db",
+      "electric",
+      "flint-gate",
+      "flint-gate-init",
+      "iggy-server",
+      "kratos",
+      "kratos-migrate",
+      "realtime-fabric",
+      "redis"
+    ],
+    "preRunning": [
+      "db",
+      "electric",
+      "flint-gate",
+      "iggy-server",
+      "kratos",
+      "realtime-fabric",
+      "redis"
+    ],
+    "preContainers": {
+      "db": {
+        "configHash": "71024bd8a4842bd8338381850243e2f5576471e6445bce9c934bb192164cdbf1",
+        "containerId": "a5057fb060f931113ebb43f61cd85a9492210396def763268d2da4366707b767",
+        "image": "aso-prior-auth-db",
+        "imageDigest": "sha256:259ae7e1210e94d2bbe2ce31294d418fb9da7f71a5b8fa6ee23624376bb705a2",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/bootstrap,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docs/design/schema,aso-prior-auth_db_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "electric": {
+        "configHash": "d60cb6ff8b1bd5260add277927b5aa3d941d8305591ee08d56d4870e8820bda7",
+        "containerId": "acc8b14d3b6a995571a6076cd09e89997a9b83c9b09f63152aeb70e01c801396",
+        "image": "electricsql/electric:1.8.0",
+        "imageDigest": "sha256:9644bb77f2476f827e393d50d472615f82479edd44593b7edfe71e6b4e0433bd",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "flint-gate": {
+        "configHash": "da4702acb811331d841af5d054d16f528bcf2914b6eaaaa4c991c1bacaaafdb0",
+        "containerId": "35ec3843950a99b32e56c9e545b32a008d482114ac523992546f7316f399cf92",
+        "image": "aso-prior-auth-flint-gate",
+        "imageDigest": "sha256:5ad074b3c4861b99411997e8e1731980f6e9b2da85068ec3a313f1d7aeea4f50",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml",
+        "networks": "aso-prior-auth_ra05-backend,aso-prior-auth_ra05-client",
+        "state": "running"
+      },
+      "flint-gate-init": {
+        "configHash": "6fcb990e3fe55f7e784d8ecb7408fa44a4a3d77dfdd312a91f55a130ff027365",
+        "containerId": "dd9a772eb093ee5b8810b5aa935442e1cfea73c60cf1696b4d4d66849a504e70",
+        "image": "aso-prior-auth-flint-gate-init",
+        "imageDigest": "sha256:565e7065581ea6dbf4541e1f2949976e36d5234806d3b1735c658bb013d6d8e9",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml,92ce6cd5919a7252dbc8b077f4e0818edcae130278b2e33a6c44ae531ea2ac5f",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "iggy-server": {
+        "configHash": "1d22f5e5430f49f6c068461421480c5209ae09f3364cd26fa9d5fc40ec522e5b",
+        "containerId": "3935f5dc9884c1d76a462ecfecac489a01dc3bfc2a9310377311792a088f5c88",
+        "image": "iggyrs/iggy@sha256:68a314c1380be5a792a134f3bd346ded42bd49d9f7114c86f70b48fc85bc5272",
+        "imageDigest": "sha256:f7c54e3042254f26665400b6e62a4f8317d90671b5750f8a281bee52f0b16978",
+        "mounts": "aso-prior-auth_iggy_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos": {
+        "configHash": "5dc669aa48d19b70c18f8f21c4ae1f669d442b8cc0c6cae5ea6393831ed70637",
+        "containerId": "38a654cc623d5d448a728c55c4bc86d89154c755322a9789d4d50090fff07012",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/kratos,1df237fbb2898958c7e1d1a8514ccd3b70dae427f207616ac40293db6af290aa,ce597b8bbf4de5eaabe9494d19e77869a572677cbae8edaa1b12e5f4ee486750",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos-migrate": {
+        "configHash": "6b8c7662f7f0ab711311bed097e55d91c234f5454c912a9fd22745584dadb4cb",
+        "containerId": "86500451cbf55720eed5e2e353131e8745f56ae4682048e2fb703a53d5fc2767",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "7af22d63ebf7d088083c40d1b8a2563b521b211e5dcff719ec2f495eb78b1715,acf23160aad4dbc661cad1e0e1227dcb6bcc2983b4248bd4f77b05d3f70d18d9",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "realtime-fabric": {
+        "configHash": "22e4c9bf35e31c039cd958e8fcbd8f57ab50a8a9848ec5ebf6c8f831a3353bc1",
+        "containerId": "87be1687862e68733ae7e67bada09ad83a9226cb0ac1ed36d573f36f9786aa2a",
+        "image": "aso-prior-auth-realtime-fabric",
+        "imageDigest": "sha256:b362432ea841b468c87348a8be75426a523834bd525d2bcaa8a36683f78385a6",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/frf/shape-catalog.json",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "redis": {
+        "configHash": "add989d567706c819b26efe4d3c28d70cac1c8bd686619cdafeed9558b774e39",
+        "containerId": "2e7beec436b3a70869050290bb9685945514d11fe517c4b4d5a4ecbf0eeeb2bc",
+        "image": "redis@sha256:becdda6c7f4b3fb42e42fd7f120bbf5c54c4caaaf16f26da24e4563d2c1f0576",
+        "imageDigest": "sha256:59c08762bdbcf53fa132aa0bae464a57a1309dc3fff8a034bb3e16d7a0b30ec5",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      }
+    },
+    "postContainers": {
+      "db": {
+        "configHash": "71024bd8a4842bd8338381850243e2f5576471e6445bce9c934bb192164cdbf1",
+        "containerId": "a5057fb060f931113ebb43f61cd85a9492210396def763268d2da4366707b767",
+        "image": "aso-prior-auth-db",
+        "imageDigest": "sha256:259ae7e1210e94d2bbe2ce31294d418fb9da7f71a5b8fa6ee23624376bb705a2",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/bootstrap,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docs/design/schema,aso-prior-auth_db_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "electric": {
+        "configHash": "d60cb6ff8b1bd5260add277927b5aa3d941d8305591ee08d56d4870e8820bda7",
+        "containerId": "acc8b14d3b6a995571a6076cd09e89997a9b83c9b09f63152aeb70e01c801396",
+        "image": "electricsql/electric:1.8.0",
+        "imageDigest": "sha256:9644bb77f2476f827e393d50d472615f82479edd44593b7edfe71e6b4e0433bd",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "flint-gate": {
+        "configHash": "da4702acb811331d841af5d054d16f528bcf2914b6eaaaa4c991c1bacaaafdb0",
+        "containerId": "35ec3843950a99b32e56c9e545b32a008d482114ac523992546f7316f399cf92",
+        "image": "aso-prior-auth-flint-gate",
+        "imageDigest": "sha256:5ad074b3c4861b99411997e8e1731980f6e9b2da85068ec3a313f1d7aeea4f50",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml",
+        "networks": "aso-prior-auth_ra05-backend,aso-prior-auth_ra05-client",
+        "state": "running"
+      },
+      "flint-gate-init": {
+        "configHash": "6fcb990e3fe55f7e784d8ecb7408fa44a4a3d77dfdd312a91f55a130ff027365",
+        "containerId": "dd9a772eb093ee5b8810b5aa935442e1cfea73c60cf1696b4d4d66849a504e70",
+        "image": "aso-prior-auth-flint-gate-init",
+        "imageDigest": "sha256:565e7065581ea6dbf4541e1f2949976e36d5234806d3b1735c658bb013d6d8e9",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml,92ce6cd5919a7252dbc8b077f4e0818edcae130278b2e33a6c44ae531ea2ac5f",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "iggy-server": {
+        "configHash": "1d22f5e5430f49f6c068461421480c5209ae09f3364cd26fa9d5fc40ec522e5b",
+        "containerId": "3935f5dc9884c1d76a462ecfecac489a01dc3bfc2a9310377311792a088f5c88",
+        "image": "iggyrs/iggy@sha256:68a314c1380be5a792a134f3bd346ded42bd49d9f7114c86f70b48fc85bc5272",
+        "imageDigest": "sha256:f7c54e3042254f26665400b6e62a4f8317d90671b5750f8a281bee52f0b16978",
+        "mounts": "aso-prior-auth_iggy_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos": {
+        "configHash": "5dc669aa48d19b70c18f8f21c4ae1f669d442b8cc0c6cae5ea6393831ed70637",
+        "containerId": "38a654cc623d5d448a728c55c4bc86d89154c755322a9789d4d50090fff07012",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/kratos,1df237fbb2898958c7e1d1a8514ccd3b70dae427f207616ac40293db6af290aa,ce597b8bbf4de5eaabe9494d19e77869a572677cbae8edaa1b12e5f4ee486750",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos-migrate": {
+        "configHash": "6b8c7662f7f0ab711311bed097e55d91c234f5454c912a9fd22745584dadb4cb",
+        "containerId": "86500451cbf55720eed5e2e353131e8745f56ae4682048e2fb703a53d5fc2767",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "7af22d63ebf7d088083c40d1b8a2563b521b211e5dcff719ec2f495eb78b1715,acf23160aad4dbc661cad1e0e1227dcb6bcc2983b4248bd4f77b05d3f70d18d9",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "realtime-fabric": {
+        "configHash": "22e4c9bf35e31c039cd958e8fcbd8f57ab50a8a9848ec5ebf6c8f831a3353bc1",
+        "containerId": "87be1687862e68733ae7e67bada09ad83a9226cb0ac1ed36d573f36f9786aa2a",
+        "image": "aso-prior-auth-realtime-fabric",
+        "imageDigest": "sha256:b362432ea841b468c87348a8be75426a523834bd525d2bcaa8a36683f78385a6",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/frf/shape-catalog.json",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "redis": {
+        "configHash": "add989d567706c819b26efe4d3c28d70cac1c8bd686619cdafeed9558b774e39",
+        "containerId": "2e7beec436b3a70869050290bb9685945514d11fe517c4b4d5a4ecbf0eeeb2bc",
+        "image": "redis@sha256:becdda6c7f4b3fb42e42fd7f120bbf5c54c4caaaf16f26da24e4563d2c1f0576",
+        "imageDigest": "sha256:59c08762bdbcf53fa132aa0bae464a57a1309dc3fff8a034bb3e16d7a0b30ec5",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      }
+    },
+    "postExisting": [
+      "db",
+      "electric",
+      "flint-gate",
+      "flint-gate-init",
+      "iggy-server",
+      "kratos",
+      "kratos-migrate",
+      "realtime-fabric",
+      "redis"
+    ],
+    "postRunning": [
+      "db",
+      "electric",
+      "flint-gate",
+      "iggy-server",
+      "kratos",
+      "realtime-fabric",
+      "redis"
+    ],
+    "removed": [],
+    "restarted": [
+      "flint-gate",
+      "realtime-fabric"
+    ],
+    "restored": true,
+    "stopped": []
+  }
+}

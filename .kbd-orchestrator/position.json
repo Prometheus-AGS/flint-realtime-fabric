@@ -2,13 +2,13 @@
   "schemaVersion": "1",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 312,
-  "derivedRevision": 312,
+  "sourceRevision": 352,
+  "derivedRevision": 352,
   "frontier": {
-    "573067f0-69c9-40fc-a33c-3aed7a5a839f": 312
+    "573067f0-69c9-40fc-a33c-3aed7a5a839f": 352
   },
   "conflictCount": 0,
-  "updatedAt": "2026-09-17T12:00:31.081512Z",
+  "updatedAt": "2026-09-17T15:43:44.471939Z",
   "cursor": [
     "production-readiness-integration"
   ],
@@ -17,7 +17,7 @@
     "id": "fe4a2436-c1c1-4e63-92c6-6e3817f03219",
     "status": "ready",
     "progress": {
-      "done": 13,
+      "done": 14,
       "total": 23
     },
     "children": [
@@ -27,7 +27,7 @@
         "canonicalId": "production-readiness-integration",
         "status": "IN_PROGRESS",
         "progress": {
-          "done": 13,
+          "done": 14,
           "total": 23
         },
         "children": [
@@ -151,18 +151,18 @@
           {
             "type": "change",
             "id": "pri-c014-aso-memory",
-            "status": "PENDING",
+            "status": "COMPLETE",
             "progress": {
-              "done": 0,
+              "done": 5,
               "total": 5
             }
           },
           {
             "type": "change",
             "id": "pri-c015-aso-protected-proof",
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "progress": {
-              "done": 0,
+              "done": 4,
               "total": 5
             }
           },

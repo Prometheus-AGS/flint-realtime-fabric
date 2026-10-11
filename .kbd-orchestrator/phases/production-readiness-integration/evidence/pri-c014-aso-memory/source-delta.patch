@@ -1,0 +1,1995 @@
+--- a/web/src/shared/sync/replica-mounted.integration.test.ts
++++ b/web/src/shared/sync/replica-mounted.integration.test.ts
+@@ -1,50 +1,18 @@
+ // @vitest-environment node
+ 
+-import { execFileSync } from "node:child_process";
+ import { readFile, writeFile } from "node:fs/promises";
+-import process from "node:process";
+ 
+-import { PGlite } from "@electric-sql/pglite";
+-import {
+-  createCommittedReplicaProjector,
+-  createGraphStore,
+-  createPGlitePersistenceAdapter,
+-  startScopedLocalFirstGraph,
+-  type CommittedReplicaProjector,
+-  type ScopedLocalFirstGraphRuntime,
+-} from "@prometheus-ags/entity-graph-core";
++import type { CommittedReplicaProjector } from "@prometheus-ags/entity-graph-core";
+ import { afterEach, describe, expect, it } from "vitest";
+ 
+-import { createFrfShapeTransport } from "./frf-shape-transport";
+-import {
+-  PGLITE_REPLICA_INITIAL_MEMORY,
+-  PGLITE_REPLICA_POSTGRESQL_CONF,
+-} from "./pglite-bootstrap";
+-import {
+-  currentGeneration,
+-  migrateReplicaSchema,
+-  migrationChecksum,
+-  type ReplicaSchemaPlan,
+-} from "./migration-ledger";
+-import {
+-  PGLITE_ANNOTATION_TYPES_SQL,
+-  PGLITE_SCHEMA_SQL,
+-  type PGliteTable,
+-} from "./pglite-schema";
+-import { ReplicaLease, createMemoryLeaseStore } from "./replica-owner";
+ import { subscribeSessionRevocation } from "../session-revocation-events";
+ import {
+   ReplicaAuthorityFailure,
+   startReplicaRuntime,
+-  type ReplicaCheckpointSet,
+-  type ReplicaRevision,
+-  type ReplicaTransport,
+ } from "./replica-runtime";
++import { currentGeneration } from "./migration-ledger";
+ import {
+-  CHECKPOINT_SCHEMA_SQL,
+-  REPLICA_LIST_BINDINGS,
+   REPLICA_SHAPES,
+-  REPLICA_TABLE_BINDINGS,
+   REPLICA_TARGETS,
+   createPGliteCheckpointStore,
+   entityTypeFor,
+@@ -53,318 +21,36 @@
+   ReplicaWorkerOwner,
+   type ExclusiveLockManager,
+ } from "./replica-worker-owner";
+-
+-const mounted = process.env.RA11C_MOUNTED === "1";
+-const mountedPhase = process.env.RA11C_MOUNTED_PHASE;
+-const storageKey = "ra11c-mounted-materializer";
+-const expectedCounts: Readonly<Record<PGliteTable, number>> = {
+-  annotation_types: 3,
+-  annotations: 0,
+-  cases: 360,
+-  case_evidence: 4_320,
+-  documents: 2_880,
+-  evidence_citations: 8_640,
+-  evidence_states: 3,
+-};
+-const expectedEvidenceStateIds = ["gap", "met", "void"];
+-const expectedCheckpointShapes = REPLICA_SHAPES.map(({ shape }) => shape).sort();
+-const openClients: PGlite[] = [];
+-
+-interface MountedRuntime {
+-  client: PGlite;
+-  graph: ScopedLocalFirstGraphRuntime;
+-  lease: ReplicaLease;
+-  projector: CommittedReplicaProjector;
+-  store: ReturnType<typeof createGraphStore>;
+-}
+-
+-afterEach(async () => {
+-  await Promise.allSettled(openClients.splice(0).map((client) => client.close()));
+-});
+-
+-function required(name: string): string {
+-  const value = process.env[name];
+-  if (!value) throw new Error(`${name} is required for the mounted RA11c acceptance`);
+-  return value;
+-}
+-
+-function authorizedTransport(fromFetch = globalThis.fetch): ReplicaTransport {
+-  const token = required("RA11C_SESSION_TOKEN");
+-  return createFrfShapeTransport({
+-    gateUrl: required("RA11C_GATE_URL"),
+-    shapes: REPLICA_SHAPES,
+-    fetchImpl: async (input, init) => {
+-      const headers = new Headers(init?.headers);
+-      headers.set("authorization", `Bearer ${token}`);
+-      return fromFetch(input, { ...init, headers });
+-    },
+-  });
+-}
+-
+-async function schemaPlan(): Promise<ReplicaSchemaPlan> {
+-  const sql = `${PGLITE_SCHEMA_SQL}\n${CHECKPOINT_SCHEMA_SQL}`;
+-  return {
+-    logicalVersion: 2,
+-    generation: 3,
+-    migrations: [
+-      {
+-        id: "001-ra11c-replica",
+-        sql,
+-        checksum: await migrationChecksum(sql),
+-        logicalVersion: 1,
+-      },
+-      {
+-        id: "002-annotation-types",
+-        sql: PGLITE_ANNOTATION_TYPES_SQL,
+-        checksum: await migrationChecksum(PGLITE_ANNOTATION_TYPES_SQL),
+-        logicalVersion: 2,
+-      },
+-    ],
+-  };
+-}
+-
+-async function openRuntime(): Promise<MountedRuntime> {
+-  const dataDir = required("RA11C_DATA_DIR");
+-  const baseArchive = new Blob([
+-    new Uint8Array(await readFile(required("RA11C_PGLITE_BASE"))),
+-  ]);
+-  const client = mountedPhase === "memory"
+-    ? await PGlite.create({
+-        initialMemory: PGLITE_REPLICA_INITIAL_MEMORY,
+-        loadDataDir: baseArchive,
+-        postgresqlconf: [...PGLITE_REPLICA_POSTGRESQL_CONF],
+-      })
+-    : mountedPhase === "initial"
+-    ? await PGlite.create({
+-        dataDir,
+-        initialMemory: PGLITE_REPLICA_INITIAL_MEMORY,
+-        loadDataDir: baseArchive,
+-        postgresqlconf: [...PGLITE_REPLICA_POSTGRESQL_CONF],
+-      })
+-    : await PGlite.create({
+-        dataDir,
+-        initialMemory: PGLITE_REPLICA_INITIAL_MEMORY,
+-        postgresqlconf: [...PGLITE_REPLICA_POSTGRESQL_CONF],
+-      });
+-  await markProgress("pglite-open");
+-  openClients.push(client);
+-  const lease = new ReplicaLease({
+-    store: createMemoryLeaseStore(),
+-    holder: crypto.randomUUID(),
+-  });
+-  expect(await lease.acquire()).toEqual({ granted: true });
+-  await markProgress("lease-acquired");
+-  const migration = await migrateReplicaSchema(client, await schemaPlan(), lease);
+-  expect(migration.status).toBe("ready");
+-  await markProgress("schema-ready");
+-
+-  const persistence = await createPGlitePersistenceAdapter(client);
+-  const store = createGraphStore();
+-  const graph = startScopedLocalFirstGraph({
+-    store,
+-    key: storageKey,
+-    storage: { ...persistence, close: async () => undefined },
+-    onlineSource: { getIsOnline: () => true, subscribe: () => () => undefined },
+-    persistDebounceMs: 60_000,
+-    persistence: "disabled",
+-  });
+-  await graph.ready;
+-  await markProgress("graph-ready");
+-  const projector = await createCommittedReplicaProjector({
+-    runtime: graph,
+-    scopeId: storageKey,
+-    generation: await currentGeneration(client),
+-    tables: REPLICA_TABLE_BINDINGS,
+-    lists: REPLICA_LIST_BINDINGS,
+-  });
+-  await markProgress("projector-ready");
+-  return { client, graph, lease, projector, store };
+-}
+-
+-async function closeRuntime(runtime: MountedRuntime): Promise<void> {
+-  await runtime.graph.dispose();
+-  await runtime.lease.release();
+-  await runtime.client.close();
+-  const index = openClients.indexOf(runtime.client);
+-  if (index >= 0) openClients.splice(index, 1);
+-}
+-
+-async function sync(
+-  runtime: MountedRuntime,
+-  transport = authorizedTransport(),
+-  onRevision?: () => void,
+-): Promise<void> {
+-  const outcome = await startReplicaRuntime({
+-    client: runtime.client,
+-    transport,
+-    checkpoints: createPGliteCheckpointStore(runtime.client),
+-    projector: runtime.projector,
+-    lease: runtime.lease,
+-    ownership: "held",
+-    leaseLifetime: "caller",
+-    storageKey,
+-    targets: REPLICA_TARGETS,
+-    checkpointShapes: REPLICA_SHAPES.map(({ shape }) => shape),
+-    entityTypeFor,
+-    onRevision,
+-    onCaughtUp: () => runtime.graph.markServerCaughtUp(),
+-  });
+-  expect(outcome.status).toBe("syncing");
+-}
+-
+-async function counts(client: PGlite): Promise<Record<PGliteTable, number>> {
+-  const entries = await Promise.all(REPLICA_TARGETS.map(async ({ table }) => {
+-    const result = await client.query<{ count: number }>(`SELECT count(*)::int AS count FROM ${table}`);
+-    return [table, result.rows[0]?.count ?? -1] as const;
+-  }));
+-  return Object.fromEntries(entries) as Record<PGliteTable, number>;
+-}
+-
+-function serverSql(sql: string): void {
+-  execFileSync("bash", ["../scripts/ra05-stack.sh", "exec", "-T", "db", "psql", "-X", "-v", "ON_ERROR_STOP=1", "-U", "flint", "-d", "flint", "-Atq"], {
+-    cwd: process.cwd(),
+-    env: process.env,
+-    input: sql,
+-    stdio: ["pipe", "pipe", "pipe"],
+-  });
+-}
+-
+-async function waitFor(
+-  runtime: MountedRuntime,
+-  predicate: () => Promise<boolean>,
+-  label: string,
+-  timeoutMs = 15_000,
+-): Promise<void> {
+-  const deadline = Date.now() + timeoutMs;
+-  while (Date.now() < deadline) {
+-    await sync(runtime);
+-    if (await predicate()) return;
+-    await new Promise((resolve) => setTimeout(resolve, 150));
+-  }
+-  throw new Error(`Timed out waiting for ${label} to reach the materializer`);
+-}
+-
+-async function captureRevision(
+-  checkpoint: ReplicaCheckpointSet,
+-  predicate: (revision: ReplicaRevision) => boolean,
+-  timeoutMs = 45_000,
+-): Promise<ReplicaRevision> {
+-  const deadline = Date.now() + timeoutMs;
+-  const transport = authorizedTransport();
+-  let cursor: ReplicaCheckpointSet | null = checkpoint;
+-  while (Date.now() < deadline) {
+-    const revision = await transport.fetch(cursor);
+-    if (revision?.mustRefetch) {
+-      cursor = null;
+-      continue;
+-    }
+-    if (revision && predicate(revision)) return revision;
+-    await new Promise((resolve) => setTimeout(resolve, 150));
+-  }
+-  throw new Error("Timed out waiting to capture the real Electric revision");
+-}
+-
+-function revisionHas(revision: ReplicaRevision, table: string, id: string): boolean {
+-  return revision.tables.some((entry) =>
+-    entry.target.table === table && entry.rows.some((row) => row.id === id),
+-  );
+-}
+-
+-function memorySample() {
+-  const memory = process.memoryUsage();
+-  return { heapUsedBytes: memory.heapUsed, rssBytes: memory.rss };
+-}
+-
+-async function markProgress(stage: string): Promise<void> {
+-  await writeFile(`${required("RA11C_MATERIALIZER_OUTPUT")}.progress`, `${stage}\n`);
+-}
++import {
++  authorizedTransport,
++  captureRevision,
++  closeMountedClients,
++  closeRuntime,
++  counts,
++  expectedCheckpointShapes,
++  expectedCounts,
++  expectedEvidenceStateIds,
++  markProgress,
++  mounted,
++  mountedPhase,
++  openRuntime,
++  required,
++  restartStatePath,
++  revisionHas,
++  serverSql,
++  storageKey,
++  sync,
++  trackProcessMemory,
++  waitFor,
++  type RestartState,
++} from "./replica-mounted-runtime";
+ 
+-interface ProcessMemoryReport {
+-  baseline: ReturnType<typeof memorySample>;
+-  peak: ReturnType<typeof memorySample>;
+-  rssDeltaBytes: number;
+-  heapDeltaBytes: number;
+-  stages: Record<string, ReturnType<typeof memorySample>>;
+-  peakStage: string;
+-}
++afterEach(closeMountedClients);
+ 
+-function trackProcessMemory() {
+-  const baseline = memorySample();
+-  let peak = baseline;
+-  let stage = "baseline";
+-  let peakStage = stage;
+-  const stages: Record<string, ReturnType<typeof memorySample>> = { baseline };
+-  const sample = (label?: string) => {
+-    const current = memorySample();
+-    if (label) stages[label] = current;
+-    peak = {
+-      heapUsedBytes: Math.max(peak.heapUsedBytes, current.heapUsedBytes),
+-      rssBytes: Math.max(peak.rssBytes, current.rssBytes),
+-    };
+-    if (current.rssBytes >= peak.rssBytes) peakStage = stage;
+-  };
+-  const sampler = setInterval(() => sample(), 10);
+-  return {
+-    enter(nextStage: string) {
+-      stage = nextStage;
+-      sample(nextStage);
+-    },
+-    sample,
+-    finish(): ProcessMemoryReport {
+-      clearInterval(sampler);
+-      sample("final");
+-      return {
+-        baseline,
+-        peak,
+-        rssDeltaBytes: peak.rssBytes - baseline.rssBytes,
+-        heapDeltaBytes: peak.heapUsedBytes - baseline.heapUsedBytes,
+-        stages,
+-        peakStage,
+-      };
+-    },
+-  };
+-}
+-
+-function expectMemoryBudget(memory: ProcessMemoryReport): void {
+-  expect(memory.rssDeltaBytes).toBeLessThanOrEqual(512 * 1024 * 1024);
+-  expect(memory.heapDeltaBytes).toBeLessThanOrEqual(256 * 1024 * 1024);
+-}
+-
+-interface RestartState {
+-  caseId: string;
+-  checkpoint: ReplicaCheckpointSet;
+-  initialMemory: ProcessMemoryReport;
+-  parityObservedBeforeReadiness: boolean;
+-  coldCrashLeftNoPartialBatch: boolean;
+-  sqlAndCheckpointCommittedBeforePublication: boolean;
+-}
+-
+-interface MemoryBaselineState {
+-  memory: ProcessMemoryReport;
+-}
+-
+-const restartStatePath = () => `${required("RA11C_MATERIALIZER_OUTPUT")}.state.json`;
+-const memoryStatePath = () => `${required("RA11C_MATERIALIZER_OUTPUT")}.memory.json`;
+-
+ describe("mounted RA11c SQL materialization", () => {
+-  const memoryIt = mounted && mountedPhase === "memory" ? it : it.skip;
+   const initialIt = mounted && mountedPhase === "initial" ? it : it.skip;
+   const continuationIt = mounted && mountedPhase === "continuation" ? it : it.skip;
+ 
+-  memoryIt("materializes the representative browser baseline within its memory budget", async () => {
+-    const memory = trackProcessMemory();
+-    memory.enter("open-memory-runtime");
+-    const runtime = await openRuntime();
+-    memory.enter("memory-initial-sync");
+-    await sync(runtime);
+-    expect(await counts(runtime.client)).toEqual(expectedCounts);
+-    expect(Object.keys(runtime.store.getState().entities.EvidenceState ?? {}).sort()).toEqual(expectedEvidenceStateIds);
+-    const memoryReport = memory.finish();
+-    await writeFile(memoryStatePath(), `${JSON.stringify({ memory: memoryReport } satisfies MemoryBaselineState, null, 2)}\n`);
+-    await closeRuntime(runtime);
+-    expectMemoryBudget(memoryReport);
+-  }, 180_000);
+-
+   initialIt("commits the initial graph and rolls back a captured revision before process restart", async () => {
+     await markProgress("opening-initial-runtime");
+     const memory = trackProcessMemory();
+@@ -389,13 +75,15 @@
+       checkpointShapes: REPLICA_SHAPES.map(({ shape }) => shape),
+       entityTypeFor,
+     })).rejects.toThrow("synthetic crash before cold checkpoint commit");
+-    expect(await counts(runtime.client)).toEqual(Object.fromEntries(
+-      Object.keys(expectedCounts).map((table) => [table, 0]),
+-    ));
+-    expect((await createPGliteCheckpointStore(runtime.client).read(storageKey)).checkpoint).toBeNull();
+-    expect(runtime.store.getState().entities).toEqual({});
+-    expect(runtime.store.getState().lists).toEqual({});
+-    const coldCrashLeftNoPartialBatch = true;
++    const coldCrashCounts = await counts(runtime.client);
++    const coldCrashCheckpoint = (
++      await createPGliteCheckpointStore(runtime.client).read(storageKey)
++    ).checkpoint;
++    const coldCrashLeftNoPartialBatch = Object.values(coldCrashCounts).every((count) => count === 0)
++      && coldCrashCheckpoint === null
++      && Object.keys(runtime.store.getState().entities).length === 0
++      && Object.keys(runtime.store.getState().lists).length === 0;
++    expect(coldCrashLeftNoPartialBatch).toBe(true);
+     memory.enter("initial-sync");
+     let parityObservedBeforeReadiness = false;
+     await sync(runtime, authorizedTransport(), () => {
+@@ -461,8 +149,13 @@
+       checkpointShapes: REPLICA_SHAPES.map(({ shape }) => shape),
+       entityTypeFor,
+     })).rejects.toThrow("synthetic crash before checkpoint commit");
+-    expect((await runtime.client.query<{ status: string }>("SELECT status FROM cases WHERE id=$1", [caseId])).rows[0]?.status).toBe("evidence");
+-    expect((await durable.read(storageKey)).checkpoint).toEqual(checkpoint);
++    const rolledBackStatus = (
++      await runtime.client.query<{ status: string }>("SELECT status FROM cases WHERE id=$1", [caseId])
++    ).rows[0]?.status;
++    const rolledBackCheckpoint = (await durable.read(storageKey)).checkpoint;
++    const crashRolledBackRowAndCheckpoint = rolledBackStatus === "evidence"
++      && JSON.stringify(rolledBackCheckpoint) === JSON.stringify(checkpoint);
++    expect(crashRolledBackRowAndCheckpoint).toBe(true);
+     const failedAfterCommit: CommittedReplicaProjector = {
+       getStatus: () => runtime.projector.getStatus(),
+       advanceGeneration: (generation) => runtime.projector.advanceGeneration(generation),
+@@ -485,14 +178,18 @@
+       checkpointShapes: REPLICA_SHAPES.map(({ shape }) => shape),
+       entityTypeFor,
+     })).rejects.toThrow("synthetic process death after SQL commit before graph publication");
+-    expect((await runtime.client.query<{ status: string }>("SELECT status FROM cases WHERE id=$1", [caseId])).rows[0]?.status).toBe("policy_review");
++    const committedStatus = (
++      await runtime.client.query<{ status: string }>("SELECT status FROM cases WHERE id=$1", [caseId])
++    ).rows[0]?.status;
+     const committedCheckpoint = (await durable.read(storageKey)).checkpoint!;
+-    expect(committedCheckpoint).toEqual({
++    const expectedCommittedCheckpoint = {
+       generation: await currentGeneration(runtime.client),
+       shapes: update.checkpoint,
+-    });
+-    expect(runtime.store.getState().entities.Case?.[caseId]?.status).toBe("evidence");
+-    const sqlAndCheckpointCommittedBeforePublication = true;
++    };
++    const sqlAndCheckpointCommittedBeforePublication = committedStatus === "policy_review"
++      && JSON.stringify(committedCheckpoint) === JSON.stringify(expectedCommittedCheckpoint)
++      && runtime.store.getState().entities.Case?.[caseId]?.status === "evidence";
++    expect(sqlAndCheckpointCommittedBeforePublication).toBe(true);
+     memory.sample("crash-rollback");
+     const memoryReport = memory.finish();
+     await writeFile(restartStatePath(), `${JSON.stringify({
+@@ -501,6 +198,7 @@
+       initialMemory: memoryReport,
+       parityObservedBeforeReadiness,
+       coldCrashLeftNoPartialBatch,
++      crashRolledBackRowAndCheckpoint,
+       sqlAndCheckpointCommittedBeforePublication,
+     } satisfies RestartState, null, 2)}\n`);
+     await closeRuntime(runtime);
+@@ -509,7 +207,6 @@
+   continuationIt("reopens durable SQL in a new process and fences owner disposal through replacement", async () => {
+     const memory = trackProcessMemory();
+     const state = JSON.parse(await readFile(restartStatePath(), "utf8")) as RestartState;
+-    const baselineState = JSON.parse(await readFile(memoryStatePath(), "utf8")) as MemoryBaselineState;
+     const runtime = await openRuntime();
+     const durableBeforeRevalidation = (await runtime.client.query<{ status: string; gate_affirmed: boolean }>(
+       "SELECT status, gate_affirmed_at IS NOT NULL AS gate_affirmed FROM cases WHERE id=$1",
+@@ -517,6 +214,8 @@
+     )).rows[0];
+     expect(durableBeforeRevalidation).toEqual({ status: "policy_review", gate_affirmed: true });
+     expect(runtime.store.getState().entities.Case?.[state.caseId]).toBeUndefined();
++    const durableStateSurvivedRestart = durableBeforeRevalidation?.status === "policy_review"
++      && durableBeforeRevalidation.gate_affirmed === true;
+     let authorizedResponseObserved = false;
+     const revalidatedTransport = authorizedTransport(async (input, init) => {
+       const response = await fetch(input, init);
+@@ -550,6 +249,13 @@
+     memory.sample("restart-update");
+     expect(runtime.store.getState().entities.Case?.[state.caseId]?.status).toBe("policy_review");
+     expect(runtime.store.getState().entities.Case?.[state.caseId]?.gate_affirmed_at).not.toBeNull();
++    const restartResumedWithoutSkip = state.sqlAndCheckpointCommittedBeforePublication
++      && durableStateSurvivedRestart
++      && authorizedResponseObserved
++      && restartOutcome.status === "syncing"
++      && restartOutcome.resumed
++      && runtime.store.getState().entities.Case?.[state.caseId]?.status === "policy_review";
++    expect(restartResumedWithoutSkip).toBe(true);
+ 
+     const citation = await runtime.client.query<{ id: string }>("SELECT id::text AS id FROM evidence_citations ORDER BY id LIMIT 1");
+     const citationId = citation.rows[0]!.id;
+@@ -559,9 +265,18 @@
+       await runtime.client.query<{ count: number }>("SELECT count(*)::int AS count FROM evidence_citations WHERE id=$1", [citationId])
+     ).rows[0]?.count === 0, "delete replacement");
+     memory.sample("delete-replacement");
+-    expect(runtime.store.getState().entities.EvidenceCitation?.[citationId]).toBeUndefined();
+-    expect(runtime.store.getState().lists["replica:evidence_citations"]?.ids).not.toContain(citationId);
+-    expect(await currentGeneration(runtime.client)).toBeGreaterThan(generationBeforeDelete);
++    const deletedCitationCount = (
++      await runtime.client.query<{ count: number }>(
++        "SELECT count(*)::int AS count FROM evidence_citations WHERE id=$1",
++        [citationId],
++      )
++    ).rows[0]?.count;
++    const generationAfterDelete = await currentGeneration(runtime.client);
++    const deleteForcedReplacement = deletedCitationCount === 0
++      && runtime.store.getState().entities.EvidenceCitation?.[citationId] === undefined
++      && !runtime.store.getState().lists["replica:evidence_citations"]?.ids.includes(citationId)
++      && generationAfterDelete > generationBeforeDelete;
++    expect(deleteForcedReplacement).toBe(true);
+ 
+     const secondCase = await runtime.client.query<{ id: string }>("SELECT id::text AS id FROM cases WHERE id <> $1 ORDER BY id LIMIT 1", [state.caseId]);
+     const secondCaseId = secondCase.rows[0]!.id;
+@@ -609,13 +324,25 @@
+     owner.requestClose();
+     await expect(claim).resolves.toEqual({ status: "closed" });
+     await owner.closed;
+-    expect((await runtime.client.query<{ status: string }>("SELECT status FROM cases WHERE id=$1", [secondCaseId])).rows[0]?.status).toBe("evidence");
+-    expect((await createPGliteCheckpointStore(runtime.client).read(storageKey)).checkpoint).toEqual(beforeDispose);
++    const disposedStatus = (
++      await runtime.client.query<{ status: string }>("SELECT status FROM cases WHERE id=$1", [secondCaseId])
++    ).rows[0]?.status;
++    const disposedCheckpoint = (
++      await createPGliteCheckpointStore(runtime.client).read(storageKey)
++    ).checkpoint;
++    const disposedOwnerFencedPendingRevision = disposedStatus === "evidence"
++      && JSON.stringify(disposedCheckpoint) === JSON.stringify(beforeDispose);
++    expect(disposedOwnerFencedPendingRevision).toBe(true);
+ 
+     await waitFor(runtime, async () => (
+       await runtime.client.query<{ status: string }>("SELECT status FROM cases WHERE id=$1", [secondCaseId])
+     ).rows[0]?.status === "drafting", "replacement owner update");
+-    expect(runtime.store.getState().entities.Case?.[secondCaseId]?.status).toBe("drafting");
++    const replacementStatus = (
++      await runtime.client.query<{ status: string }>("SELECT status FROM cases WHERE id=$1", [secondCaseId])
++    ).rows[0]?.status;
++    const replacementOwnerAppliedPendingRevision = replacementStatus === "drafting"
++      && runtime.store.getState().entities.Case?.[secondCaseId]?.status === "drafting";
++    expect(replacementOwnerAppliedPendingRevision).toBe(true);
+ 
+     const thirdCase = await runtime.client.query<{ id: string }>(
+       "SELECT id::text AS id FROM cases WHERE id <> ALL($1::uuid[]) ORDER BY id LIMIT 1",
+@@ -654,42 +381,69 @@
+     } finally {
+       unsubscribe();
+     }
+-    expect(authorityReasons).toEqual(["Replica grant changed during materialization."]);
+-    expect((await runtime.client.query<{ status: string }>(
++    const authorityFailureStatus = (await runtime.client.query<{ status: string }>(
+       "SELECT status FROM cases WHERE id=$1",
+       [thirdCaseId],
+-    )).rows[0]?.status).toBe("evidence");
+-    expect((await createPGliteCheckpointStore(runtime.client).read(storageKey)).checkpoint).toEqual(beforeAuthorityFailure);
+-    expect(runtime.store.getState().entities.Case?.[thirdCaseId]?.status).toBe("evidence");
++    )).rows[0]?.status;
++    const authorityFailureCheckpoint = (
++      await createPGliteCheckpointStore(runtime.client).read(storageKey)
++    ).checkpoint;
++    const authorityFailureEventPublishedAndFenced = authorityReasons.length === 1
++      && authorityReasons[0] === "Replica grant changed during materialization."
++      && authorityFailureStatus === "evidence"
++      && JSON.stringify(authorityFailureCheckpoint) === JSON.stringify(beforeAuthorityFailure)
++      && runtime.store.getState().entities.Case?.[thirdCaseId]?.status === "evidence";
++    expect(authorityFailureEventPublishedAndFenced).toBe(true);
+     memory.sample("replacement-owner");
+     const memoryReport = memory.finish();
+-    const withinMemoryBudget = baselineState.memory.rssDeltaBytes <= 512 * 1024 * 1024 &&
+-      baselineState.memory.heapDeltaBytes <= 256 * 1024 * 1024;
++    const finalCounts = await counts(runtime.client);
++    const expectedFinalCounts = {
++      ...expectedCounts,
++      evidence_citations: expectedCounts.evidence_citations - 1,
++    };
++    const finalEvidenceStates = Object.keys(
++      runtime.store.getState().entities.EvidenceState ?? {},
++    ).sort();
++    const finalCheckpoint = (
++      await createPGliteCheckpointStore(runtime.client).read(storageKey)
++    ).checkpoint;
++    const finalCheckpointShapes = Object.keys(finalCheckpoint?.shapes ?? {}).sort();
++    const finalGeneration = await currentGeneration(runtime.client);
++    const checks = {
++      initialSqlGraphParity: state.parityObservedBeforeReadiness,
++      completeShapeCheckpoint: finalCheckpointShapes.join(",") === expectedCheckpointShapes.join(","),
++      gateSummaryUpdatedInSqlAndGraph: durableBeforeRevalidation?.gate_affirmed === true
++        && runtime.store.getState().entities.Case?.[state.caseId]?.gate_affirmed_at != null,
++      evidenceStateReferenceIdentitiesPreserved: finalEvidenceStates.join(",") === expectedEvidenceStateIds.join(","),
++      coldCrashLeftNoPartialBatch: state.coldCrashLeftNoPartialBatch,
++      crashRolledBackRowAndCheckpoint: state.crashRolledBackRowAndCheckpoint,
++      restartResumedWithoutSkip,
++      deleteForcedReplacement,
++      disposedOwnerFencedPendingRevision,
++      replacementOwnerAppliedPendingRevision,
++      authorityFailureEventPublishedAndFenced,
++      finalSqlAndGraphCountsMatchExpected: Object.entries(expectedFinalCounts).every(([table, expected]) => {
++        const type = entityTypeFor(table);
++        return finalCounts[table as keyof typeof finalCounts] === expected
++          && Object.keys(runtime.store.getState().entities[type] ?? {}).length === expected
++          && runtime.store.getState().lists[`replica:${table}`]?.ids.length === expected;
++      }),
++      finalGenerationMatchesCheckpoint: finalCheckpoint?.generation === finalGeneration,
++    };
++    const result = Object.values(checks).every(Boolean) ? "Passed" : "Failed";
+     await writeFile(required("RA11C_MATERIALIZER_OUTPUT"), `${JSON.stringify({
+-      result: withinMemoryBudget ? "Passed" : "Failed",
+-      counts: await counts(runtime.client),
+-      evidenceStates: Object.keys(runtime.store.getState().entities.EvidenceState ?? {}).sort(),
+-      checkpointShapes: Object.keys(state.checkpoint.shapes).sort(),
+-      generation: await currentGeneration(runtime.client),
+-      checks: {
+-        initialSqlGraphParity: state.parityObservedBeforeReadiness,
+-        completeShapeCheckpoint: Object.keys(state.checkpoint.shapes).sort().join(",") === expectedCheckpointShapes.join(","),
+-        gateSummaryUpdatedInSqlAndGraph: runtime.store.getState().entities.Case?.[state.caseId]?.gate_affirmed_at != null,
+-        evidenceStateReferenceIdentitiesPreserved: expectedEvidenceStateIds.every((id) => runtime.store.getState().entities.EvidenceState?.[id] != null),
+-        coldCrashLeftNoPartialBatch: state.coldCrashLeftNoPartialBatch,
+-        crashRolledBackRowAndCheckpoint: true,
+-        restartResumedWithoutSkip: state.sqlAndCheckpointCommittedBeforePublication && authorizedResponseObserved,
+-        deleteForcedReplacement: true,
+-        disposedOwnerFencedPendingRevision: true,
+-        replacementOwnerAppliedPendingRevision: true,
+-        authorityFailureEventPublishedAndFenced: true,
+-      },
++      result,
++      counts: finalCounts,
++      evidenceStates: finalEvidenceStates,
++      checkpointShapes: finalCheckpointShapes,
++      generation: finalGeneration,
++      checks,
+       memory: {
+-        browserMemoryBaseline: baselineState.memory,
+         durableInitialProcess: state.initialMemory,
+         durableContinuationProcess: memoryReport,
+       },
+     }, null, 2)}\n`);
++    expect(result).toBe("Passed");
+     await closeRuntime(runtime);
+   }, 180_000);
+ });
+--- a/web/src/shared/sync/pglite-bootstrap.ts
++++ b/web/src/shared/sync/pglite-bootstrap.ts
+@@ -5,12 +5,12 @@
+ const BASE_ARCHIVE = `${import.meta.env.BASE_URL}pglite-base.tgz`;
+ export const PGLITE_REPLICA_INITIAL_MEMORY = 128 * 1024 * 1024;
+ 
+-/** Client-replica settings sized to avoid a 256→512 MiB WASM growth copy. */
++/** Client-replica settings sized for the bounded clinical replica workload. */
+ export const PGLITE_REPLICA_POSTGRESQL_CONF = [
+-  "shared_buffers=32MB",
+-  "work_mem=2MB",
+-  "maintenance_work_mem=16MB",
+-  "temp_buffers=4MB",
++  "shared_buffers=16MB",
++  "work_mem=1MB",
++  "maintenance_work_mem=8MB",
++  "temp_buffers=2MB",
+   "wal_buffers=1MB",
+ ] as const;
+ 
+--- /dev/null
++++ b/web/src/shared/sync/replica-mounted-runtime.ts
+@@ -0,0 +1,355 @@
++// @vitest-environment node
++
++import { execFileSync } from "node:child_process";
++import { readFile, writeFile } from "node:fs/promises";
++import process from "node:process";
++
++import { PGlite } from "@electric-sql/pglite";
++import {
++  createCommittedReplicaProjector,
++  createGraphStore,
++  createPGlitePersistenceAdapter,
++  startScopedLocalFirstGraph,
++  type CommittedReplicaProjector,
++  type ScopedLocalFirstGraphRuntime,
++} from "@prometheus-ags/entity-graph-core";
++import { expect } from "vitest";
++
++import { createFrfShapeTransport } from "./frf-shape-transport";
++import {
++  PGLITE_REPLICA_INITIAL_MEMORY,
++  PGLITE_REPLICA_POSTGRESQL_CONF,
++} from "./pglite-bootstrap";
++import {
++  currentGeneration,
++  migrateReplicaSchema,
++  migrationChecksum,
++  type ReplicaSchemaPlan,
++} from "./migration-ledger";
++import {
++  PGLITE_ANNOTATION_TYPES_SQL,
++  PGLITE_CASE_SUMMARY_SQL,
++  PGLITE_SCHEMA_SQL,
++  PGLITE_SOURCE_HASH_SQL,
++  type PGliteTable,
++} from "./pglite-schema";
++import { ReplicaLease, createMemoryLeaseStore } from "./replica-owner";
++import {
++  startReplicaRuntime,
++  type ReplicaCheckpointSet,
++  type ReplicaRevision,
++  type ReplicaTransport,
++} from "./replica-runtime";
++import {
++  CHECKPOINT_SCHEMA_SQL,
++  REPLICA_LIST_BINDINGS,
++  REPLICA_SHAPES,
++  REPLICA_TABLE_BINDINGS,
++  REPLICA_TARGETS,
++  createPGliteCheckpointStore,
++  entityTypeFor,
++} from "./replica-wiring";
++
++export const mounted = process.env.RA11C_MOUNTED === "1";
++export const mountedPhase = process.env.RA11C_MOUNTED_PHASE;
++export const storageKey = "ra11c-mounted-materializer";
++export const expectedCounts: Readonly<Record<PGliteTable, number>> = {
++  annotation_types: 4,
++  annotations: 0,
++  cases: 360,
++  case_evidence: 4_320,
++  documents: 2_880,
++  evidence_citations: 8_640,
++  evidence_states: 3,
++};
++export const expectedEvidenceStateIds = ["gap", "met", "void"];
++export const expectedCheckpointShapes = REPLICA_SHAPES.map(({ shape }) => shape).sort();
++const openClients: PGlite[] = [];
++
++export interface MountedRuntime {
++  client: PGlite;
++  graph: ScopedLocalFirstGraphRuntime;
++  lease: ReplicaLease;
++  projector: CommittedReplicaProjector;
++  store: ReturnType<typeof createGraphStore>;
++}
++
++export type MemoryStageObserver = (stage: string) => void;
++
++export async function closeMountedClients(): Promise<void> {
++  await Promise.allSettled(openClients.splice(0).map((client) => client.close()));
++}
++
++export function required(name: string): string {
++  const value = process.env[name];
++  if (!value) throw new Error(`${name} is required for the mounted RA11c acceptance`);
++  return value;
++}
++
++export function authorizedTransport(fromFetch = globalThis.fetch): ReplicaTransport {
++  const token = required("RA11C_SESSION_TOKEN");
++  return createFrfShapeTransport({
++    gateUrl: required("RA11C_GATE_URL"),
++    shapes: REPLICA_SHAPES,
++    fetchImpl: async (input, init) => {
++      const headers = new Headers(init?.headers);
++      headers.set("authorization", `Bearer ${token}`);
++      return fromFetch(input, { ...init, headers });
++    },
++  });
++}
++
++async function schemaPlan(): Promise<ReplicaSchemaPlan> {
++  const sql = `${PGLITE_SCHEMA_SQL}\n${CHECKPOINT_SCHEMA_SQL}`;
++  return {
++    logicalVersion: 6,
++    generation: 4,
++    migrations: [
++      {
++        id: "001-replica-schema",
++        sql,
++        checksum: await migrationChecksum(sql),
++        logicalVersion: 3,
++      },
++      {
++        id: "002-annotation-types",
++        sql: PGLITE_ANNOTATION_TYPES_SQL,
++        checksum: await migrationChecksum(PGLITE_ANNOTATION_TYPES_SQL),
++        logicalVersion: 4,
++      },
++      {
++        id: "003-source-hash-wire-format",
++        sql: PGLITE_SOURCE_HASH_SQL,
++        checksum: await migrationChecksum(PGLITE_SOURCE_HASH_SQL),
++        logicalVersion: 5,
++      },
++      {
++        id: "004-case-summary-publication",
++        sql: PGLITE_CASE_SUMMARY_SQL,
++        checksum: await migrationChecksum(PGLITE_CASE_SUMMARY_SQL),
++        logicalVersion: 6,
++      },
++    ],
++  };
++}
++
++export async function openRuntime(onMemoryStage?: MemoryStageObserver): Promise<MountedRuntime> {
++  const dataDir = required("RA11C_DATA_DIR");
++  const baseArchive = new Blob([
++    new Uint8Array(await readFile(required("RA11C_PGLITE_BASE"))),
++  ]);
++  const client = mountedPhase === "memory"
++    ? await PGlite.create({
++        initialMemory: PGLITE_REPLICA_INITIAL_MEMORY,
++        loadDataDir: baseArchive,
++        postgresqlconf: [...PGLITE_REPLICA_POSTGRESQL_CONF],
++      })
++    : mountedPhase === "initial"
++    ? await PGlite.create({
++        dataDir,
++        initialMemory: PGLITE_REPLICA_INITIAL_MEMORY,
++        loadDataDir: baseArchive,
++        postgresqlconf: [...PGLITE_REPLICA_POSTGRESQL_CONF],
++      })
++    : await PGlite.create({
++        dataDir,
++        initialMemory: PGLITE_REPLICA_INITIAL_MEMORY,
++        postgresqlconf: [...PGLITE_REPLICA_POSTGRESQL_CONF],
++      });
++  onMemoryStage?.("pglite-open");
++  await markProgress("pglite-open");
++  openClients.push(client);
++  const lease = new ReplicaLease({
++    store: createMemoryLeaseStore(),
++    holder: crypto.randomUUID(),
++  });
++  expect(await lease.acquire()).toEqual({ granted: true });
++  await markProgress("lease-acquired");
++  const migration = await migrateReplicaSchema(client, await schemaPlan(), lease);
++  expect(migration.status).toBe("ready");
++  onMemoryStage?.("schema-ready");
++  await markProgress("schema-ready");
++
++  const persistence = await createPGlitePersistenceAdapter(client);
++  const store = createGraphStore();
++  const graph = startScopedLocalFirstGraph({
++    store,
++    key: storageKey,
++    storage: { ...persistence, close: async () => undefined },
++    onlineSource: { getIsOnline: () => true, subscribe: () => () => undefined },
++    persistDebounceMs: 60_000,
++    persistence: "disabled",
++  });
++  await graph.ready;
++  onMemoryStage?.("graph-ready");
++  await markProgress("graph-ready");
++  const projector = await createCommittedReplicaProjector({
++    runtime: graph,
++    scopeId: storageKey,
++    generation: await currentGeneration(client),
++    tables: REPLICA_TABLE_BINDINGS,
++    lists: REPLICA_LIST_BINDINGS,
++  });
++  onMemoryStage?.("projector-ready");
++  await markProgress("projector-ready");
++  return { client, graph, lease, projector, store };
++}
++
++export async function closeRuntime(runtime: MountedRuntime): Promise<void> {
++  await runtime.graph.dispose();
++  await runtime.lease.release();
++  await runtime.client.close();
++  const index = openClients.indexOf(runtime.client);
++  if (index >= 0) openClients.splice(index, 1);
++}
++
++export async function sync(
++  runtime: MountedRuntime,
++  transport = authorizedTransport(),
++  onRevision?: () => void,
++): Promise<void> {
++  const outcome = await startReplicaRuntime({
++    client: runtime.client,
++    transport,
++    checkpoints: createPGliteCheckpointStore(runtime.client),
++    projector: runtime.projector,
++    lease: runtime.lease,
++    ownership: "held",
++    leaseLifetime: "caller",
++    storageKey,
++    targets: REPLICA_TARGETS,
++    checkpointShapes: REPLICA_SHAPES.map(({ shape }) => shape),
++    entityTypeFor,
++    onRevision,
++    onCaughtUp: () => runtime.graph.markServerCaughtUp(),
++  });
++  expect(outcome.status).toBe("syncing");
++}
++
++export async function counts(client: PGlite): Promise<Record<PGliteTable, number>> {
++  const entries = await Promise.all(REPLICA_TARGETS.map(async ({ table }) => {
++    const result = await client.query<{ count: number }>(`SELECT count(*)::int AS count FROM ${table}`);
++    return [table, result.rows[0]?.count ?? -1] as const;
++  }));
++  return Object.fromEntries(entries) as Record<PGliteTable, number>;
++}
++
++export function serverSql(sql: string): void {
++  execFileSync("bash", ["../scripts/ra05-stack.sh", "exec", "-T", "db", "psql", "-X", "-v", "ON_ERROR_STOP=1", "-U", "flint", "-d", "flint", "-Atq"], {
++    cwd: process.cwd(),
++    env: process.env,
++    input: sql,
++    stdio: ["pipe", "pipe", "pipe"],
++  });
++}
++
++export async function waitFor(
++  runtime: MountedRuntime,
++  predicate: () => Promise<boolean>,
++  label: string,
++  timeoutMs = 15_000,
++): Promise<void> {
++  const deadline = Date.now() + timeoutMs;
++  while (Date.now() < deadline) {
++    await sync(runtime);
++    if (await predicate()) return;
++    await new Promise((resolve) => setTimeout(resolve, 150));
++  }
++  throw new Error(`Timed out waiting for ${label} to reach the materializer`);
++}
++
++export async function captureRevision(
++  checkpoint: ReplicaCheckpointSet,
++  predicate: (revision: ReplicaRevision) => boolean,
++  timeoutMs = 45_000,
++): Promise<ReplicaRevision> {
++  const deadline = Date.now() + timeoutMs;
++  const transport = authorizedTransport();
++  let cursor: ReplicaCheckpointSet | null = checkpoint;
++  while (Date.now() < deadline) {
++    const revision = await transport.fetch(cursor);
++    if (revision?.mustRefetch) {
++      cursor = null;
++      continue;
++    }
++    if (revision && predicate(revision)) return revision;
++    await new Promise((resolve) => setTimeout(resolve, 150));
++  }
++  throw new Error("Timed out waiting to capture the real Electric revision");
++}
++
++export function revisionHas(revision: ReplicaRevision, table: string, id: string): boolean {
++  return revision.tables.some((entry) =>
++    entry.target.table === table && entry.rows.some((row) => row.id === id),
++  );
++}
++
++function memorySample() {
++  const memory = process.memoryUsage();
++  return { heapUsedBytes: memory.heapUsed, rssBytes: memory.rss };
++}
++
++export async function markProgress(stage: string): Promise<void> {
++  await writeFile(`${required("RA11C_MATERIALIZER_OUTPUT")}.progress`, `${stage}\n`);
++}
++
++interface ProcessMemoryReport {
++  baseline: ReturnType<typeof memorySample>;
++  peak: ReturnType<typeof memorySample>;
++  rssDeltaBytes: number;
++  heapDeltaBytes: number;
++  stages: Record<string, ReturnType<typeof memorySample>>;
++  peakStage: string;
++}
++
++export function trackProcessMemory() {
++  const baseline = memorySample();
++  let peak = baseline;
++  let stage = "baseline";
++  let peakStage = stage;
++  const stages: Record<string, ReturnType<typeof memorySample>> = { baseline };
++  const sample = (label?: string) => {
++    const current = memorySample();
++    if (label) {
++      stage = label;
++      stages[label] = current;
++    }
++    peak = {
++      heapUsedBytes: Math.max(peak.heapUsedBytes, current.heapUsedBytes),
++      rssBytes: Math.max(peak.rssBytes, current.rssBytes),
++    };
++    if (current.rssBytes >= peak.rssBytes) peakStage = stage;
++  };
++  const sampler = setInterval(() => sample(), 10);
++  return {
++    enter(nextStage: string) {
++      stage = nextStage;
++      sample(nextStage);
++    },
++    sample,
++    finish(): ProcessMemoryReport {
++      clearInterval(sampler);
++      sample("final");
++      return {
++        baseline,
++        peak,
++        rssDeltaBytes: peak.rssBytes - baseline.rssBytes,
++        heapDeltaBytes: peak.heapUsedBytes - baseline.heapUsedBytes,
++        stages,
++        peakStage,
++      };
++    },
++  };
++}
++
++export interface RestartState {
++  caseId: string;
++  checkpoint: ReplicaCheckpointSet;
++  initialMemory: ProcessMemoryReport;
++  parityObservedBeforeReadiness: boolean;
++  coldCrashLeftNoPartialBatch: boolean;
++  crashRolledBackRowAndCheckpoint: boolean;
++  sqlAndCheckpointCommittedBeforePublication: boolean;
++}
++
++export const restartStatePath = () => `${required("RA11C_MATERIALIZER_OUTPUT")}.state.json`;
+--- /dev/null
++++ b/web/ra11c-browser-memory.html
+@@ -0,0 +1,12 @@
++<!doctype html>
++<html lang="en">
++  <head>
++    <meta charset="UTF-8" />
++    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++    <title>RA11c browser memory campaign</title>
++  </head>
++  <body>
++    <main>RA11c browser memory campaign</main>
++    <script type="module" src="/src/shared/sync/replica-browser-memory.ts"></script>
++  </body>
++</html>
+--- /dev/null
++++ b/web/src/shared/sync/replica-browser-memory.ts
+@@ -0,0 +1,341 @@
++import {
++  createCommittedReplicaProjector,
++  createGraphStore,
++  createPGlitePersistenceAdapter,
++  startScopedLocalFirstGraph,
++} from "@prometheus-ags/entity-graph-core";
++
++import { createFrfShapeTransport } from "./frf-shape-transport";
++import {
++  currentGeneration,
++  migrateReplicaSchema,
++  migrationChecksum,
++  type ReplicaSchemaPlan,
++} from "./migration-ledger";
++import { openPGliteReplica } from "./pglite-bootstrap";
++import {
++  PGLITE_ANNOTATION_TYPES_SQL,
++  PGLITE_CASE_SUMMARY_SQL,
++  PGLITE_SCHEMA_SQL,
++  PGLITE_SOURCE_HASH_SQL,
++  type PGliteTable,
++} from "./pglite-schema";
++import { ReplicaLease, createMemoryLeaseStore } from "./replica-owner";
++import { startReplicaRuntime } from "./replica-runtime";
++import {
++  CHECKPOINT_SCHEMA_SQL,
++  REPLICA_LIST_BINDINGS,
++  REPLICA_SHAPES,
++  REPLICA_TABLE_BINDINGS,
++  REPLICA_TARGETS,
++  createPGliteCheckpointStore,
++  entityTypeFor,
++} from "./replica-wiring";
++
++interface BrowserCampaignConfig {
++  sessionToken: string;
++}
++
++interface HeapSample {
++  totalBytes: number;
++  usedBytes: number;
++}
++
++interface BrowserCampaignResult {
++  result: "Passed" | "Failed";
++  counts: Record<PGliteTable, number>;
++  graphCounts: Record<PGliteTable, number>;
++  checkpointShapes: string[];
++  generation: number;
++  runtime: {
++    crossOriginIsolated: boolean;
++    userAgent: string;
++  };
++  heap: {
++    baseline: HeapSample;
++    peak: HeapSample;
++    deltaBytes: number;
++    peakStage: string;
++    stages: Record<string, HeapSample>;
++  };
++  checks: {
++    completeCheckpoint: boolean;
++    graphParity: boolean;
++    heapAvailable: boolean;
++    heapWithinBudget: boolean;
++    sqlParity: boolean;
++  };
++}
++
++interface ChromiumPerformance extends Performance {
++  memory?: {
++    totalJSHeapSize: number;
++    usedJSHeapSize: number;
++  };
++}
++
++declare global {
++  interface Window {
++    __RA11C_CONFIG__?: BrowserCampaignConfig;
++    __RA11C_ERROR__?: string;
++    __RA11C_READY__?: boolean;
++    __RA11C_RESULT__?: BrowserCampaignResult;
++    __RA11C_STAGE__?: string;
++    __RA11C_START__?: () => void;
++  }
++}
++
++const EXPECTED_COUNTS: Readonly<Record<PGliteTable, number>> = {
++  annotation_types: 4,
++  annotations: 0,
++  cases: 360,
++  case_evidence: 4_320,
++  documents: 2_880,
++  evidence_citations: 8_640,
++  evidence_states: 3,
++};
++const STORAGE_KEY = "ra11c-browser-memory";
++
++function readHeap(): HeapSample {
++  const memory = (performance as ChromiumPerformance).memory;
++  if (!memory) return { totalBytes: -1, usedBytes: -1 };
++  return {
++    totalBytes: memory.totalJSHeapSize,
++    usedBytes: memory.usedJSHeapSize,
++  };
++}
++
++function trackHeap() {
++  const baseline = readHeap();
++  let peak = baseline;
++  let peakStage = "baseline";
++  const stages: Record<string, HeapSample> = { baseline };
++  const sample = (stage = window.__RA11C_STAGE__ ?? "unknown") => {
++    const current = readHeap();
++    stages[stage] = current;
++    if (current.usedBytes >= peak.usedBytes) {
++      peak = current;
++      peakStage = stage;
++    }
++  };
++  const interval = window.setInterval(() => sample(), 10);
++  return {
++    enter(stage: string) {
++      window.__RA11C_STAGE__ = stage;
++      sample(stage);
++    },
++    finish() {
++      window.clearInterval(interval);
++      sample("final");
++      return {
++        baseline,
++        peak,
++        deltaBytes: peak.usedBytes - baseline.usedBytes,
++        peakStage,
++        stages,
++      };
++    },
++  };
++}
++
++async function schemaPlan(): Promise<ReplicaSchemaPlan> {
++  const schemaSql = `${PGLITE_SCHEMA_SQL}\n${CHECKPOINT_SCHEMA_SQL}`;
++  return {
++    logicalVersion: 6,
++    generation: 4,
++    migrations: [
++      {
++        id: "001-replica-schema",
++        sql: schemaSql,
++        checksum: await migrationChecksum(schemaSql),
++        logicalVersion: 3,
++      },
++      {
++        id: "002-annotation-types",
++        sql: PGLITE_ANNOTATION_TYPES_SQL,
++        checksum: await migrationChecksum(PGLITE_ANNOTATION_TYPES_SQL),
++        logicalVersion: 4,
++      },
++      {
++        id: "003-source-hash-wire-format",
++        sql: PGLITE_SOURCE_HASH_SQL,
++        checksum: await migrationChecksum(PGLITE_SOURCE_HASH_SQL),
++        logicalVersion: 5,
++      },
++      {
++        id: "004-case-summary-publication",
++        sql: PGLITE_CASE_SUMMARY_SQL,
++        checksum: await migrationChecksum(PGLITE_CASE_SUMMARY_SQL),
++        logicalVersion: 6,
++      },
++    ],
++  };
++}
++
++async function tableCounts(client: {
++  query<T>(sql: string): Promise<{ rows: T[] }>;
++}): Promise<Record<PGliteTable, number>> {
++  const entries = await Promise.all(REPLICA_TARGETS.map(async ({ table }) => {
++    const response = await client.query<{ count: number }>(
++      `SELECT count(*)::int AS count FROM ${table}`,
++    );
++    return [table, response.rows[0]?.count ?? -1] as const;
++  }));
++  return Object.fromEntries(entries) as Record<PGliteTable, number>;
++}
++
++async function runCampaign(): Promise<BrowserCampaignResult> {
++  const config = window.__RA11C_CONFIG__;
++  if (!config?.sessionToken) throw new Error("browser campaign config is missing");
++  const heapTracker = trackHeap();
++  heapTracker.enter("pglite-opening");
++  const client = await openPGliteReplica({
++    mode: "memory",
++    reason: "explicit-memory",
++    misconfigured: false,
++  }, STORAGE_KEY);
++  const lease = new ReplicaLease({
++    store: createMemoryLeaseStore(),
++    holder: crypto.randomUUID(),
++  });
++  let graph: ReturnType<typeof startScopedLocalFirstGraph> | undefined;
++  try {
++    await client.waitReady;
++    heapTracker.enter("pglite-open");
++    const acquired = await lease.acquire();
++    if (!acquired.granted) throw new Error("browser campaign could not acquire replica lease");
++    const migrated = await migrateReplicaSchema(client, await schemaPlan(), lease);
++    if (migrated.status !== "ready") {
++      throw new Error(`browser schema migration failed: ${migrated.reason}`);
++    }
++    heapTracker.enter("schema-ready");
++    const persistence = await createPGlitePersistenceAdapter(client);
++    const store = createGraphStore();
++    graph = startScopedLocalFirstGraph({
++      store,
++      key: STORAGE_KEY,
++      storage: { ...persistence, close: async () => undefined },
++      onlineSource: { getIsOnline: () => true, subscribe: () => () => undefined },
++      persistDebounceMs: 60_000,
++      persistence: "disabled",
++    });
++    await graph.ready;
++    heapTracker.enter("graph-ready");
++    const generation = await currentGeneration(client);
++    const projector = await createCommittedReplicaProjector({
++      runtime: graph,
++      scopeId: STORAGE_KEY,
++      generation,
++      tables: REPLICA_TABLE_BINDINGS,
++      lists: REPLICA_LIST_BINDINGS,
++    });
++    heapTracker.enter("projector-ready");
++    const transport = createFrfShapeTransport({
++      gateUrl: window.location.origin,
++      shapes: REPLICA_SHAPES,
++      fetchImpl: async (input, init) => {
++        const headers = new Headers(init?.headers);
++        headers.set("authorization", `Bearer ${config.sessionToken}`);
++        return fetch(input, { ...init, headers });
++      },
++    });
++    heapTracker.enter("cold-fold");
++    let pendingRevision = await transport.fetch(null);
++    if (!pendingRevision || pendingRevision.mustRefetch) {
++      throw new Error("browser cold fold did not produce a complete revision");
++    }
++    heapTracker.enter("cold-fold-complete");
++    const capturedTransport = {
++      async fetch() {
++        const revision = pendingRevision;
++        pendingRevision = null;
++        return revision;
++      },
++    };
++    let revisions = 0;
++    heapTracker.enter("sql-checkpoint-graph");
++    const outcome = await startReplicaRuntime({
++      client,
++      transport: capturedTransport,
++      checkpoints: createPGliteCheckpointStore(client),
++      projector,
++      lease,
++      ownership: "held",
++      leaseLifetime: "caller",
++      storageKey: STORAGE_KEY,
++      targets: REPLICA_TARGETS,
++      checkpointShapes: REPLICA_SHAPES.map(({ shape }) => shape),
++      entityTypeFor,
++      onRevision: () => {
++        revisions += 1;
++        heapTracker.enter(`revision-${revisions}`);
++      },
++      onCaughtUp: () => graph?.markServerCaughtUp(),
++    });
++    if (outcome.status !== "syncing") {
++      throw new Error(`browser materializer stopped: ${outcome.status}`);
++    }
++    heapTracker.enter("materialized");
++    const counts = await tableCounts(client);
++    const state = store.getState();
++    const graphCounts = Object.fromEntries(REPLICA_TARGETS.map(({ table }) => [
++      table,
++      Object.keys(state.entities[entityTypeFor(table)] ?? {}).length,
++    ])) as Record<PGliteTable, number>;
++    const checkpoint = await createPGliteCheckpointStore(client).read(STORAGE_KEY);
++    const checkpointShapes = Object.keys(checkpoint.checkpoint?.shapes ?? {}).sort();
++    const expectedShapes = REPLICA_SHAPES.map(({ shape }) => shape).sort();
++    const sqlParity = Object.entries(EXPECTED_COUNTS).every(
++      ([table, expected]) => counts[table as PGliteTable] === expected,
++    );
++    const graphParity = Object.entries(EXPECTED_COUNTS).every(
++      ([table, expected]) => graphCounts[table as PGliteTable] === expected,
++    );
++    const heap = heapTracker.finish();
++    const heapAvailable = heap.baseline.usedBytes >= 0 && heap.peak.usedBytes >= 0;
++    const heapWithinBudget = heapAvailable && heap.deltaBytes <= 256 * 1024 * 1024;
++    const completeCheckpoint = checkpointShapes.join(",") === expectedShapes.join(",");
++    const passed = sqlParity && graphParity && completeCheckpoint && heapWithinBudget;
++    return {
++      result: passed ? "Passed" : "Failed",
++      counts,
++      graphCounts,
++      checkpointShapes,
++      generation,
++      runtime: {
++        crossOriginIsolated: window.crossOriginIsolated,
++        userAgent: navigator.userAgent,
++      },
++      heap,
++      checks: {
++        completeCheckpoint,
++        graphParity,
++        heapAvailable,
++        heapWithinBudget,
++        sqlParity,
++      },
++    };
++  } finally {
++    await graph?.dispose().catch(() => undefined);
++    await lease.release().catch(() => undefined);
++    await client.close().catch(() => undefined);
++  }
++}
++
++window.__RA11C_STAGE__ = "ready";
++window.__RA11C_READY__ = true;
++window.__RA11C_START__ = () => {
++  window.__RA11C_RESULT__ = undefined;
++  window.__RA11C_ERROR__ = undefined;
++  void runCampaign()
++    .then((result) => {
++      window.__RA11C_RESULT__ = result;
++      window.__RA11C_STAGE__ = "complete";
++    })
++    .catch((error: unknown) => {
++      window.__RA11C_ERROR__ = error instanceof Error
++        ? `${error.name}: ${error.message}`
++        : String(error);
++      window.__RA11C_STAGE__ = "failed";
++    });
++};
+--- /dev/null
++++ b/scripts/test-ra11c-browser-memory.py
+@@ -0,0 +1,346 @@
++#!/usr/bin/env python3
++"""Measure the RA11c mounted materializer inside isolated Chromium."""
++
++from __future__ import annotations
++
++import argparse
++import json
++import os
++from pathlib import Path
++import shutil
++import socket
++import subprocess
++import tempfile
++import time
++import urllib.request
++
++from playwright.sync_api import sync_playwright
++
++
++ROOT = Path(__file__).resolve().parents[1]
++CHROME = Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
++RSS_LIMIT = 512 * 1024 * 1024
++HEAP_LIMIT = 256 * 1024 * 1024
++
++
++def free_port() -> int:
++    with socket.socket() as probe:
++        probe.bind(("127.0.0.1", 0))
++        return int(probe.getsockname()[1])
++
++
++def wait_for_http(url: str, timeout_seconds: int) -> None:
++    deadline = time.monotonic() + timeout_seconds
++    while time.monotonic() < deadline:
++        try:
++            with urllib.request.urlopen(url, timeout=1) as response:
++                if response.status == 200:
++                    return
++        except Exception:
++            pass
++        time.sleep(0.1)
++    raise RuntimeError(f"timed out waiting for {url}")
++
++
++def wait_for_devtools(profile: Path, timeout_seconds: int) -> str:
++    active_port = profile / "DevToolsActivePort"
++    deadline = time.monotonic() + timeout_seconds
++    while time.monotonic() < deadline:
++        if active_port.exists():
++            lines = active_port.read_text().splitlines()
++            if lines:
++                return f"http://127.0.0.1:{lines[0]}"
++        time.sleep(0.05)
++    raise RuntimeError("Chromium did not publish its DevTools endpoint")
++
++
++def process_snapshot(root_pid: int) -> dict[str, object]:
++    process = subprocess.run(
++        ["ps", "-axo", "pid=,ppid=,rss=,command="],
++        text=True,
++        capture_output=True,
++        check=True,
++    )
++    rows: dict[int, tuple[int, int, str]] = {}
++    for line in process.stdout.splitlines():
++        parts = line.strip().split(None, 3)
++        if len(parts) != 4:
++            continue
++        try:
++            pid, parent, rss_kib = map(int, parts[:3])
++        except ValueError:
++            continue
++        rows[pid] = (parent, rss_kib, parts[3])
++    selected = {root_pid}
++    changed = True
++    while changed:
++        changed = False
++        for pid, (parent, _, _) in rows.items():
++            if parent in selected and pid not in selected:
++                selected.add(pid)
++                changed = True
++    entries = [
++        {
++            "pid": pid,
++            "parentPid": rows[pid][0],
++            "rssBytes": rows[pid][1] * 1024,
++            "kind": "renderer" if "--type=renderer" in rows[pid][2]
++            else "gpu" if "--type=gpu-process" in rows[pid][2]
++            else "utility" if "--type=utility" in rows[pid][2]
++            else "browser",
++        }
++        for pid in sorted(selected)
++        if pid in rows
++    ]
++    return {
++        "processCount": len(entries),
++        "rssBytes": sum(int(entry["rssBytes"]) for entry in entries),
++        "processes": entries,
++    }
++
++
++def stable_baseline(root_pid: int) -> tuple[list[int], dict[str, object]]:
++    samples: list[int] = []
++    snapshot = process_snapshot(root_pid)
++    deadline = time.monotonic() + 8
++    while time.monotonic() < deadline:
++        snapshot = process_snapshot(root_pid)
++        samples.append(int(snapshot["rssBytes"]))
++        if len(samples) >= 5 and max(samples[-5:]) - min(samples[-5:]) <= 16 * 1024 * 1024:
++            return samples, snapshot
++        time.sleep(0.1)
++    return samples, snapshot
++
++
++def process_map(snapshot: dict[str, object]) -> dict[int, dict[str, object]]:
++    return {
++        int(entry["pid"]): entry
++        for entry in snapshot["processes"]
++        if isinstance(entry, dict)
++    }
++
++
++def terminate(process: subprocess.Popen[str] | None) -> None:
++    if process is None or process.poll() is not None:
++        return
++    process.terminate()
++    try:
++        process.wait(timeout=10)
++    except subprocess.TimeoutExpired:
++        process.kill()
++        process.wait(timeout=5)
++
++
++def run(args: argparse.Namespace) -> dict[str, object]:
++    token = os.environ.get("RA11C_SESSION_TOKEN")
++    gate_url = os.environ.get("RA11C_GATE_URL")
++    if not token or not gate_url:
++        raise RuntimeError("RA11C_SESSION_TOKEN and RA11C_GATE_URL are required")
++    if not CHROME.exists():
++        raise RuntimeError(f"Chromium executable is missing: {CHROME}")
++
++    vite_port = free_port()
++    vite_env = os.environ.copy()
++    vite_env["ASO_GATE_PROXY_TARGET"] = gate_url
++    vite_process: subprocess.Popen[str] | None = None
++    chrome_process: subprocess.Popen[str] | None = None
++    profile = Path(tempfile.mkdtemp(prefix="ra11c-chrome-"))
++    try:
++        vite_process = subprocess.Popen(
++            [
++                "pnpm", "--dir", "web", "exec", "vite",
++                "--host", "127.0.0.1", "--port", str(vite_port), "--strictPort",
++            ],
++            cwd=ROOT,
++            env=vite_env,
++            text=True,
++            stdout=subprocess.PIPE,
++            stderr=subprocess.STDOUT,
++        )
++        page_url = f"http://127.0.0.1:{vite_port}/ra11c-browser-memory.html"
++        wait_for_http(page_url, 30)
++        chrome_process = subprocess.Popen(
++            [
++                str(CHROME),
++                "--headless=new",
++                "--no-first-run",
++                "--no-default-browser-check",
++                "--disable-background-networking",
++                "--disable-component-update",
++                "--disable-default-apps",
++                "--disable-extensions",
++                "--disable-sync",
++                "--enable-precise-memory-info",
++                "--metrics-recording-only",
++                "--remote-debugging-port=0",
++                f"--user-data-dir={profile}",
++                "about:blank",
++            ],
++            text=True,
++            stdout=subprocess.DEVNULL,
++            stderr=subprocess.DEVNULL,
++        )
++        endpoint = wait_for_devtools(profile, 30)
++        with sync_playwright() as playwright:
++            browser = playwright.chromium.connect_over_cdp(endpoint)
++            context = browser.contexts[0]
++            page = context.pages[0] if context.pages else context.new_page()
++            page.add_init_script(
++                script=f"window.__RA11C_CONFIG__ = {json.dumps({'sessionToken': token})};"
++            )
++            page.goto(page_url, wait_until="networkidle", timeout=30_000)
++            page.wait_for_function("window.__RA11C_READY__ === true", timeout=30_000)
++            time.sleep(1)
++            baseline_samples, baseline_tree = stable_baseline(chrome_process.pid)
++            baseline_rss = int(baseline_tree["rssBytes"])
++            baseline_processes = process_map(baseline_tree)
++            process_peaks = {
++                pid: int(entry["rssBytes"])
++                for pid, entry in baseline_processes.items()
++            }
++            page.evaluate("() => { window.__RA11C_START__(); }")
++            peak_tree = baseline_tree
++            peak_rss = baseline_rss
++            peak_stage = "baseline"
++            stage_peaks: dict[str, int] = {"baseline": baseline_rss}
++            stage_process_peaks: dict[str, dict[int, int]] = {
++                "baseline": {
++                    pid: int(entry["rssBytes"])
++                    for pid, entry in baseline_processes.items()
++                }
++            }
++            deadline = time.monotonic() + args.timeout_seconds
++            while time.monotonic() < deadline:
++                status = page.evaluate(
++                    "() => ({stage: window.__RA11C_STAGE__, "
++                    "done: window.__RA11C_RESULT__ !== undefined, "
++                    "error: window.__RA11C_ERROR__})"
++                )
++                snapshot = process_snapshot(chrome_process.pid)
++                for pid, entry in process_map(snapshot).items():
++                    process_peaks[pid] = max(
++                        process_peaks.get(pid, 0), int(entry["rssBytes"])
++                    )
++                rss = int(snapshot["rssBytes"])
++                stage = str(status.get("stage") or "unknown")
++                stage_peaks[stage] = max(stage_peaks.get(stage, 0), rss)
++                process_stage = stage_process_peaks.setdefault(stage, {})
++                for pid, entry in process_map(snapshot).items():
++                    process_stage[pid] = max(
++                        process_stage.get(pid, 0), int(entry["rssBytes"])
++                    )
++                if rss >= peak_rss:
++                    peak_rss = rss
++                    peak_tree = snapshot
++                    peak_stage = stage
++                if status.get("error"):
++                    raise RuntimeError(str(status["error"]))
++                if status.get("done"):
++                    break
++                time.sleep(0.02)
++            else:
++                raise RuntimeError("browser materializer exceeded the campaign timeout")
++            browser_result = page.evaluate("() => window.__RA11C_RESULT__")
++            browser.close()
++        renderer_deltas = [
++            {
++                "pid": pid,
++                "baselineRssBytes": int(entry["rssBytes"]),
++                "peakRssBytes": process_peaks.get(pid, int(entry["rssBytes"])),
++                "incrementalRssBytes": (
++                    process_peaks.get(pid, int(entry["rssBytes"]))
++                    - int(entry["rssBytes"])
++                ),
++            }
++            for pid, entry in baseline_processes.items()
++            if entry["kind"] == "renderer"
++        ]
++        if not renderer_deltas:
++            raise RuntimeError("isolated Chromium reported no renderer process")
++        target_renderer = max(
++            renderer_deltas, key=lambda entry: int(entry["incrementalRssBytes"])
++        )
++        target_pid = int(target_renderer["pid"])
++        target_stage_rss = {
++            stage: processes[target_pid]
++            for stage, processes in stage_process_peaks.items()
++            if target_pid in processes
++        }
++        rss_delta = int(target_renderer["incrementalRssBytes"])
++        aggregate_rss_delta = peak_rss - baseline_rss
++        heap_delta = int(browser_result["heap"]["deltaBytes"])
++        target_renderer_rss_within_budget = rss_delta <= RSS_LIMIT
++        aggregate_rss_within_budget = aggregate_rss_delta <= RSS_LIMIT
++        rss_within_budget = (
++            target_renderer_rss_within_budget and aggregate_rss_within_budget
++        )
++        heap_within_budget = heap_delta <= HEAP_LIMIT
++        passed = (
++            browser_result.get("result") == "Passed"
++            and rss_within_budget
++            and heap_within_budget
++        )
++        return {
++            "result": "Passed" if passed else "Failed",
++            "runtime": {
++                "browser": subprocess.run(
++                    [str(CHROME), "--version"],
++                    text=True,
++                    capture_output=True,
++                    check=True,
++                ).stdout.strip(),
++                "executable": str(CHROME),
++                "page": "/ra11c-browser-memory.html",
++            },
++            "measurement": {
++                "rssMethod": "RSS growth of the isolated Chromium renderer with the greatest campaign-time growth, sampled from macOS ps",
++                "heapMethod": "Chromium performance.memory.usedJSHeapSize with --enable-precise-memory-info",
++                "baselineRssBytes": baseline_rss,
++                "peakRssBytes": peak_rss,
++                "incrementalRssBytes": rss_delta,
++                "aggregateIncrementalRssBytes": aggregate_rss_delta,
++                "incrementalHeapBytes": heap_delta,
++                "rssLimitBytes": RSS_LIMIT,
++                "heapLimitBytes": HEAP_LIMIT,
++                "rssWithinBudget": rss_within_budget,
++                "targetRendererRssWithinBudget": target_renderer_rss_within_budget,
++                "aggregateRssWithinBudget": aggregate_rss_within_budget,
++                "heapWithinBudget": heap_within_budget,
++                "peakStage": peak_stage,
++                "stagePeakRssBytes": stage_peaks,
++                "baselineSamplesBytes": baseline_samples,
++                "baselineProcessTree": baseline_tree,
++                "peakProcessTree": peak_tree,
++                "rendererDeltas": renderer_deltas,
++                "targetRenderer": target_renderer,
++                "targetRendererStageRssBytes": target_stage_rss,
++            },
++            "browserCampaign": browser_result,
++        }
++    finally:
++        terminate(chrome_process)
++        terminate(vite_process)
++        shutil.rmtree(profile, ignore_errors=True)
++
++
++def parser() -> argparse.ArgumentParser:
++    result = argparse.ArgumentParser(description=__doc__)
++    result.add_argument("--output", type=Path, required=True)
++    result.add_argument("--timeout-seconds", type=int, default=180)
++    return result
++
++
++def main() -> int:
++    args = parser().parse_args()
++    try:
++        report = run(args)
++    except Exception as error:
++        report = {"result": "Failed", "failure": f"{type(error).__name__}: {error}"}
++    args.output.parent.mkdir(parents=True, exist_ok=True)
++    args.output.write_text(json.dumps(report, indent=2) + "\n")
++    print(json.dumps({"output": str(args.output), "result": report["result"]}, indent=2))
++    return 0 if report["result"] == "Passed" else 1
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+--- /dev/null
++++ b/scripts/test-ra11c-materialization.py
+@@ -0,0 +1,259 @@
++#!/usr/bin/env python3
++"""RA11c: mounted Postgres through Gate/FRF into SQL and PEM acceptance."""
++
++from __future__ import annotations
++
++import argparse
++import hashlib
++import importlib.util
++import json
++import os
++from pathlib import Path
++import re
++import shlex
++import shutil
++import subprocess
++import sys
++
++
++ROOT = Path(__file__).resolve().parents[1]
++BASE_PATH = ROOT / "scripts/test-ra11a-sync-conformance.py"
++DEFAULT_DATA_DIR = ROOT / ".runtime/ra11a-data/ra11c-materialization"
++STATIC_CAMPAIGN_INPUT_PATHS = (
++    "docker-compose.yaml",
++    "docker-compose.ra05.yaml",
++    "docker/flint-gate/config.ra05.yaml",
++    "docker/frf/shape-catalog.json",
++    "scripts/ra05-stack.sh",
++    "scripts/ra06c_campaign_config.py",
++    "scripts/test-authorized-shape-composition.py",
++    "scripts/test-ra11a-sync-conformance.py",
++    "scripts/test-ra11c-browser-memory.py",
++    "scripts/test-ra11c-materialization.py",
++    "web/package.json",
++    "web/pnpm-lock.yaml",
++    "web/public/pglite-base.tgz",
++    "web/ra11c-browser-memory.html",
++    "web/vite.config.ts",
++    "web/src/shared/sync/replica-browser-memory.ts",
++    "web/src/shared/sync/replica-mounted.integration.test.ts",
++)
++LOCAL_IMPORT = re.compile(
++    r"(?:from\s*|import\s*\(\s*|import\s*)[\"'](\.[^\"']+)[\"']"
++)
++LOCAL_SOURCE_SUFFIXES = (".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".json")
++
++
++def resolve_local_import(importer: Path, module: str) -> Path:
++    unresolved = importer.parent / module
++    candidates = [unresolved]
++    if unresolved.suffix == "":
++        candidates.extend(unresolved.with_suffix(suffix) for suffix in LOCAL_SOURCE_SUFFIXES)
++        candidates.extend(unresolved / ("index" + suffix) for suffix in LOCAL_SOURCE_SUFFIXES)
++    for candidate in candidates:
++        if candidate.is_file():
++            resolved = candidate.resolve()
++            resolved.relative_to(ROOT)
++            return resolved
++    raise FileNotFoundError(f"could not resolve local import {module!r} from {importer}")
++
++
++def campaign_input_paths() -> tuple[str, ...]:
++    paths = {str((ROOT / value).resolve().relative_to(ROOT)) for value in STATIC_CAMPAIGN_INPUT_PATHS}
++    pending = [ROOT / value for value in STATIC_CAMPAIGN_INPUT_PATHS if Path(value).suffix in LOCAL_SOURCE_SUFFIXES]
++    scanned: set[Path] = set()
++    while pending:
++        source = pending.pop().resolve()
++        if source in scanned or source.suffix not in LOCAL_SOURCE_SUFFIXES[:-1]:
++            continue
++        scanned.add(source)
++        for module in LOCAL_IMPORT.findall(source.read_text()):
++            dependency = resolve_local_import(source, module)
++            paths.add(str(dependency.relative_to(ROOT)))
++            pending.append(dependency)
++    return tuple(sorted(paths))
++
++
++def campaign_input_fingerprints() -> dict[str, object]:
++    files: dict[str, dict[str, object]] = {}
++    for relative_path in campaign_input_paths():
++        content = (ROOT / relative_path).read_bytes()
++        files[relative_path] = {
++            "bytes": len(content),
++            "sha256": hashlib.sha256(content).hexdigest(),
++        }
++    canonical = json.dumps(
++        files, sort_keys=True, separators=(",", ":")
++    ).encode()
++    return {
++        "aggregateSha256": hashlib.sha256(canonical).hexdigest(),
++        "files": files,
++    }
++
++
++def load_base():
++    spec = importlib.util.spec_from_file_location("ra11a_sync_base", BASE_PATH)
++    if spec is None or spec.loader is None:
++        raise RuntimeError("could not load the RA11a stack coordinator")
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module
++
++
++PRE_RUN_INPUT_FINGERPRINTS = campaign_input_fingerprints()
++base = load_base()
++
++
++class MaterializationProbe(base.SyncConformanceProbe):
++    def __init__(self, args):
++        super().__init__(args)
++        self.fixture_tag = "ra11c_" + self.fixture_tag.removeprefix("ra11a_")
++        self.materializer_output = args.output.with_name("task-4-mounted-materializer.json")
++        self.browser_memory_output = args.output.with_name(
++            "task-4-mounted-browser-memory.json"
++        )
++        self.report.update({
++            "campaign_input_fingerprints": {
++                "before": PRE_RUN_INPUT_FINGERPRINTS,
++            },
++            "command": shlex.join(["python3", *sys.argv]),
++            "effective_arguments": {
++                "callbackPort": args.callback_port,
++                "campaignSecrets": str(args.campaign_secrets.resolve()),
++                "dataDir": str(args.data_dir.resolve()),
++                "output": str(args.output.resolve()),
++                "timeoutSeconds": args.timeout_seconds,
++            },
++            "scope": (
++                "Synthetic Postgres through real Kratos, Gate, FRF and Electric "
++                "into the production SQL materializer and PEM projector"
++            ),
++        })
++
++    def cleanup(self) -> None:
++        super().cleanup()
++        try:
++            after = campaign_input_fingerprints()
++            unchanged = after == PRE_RUN_INPUT_FINGERPRINTS
++            self.report["campaign_input_fingerprints"]["after"] = after
++            self.report["checks"]["campaign_inputs_unchanged"] = {
++                "result": "Passed" if unchanged else "Failed",
++                "beforeAggregateSha256": PRE_RUN_INPUT_FINGERPRINTS[
++                    "aggregateSha256"
++                ],
++                "afterAggregateSha256": after["aggregateSha256"],
++            }
++        except OSError as error:
++            self.report["campaign_input_fingerprints"]["afterError"] = str(error)
++            self.report["checks"]["campaign_inputs_unchanged"] = {
++                "result": "Failed",
++                "error": str(error),
++            }
++
++    def run_materializer(self, session_token: str) -> None:
++        self.secret_values = tuple(sorted(
++            set((*self.secret_values, session_token, "Bearer " + session_token)),
++            key=len,
++            reverse=True,
++        ))
++        if self.args.data_dir.exists():
++            shutil.rmtree(self.args.data_dir)
++        self.args.data_dir.parent.mkdir(parents=True, exist_ok=True)
++        self.materializer_output.parent.mkdir(parents=True, exist_ok=True)
++        self.materializer_output.unlink(missing_ok=True)
++        environment = os.environ.copy()
++        environment.update(self.stack_env)
++        environment.update({
++            "RA11C_MOUNTED": "1",
++            "RA11C_SESSION_TOKEN": session_token,
++            "RA11C_GATE_URL": base.composition.GATE,
++            "RA11C_DATA_DIR": str(self.args.data_dir.resolve()),
++            "RA11C_MATERIALIZER_OUTPUT": str(self.materializer_output.resolve()),
++            "RA11C_PGLITE_BASE": str((ROOT / "web/public/pglite-base.tgz").resolve()),
++        })
++        browser_child = subprocess.run(
++            [
++                "python3",
++                "scripts/test-ra11c-browser-memory.py",
++                "--output",
++                str(self.browser_memory_output.resolve()),
++                "--timeout-seconds",
++                str(self.args.timeout_seconds),
++            ],
++            cwd=ROOT,
++            env=environment,
++            text=True,
++            capture_output=True,
++            timeout=self.args.timeout_seconds + 60,
++            check=False,
++        )
++        self.report["browser_memory_run"] = {
++            "exit_code": browser_child.returncode,
++            "stdout": self.redact(browser_child.stdout)[-1500:],
++            "stderr": self.redact(browser_child.stderr)[-1500:],
++        }
++        if self.browser_memory_output.exists():
++            self.report["browser_memory"] = json.loads(
++                self.browser_memory_output.read_text()
++            )
++        else:
++            self.report["browser_memory"] = {"result": "Failed"}
++        runs = []
++        for phase in ("initial", "continuation"):
++            environment["RA11C_MOUNTED_PHASE"] = phase
++            child = subprocess.run(
++                [
++                    "pnpm", "--dir", "web", "exec", "vitest", "run",
++                    "src/shared/sync/replica-mounted.integration.test.ts",
++                ],
++                cwd=ROOT,
++                env=environment,
++                text=True,
++                capture_output=True,
++                timeout=self.args.timeout_seconds + 60,
++                check=False,
++            )
++            runs.append({
++                "phase": phase,
++                "exit_code": child.returncode,
++                "stdout": self.redact(child.stdout)[-3000:],
++                "stderr": self.redact(child.stderr)[-1500:],
++            })
++        self.report["materializer_runs"] = runs
++        self.report["materializer_exit_code"] = runs[-1]["exit_code"]
++        if self.materializer_output.exists():
++            self.materializer_result = json.loads(self.materializer_output.read_text())
++        else:
++            self.materializer_result = {"result": "Failed"}
++        self.report["materializer"] = self.materializer_result
++        self.check(
++            "mounted_materializer_passed",
++            len(runs) == 2
++            and all(run["exit_code"] == 0 for run in runs)
++            and self.materializer_result.get("result") == "Passed",
++            exit_code=runs[-1]["exit_code"],
++        )
++        self.check(
++            "browser_memory_passed",
++            browser_child.returncode == 0
++            and self.report["browser_memory"].get("result") == "Passed",
++            exit_code=browser_child.returncode,
++        )
++
++
++def parser() -> argparse.ArgumentParser:
++    result = argparse.ArgumentParser(description=__doc__)
++    result.add_argument("--callback-port", type=int, default=8788)
++    result.add_argument("--campaign-secrets", type=Path, default=base.DEFAULT_SECRETS)
++    result.add_argument("--data-dir", type=Path, default=DEFAULT_DATA_DIR)
++    result.add_argument("--output", type=Path, required=True)
++    result.add_argument("--timeout-seconds", type=int, default=180)
++    return result
++
++
++def main() -> int:
++    return MaterializationProbe(parser().parse_args()).run()
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())

@@ -1,1 +1,1 @@
-{"totalRuns":272,"failedRuns":0,"lastRun":{"ts":"2026-09-17T03:05:36Z","kind":"task","edge":"after","name":"pri-c013-sync-persistence:5","hookId":"legacy-change-complete","layer":"builtin","mode":"augment","status":0},"lastFailure":null}
+{"totalRuns":311,"failedRuns":0,"lastRun":{"ts":"2026-09-17T15:19:35Z","kind":"task","edge":"before","name":"pri-c015-aso-protected-proof:5","hookId":"kbd-memory-log","layer":"builtin","mode":"augment","status":0},"lastFailure":null}

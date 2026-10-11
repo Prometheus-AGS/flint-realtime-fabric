@@ -136,7 +136,8 @@ fn claims(scope: &str, projection_revision: u32) -> VerifiedClaims {
             "annotations".to_owned(),
             "case_evidence".to_owned(),
             "cases".to_owned(),
-            "documents".to_owned(),
+            "document_statuses".to_owned(),
+            "document_task_statuses".to_owned(),
             "evidence_citations".to_owned(),
             "evidence_states".to_owned(),
         ],
@@ -253,10 +254,16 @@ async fn authorized_shape_route_preserves_a_cleared_gate_summary() {
                 "columns": [
                     "id",
                     "practice_id",
+                    "case_number",
+                    "patient_id",
+                    "surgeon_id",
+                    "coordinator_id",
+                    "payer_id",
                     "status",
+                    "date_of_service",
                     "gate_affirmed_at",
-                    "created_at",
-                    "updated_at"
+                    "updated_at",
+                    "revision"
                 ],
                 "allowed_params": [],
                 "relation": "view",
@@ -315,10 +322,16 @@ async fn authorized_shape_route_preserves_a_cleared_gate_summary() {
         [
             "id",
             "practice_id",
+            "case_number",
+            "patient_id",
+            "surgeon_id",
+            "coordinator_id",
+            "payer_id",
             "status",
+            "date_of_service",
             "gate_affirmed_at",
-            "created_at",
             "updated_at",
+            "revision",
         ]
     );
     assert!(

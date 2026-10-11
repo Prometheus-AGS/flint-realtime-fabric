@@ -1,0 +1,317 @@
+{
+  "result": "Failed",
+  "runtime": {
+    "browser": "Google Chrome 152.0.7977.84",
+    "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "page": "/ra11c-browser-memory.html"
+  },
+  "measurement": {
+    "rssMethod": "RSS growth of the isolated Chromium renderer with the greatest campaign-time growth, sampled from macOS ps",
+    "heapMethod": "Chromium performance.memory.usedJSHeapSize with --enable-precise-memory-info",
+    "baselineRssBytes": 1367015424,
+    "peakRssBytes": 1911881728,
+    "incrementalRssBytes": 535986176,
+    "aggregateIncrementalRssBytes": 544866304,
+    "incrementalHeapBytes": 209852744,
+    "rssLimitBytes": 536870912,
+    "heapLimitBytes": 268435456,
+    "rssWithinBudget": false,
+    "targetRendererRssWithinBudget": true,
+    "aggregateRssWithinBudget": false,
+    "heapWithinBudget": true,
+    "peakStage": "complete",
+    "stagePeakRssBytes": {
+      "baseline": 1367015424,
+      "pglite-opening": 1374568448,
+      "cold-fold": 1832534016,
+      "complete": 1911881728
+    },
+    "baselineSamplesBytes": [
+      1361494016,
+      1362935808,
+      1364525056,
+      1366900736,
+      1367015424
+    ],
+    "baselineProcessTree": {
+      "processCount": 10,
+      "rssBytes": 1367015424,
+      "processes": [
+        {
+          "pid": 15931,
+          "parentPid": 15914,
+          "rssBytes": 240467968,
+          "kind": "browser"
+        },
+        {
+          "pid": 15937,
+          "parentPid": 15931,
+          "rssBytes": 147275776,
+          "kind": "gpu"
+        },
+        {
+          "pid": 15939,
+          "parentPid": 15931,
+          "rssBytes": 108707840,
+          "kind": "utility"
+        },
+        {
+          "pid": 15940,
+          "parentPid": 15931,
+          "rssBytes": 82837504,
+          "kind": "utility"
+        },
+        {
+          "pid": 15941,
+          "parentPid": 15931,
+          "rssBytes": 91488256,
+          "kind": "utility"
+        },
+        {
+          "pid": 15943,
+          "parentPid": 15931,
+          "rssBytes": 182157312,
+          "kind": "renderer"
+        },
+        {
+          "pid": 15945,
+          "parentPid": 15931,
+          "rssBytes": 166264832,
+          "kind": "renderer"
+        },
+        {
+          "pid": 15946,
+          "parentPid": 15931,
+          "rssBytes": 102268928,
+          "kind": "renderer"
+        },
+        {
+          "pid": 15947,
+          "parentPid": 15931,
+          "rssBytes": 125681664,
+          "kind": "renderer"
+        },
+        {
+          "pid": 15948,
+          "parentPid": 15931,
+          "rssBytes": 119865344,
+          "kind": "renderer"
+        }
+      ]
+    },
+    "peakProcessTree": {
+      "processCount": 10,
+      "rssBytes": 1911881728,
+      "processes": [
+        {
+          "pid": 15931,
+          "parentPid": 15914,
+          "rssBytes": 244875264,
+          "kind": "browser"
+        },
+        {
+          "pid": 15937,
+          "parentPid": 15931,
+          "rssBytes": 151404544,
+          "kind": "gpu"
+        },
+        {
+          "pid": 15939,
+          "parentPid": 15931,
+          "rssBytes": 109068288,
+          "kind": "utility"
+        },
+        {
+          "pid": 15940,
+          "parentPid": 15931,
+          "rssBytes": 82837504,
+          "kind": "utility"
+        },
+        {
+          "pid": 15941,
+          "parentPid": 15931,
+          "rssBytes": 91488256,
+          "kind": "utility"
+        },
+        {
+          "pid": 15943,
+          "parentPid": 15931,
+          "rssBytes": 182124544,
+          "kind": "renderer"
+        },
+        {
+          "pid": 15945,
+          "parentPid": 15931,
+          "rssBytes": 702251008,
+          "kind": "renderer"
+        },
+        {
+          "pid": 15946,
+          "parentPid": 15931,
+          "rssBytes": 102268928,
+          "kind": "renderer"
+        },
+        {
+          "pid": 15947,
+          "parentPid": 15931,
+          "rssBytes": 125698048,
+          "kind": "renderer"
+        },
+        {
+          "pid": 15948,
+          "parentPid": 15931,
+          "rssBytes": 119865344,
+          "kind": "renderer"
+        }
+      ]
+    },
+    "rendererDeltas": [
+      {
+        "pid": 15943,
+        "baselineRssBytes": 182157312,
+        "peakRssBytes": 182190080,
+        "incrementalRssBytes": 32768
+      },
+      {
+        "pid": 15945,
+        "baselineRssBytes": 166264832,
+        "peakRssBytes": 702251008,
+        "incrementalRssBytes": 535986176
+      },
+      {
+        "pid": 15946,
+        "baselineRssBytes": 102268928,
+        "peakRssBytes": 102268928,
+        "incrementalRssBytes": 0
+      },
+      {
+        "pid": 15947,
+        "baselineRssBytes": 125681664,
+        "peakRssBytes": 125698048,
+        "incrementalRssBytes": 16384
+      },
+      {
+        "pid": 15948,
+        "baselineRssBytes": 119865344,
+        "peakRssBytes": 119865344,
+        "incrementalRssBytes": 0
+      }
+    ],
+    "targetRenderer": {
+      "pid": 15945,
+      "baselineRssBytes": 166264832,
+      "peakRssBytes": 702251008,
+      "incrementalRssBytes": 535986176
+    },
+    "targetRendererStageRssBytes": {
+      "baseline": 166264832,
+      "pglite-opening": 166690816,
+      "cold-fold": 622903296,
+      "complete": 702251008
+    }
+  },
+  "browserCampaign": {
+    "result": "Passed",
+    "counts": {
+      "annotation_types": 4,
+      "evidence_states": 3,
+      "cases": 360,
+      "documents": 2880,
+      "case_evidence": 4320,
+      "evidence_citations": 8640,
+      "annotations": 0
+    },
+    "graphCounts": {
+      "annotation_types": 4,
+      "evidence_states": 3,
+      "cases": 360,
+      "documents": 2880,
+      "case_evidence": 4320,
+      "evidence_citations": 8640,
+      "annotations": 0
+    },
+    "checkpointShapes": [
+      "annotation_types",
+      "annotations",
+      "case_evidence",
+      "cases",
+      "documents",
+      "evidence_citations",
+      "evidence_states"
+    ],
+    "generation": 4,
+    "runtime": {
+      "crossOriginIsolated": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36"
+    },
+    "heap": {
+      "baseline": {
+        "totalBytes": 9375701,
+        "usedBytes": 7268561
+      },
+      "peak": {
+        "totalBytes": 227783861,
+        "usedBytes": 217121305
+      },
+      "deltaBytes": 209852744,
+      "peakStage": "sql-checkpoint-graph",
+      "stages": {
+        "baseline": {
+          "totalBytes": 9375701,
+          "usedBytes": 7268561
+        },
+        "pglite-opening": {
+          "totalBytes": 23864565,
+          "usedBytes": 18056425
+        },
+        "pglite-open": {
+          "totalBytes": 206283317,
+          "usedBytes": 199573609
+        },
+        "schema-ready": {
+          "totalBytes": 208069581,
+          "usedBytes": 200635429
+        },
+        "graph-ready": {
+          "totalBytes": 208219078,
+          "usedBytes": 201115130
+        },
+        "projector-ready": {
+          "totalBytes": 208220069,
+          "usedBytes": 201239489
+        },
+        "cold-fold": {
+          "totalBytes": 227783861,
+          "usedBytes": 217118073
+        },
+        "cold-fold-complete": {
+          "totalBytes": 227783861,
+          "usedBytes": 217121021
+        },
+        "sql-checkpoint-graph": {
+          "totalBytes": 227783861,
+          "usedBytes": 217121305
+        },
+        "revision-1": {
+          "totalBytes": 156169545,
+          "usedBytes": 135648353
+        },
+        "materialized": {
+          "totalBytes": 156169545,
+          "usedBytes": 135650297
+        },
+        "final": {
+          "totalBytes": 154079063,
+          "usedBytes": 109073499
+        }
+      }
+    },
+    "checks": {
+      "completeCheckpoint": true,
+      "graphParity": true,
+      "heapAvailable": true,
+      "heapWithinBudget": true,
+      "sqlParity": true
+    }
+  }
+}

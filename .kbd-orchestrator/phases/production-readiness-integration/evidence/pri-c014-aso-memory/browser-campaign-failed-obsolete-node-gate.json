@@ -1,0 +1,826 @@
+{
+  "result": "Failed",
+  "verification_tier": 1,
+  "observed_at": "2026-09-17T13:26:18.611960+00:00",
+  "scope": "Synthetic Postgres through real Kratos, Gate, FRF and Electric into the production SQL materializer and PEM projector",
+  "command": "python3 scripts/test-ra11c-materialization.py",
+  "checks": {
+    "gate_ready": {
+      "result": "Passed"
+    },
+    "realtime_fabric_ready": {
+      "result": "Passed"
+    },
+    "ra11a_identity_created": {
+      "result": "Passed",
+      "status": 201
+    },
+    "ra11a_login_flow_created": {
+      "result": "Passed",
+      "status": 200
+    },
+    "ra11a_login_completed": {
+      "result": "Passed",
+      "status": 200
+    },
+    "ra11a_session_is_authoritative": {
+      "result": "Passed",
+      "status": 200,
+      "identity_match": true
+    },
+    "representative_dataset_committed": {
+      "result": "Passed",
+      "observed": "360,4320,2880,8640"
+    },
+    "mounted_materializer_passed": {
+      "result": "Failed",
+      "exit_code": 0
+    }
+  },
+  "cleanup": {
+    "synthetic_relational_rows": "Passed",
+    "isolated_pglite_store": "Passed",
+    "campaign_services": "Passed",
+    "grant_callback": "Passed",
+    "synthetic_identities": "Passed",
+    "deleted_identity_count": 1
+  },
+  "dataset": {
+    "counts": {
+      "cases": 360,
+      "case_evidence": 4320,
+      "documents": 2880,
+      "evidence_citations": 8640,
+      "evidence_states": 3
+    },
+    "total_rows": 16203
+  },
+  "isolated_data_dir": ".runtime/ra11a-data/pri-c014-browser-final",
+  "browser_memory_run": {
+    "exit_code": 0,
+    "stdout": "{\n  \"output\": \"/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c014-aso-memory/task-4-mounted-browser-memory.json\",\n  \"result\": \"Passed\"\n}\n",
+    "stderr": ""
+  },
+  "browser_memory": {
+    "result": "Passed",
+    "runtime": {
+      "browser": "Google Chrome 152.0.7977.84",
+      "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "page": "/ra11c-browser-memory.html"
+    },
+    "measurement": {
+      "rssMethod": "RSS growth of the isolated Chromium renderer with the greatest campaign-time growth, sampled from macOS ps",
+      "heapMethod": "Chromium performance.memory.usedJSHeapSize with --enable-precise-memory-info",
+      "baselineRssBytes": 1166163968,
+      "peakRssBytes": 1630617600,
+      "incrementalRssBytes": 477069312,
+      "aggregateIncrementalRssBytes": 464453632,
+      "incrementalHeapBytes": 197720214,
+      "rssLimitBytes": 536870912,
+      "heapLimitBytes": 268435456,
+      "rssWithinBudget": true,
+      "heapWithinBudget": true,
+      "peakStage": "complete",
+      "stagePeakRssBytes": {
+        "baseline": 1166163968,
+        "pglite-opening": 1168490496,
+        "projector-ready": 1612201984,
+        "complete": 1630617600
+      },
+      "baselineSamplesBytes": [
+        1205469184,
+        1169162240,
+        1167998976,
+        1166163968,
+        1166114816,
+        1166163968
+      ],
+      "baselineProcessTree": {
+        "processCount": 10,
+        "rssBytes": 1166163968,
+        "processes": [
+          {
+            "pid": 79411,
+            "parentPid": 79398,
+            "rssBytes": 212254720,
+            "kind": "browser"
+          },
+          {
+            "pid": 79480,
+            "parentPid": 79411,
+            "rssBytes": 117997568,
+            "kind": "gpu"
+          },
+          {
+            "pid": 79483,
+            "parentPid": 79411,
+            "rssBytes": 93143040,
+            "kind": "utility"
+          },
+          {
+            "pid": 79487,
+            "parentPid": 79411,
+            "rssBytes": 67043328,
+            "kind": "utility"
+          },
+          {
+            "pid": 79488,
+            "parentPid": 79411,
+            "rssBytes": 75972608,
+            "kind": "utility"
+          },
+          {
+            "pid": 79491,
+            "parentPid": 79411,
+            "rssBytes": 146128896,
+            "kind": "renderer"
+          },
+          {
+            "pid": 79493,
+            "parentPid": 79411,
+            "rssBytes": 155025408,
+            "kind": "renderer"
+          },
+          {
+            "pid": 79494,
+            "parentPid": 79411,
+            "rssBytes": 84164608,
+            "kind": "renderer"
+          },
+          {
+            "pid": 79495,
+            "parentPid": 79411,
+            "rssBytes": 109379584,
+            "kind": "renderer"
+          },
+          {
+            "pid": 79496,
+            "parentPid": 79411,
+            "rssBytes": 105054208,
+            "kind": "renderer"
+          }
+        ]
+      },
+      "peakProcessTree": {
+        "processCount": 10,
+        "rssBytes": 1630617600,
+        "processes": [
+          {
+            "pid": 79411,
+            "parentPid": 79398,
+            "rssBytes": 212828160,
+            "kind": "browser"
+          },
+          {
+            "pid": 79480,
+            "parentPid": 79411,
+            "rssBytes": 112148480,
+            "kind": "gpu"
+          },
+          {
+            "pid": 79483,
+            "parentPid": 79411,
+            "rssBytes": 92782592,
+            "kind": "utility"
+          },
+          {
+            "pid": 79487,
+            "parentPid": 79411,
+            "rssBytes": 66961408,
+            "kind": "utility"
+          },
+          {
+            "pid": 79488,
+            "parentPid": 79411,
+            "rssBytes": 75939840,
+            "kind": "utility"
+          },
+          {
+            "pid": 79491,
+            "parentPid": 79411,
+            "rssBytes": 145850368,
+            "kind": "renderer"
+          },
+          {
+            "pid": 79493,
+            "parentPid": 79411,
+            "rssBytes": 632094720,
+            "kind": "renderer"
+          },
+          {
+            "pid": 79494,
+            "parentPid": 79411,
+            "rssBytes": 84131840,
+            "kind": "renderer"
+          },
+          {
+            "pid": 79495,
+            "parentPid": 79411,
+            "rssBytes": 109117440,
+            "kind": "renderer"
+          },
+          {
+            "pid": 79496,
+            "parentPid": 79411,
+            "rssBytes": 98762752,
+            "kind": "renderer"
+          }
+        ]
+      },
+      "rendererDeltas": [
+        {
+          "pid": 79491,
+          "baselineRssBytes": 146128896,
+          "peakRssBytes": 146128896,
+          "incrementalRssBytes": 0
+        },
+        {
+          "pid": 79493,
+          "baselineRssBytes": 155025408,
+          "peakRssBytes": 632094720,
+          "incrementalRssBytes": 477069312
+        },
+        {
+          "pid": 79494,
+          "baselineRssBytes": 84164608,
+          "peakRssBytes": 84164608,
+          "incrementalRssBytes": 0
+        },
+        {
+          "pid": 79495,
+          "baselineRssBytes": 109379584,
+          "peakRssBytes": 109379584,
+          "incrementalRssBytes": 0
+        },
+        {
+          "pid": 79496,
+          "baselineRssBytes": 105054208,
+          "peakRssBytes": 105054208,
+          "incrementalRssBytes": 0
+        }
+      ],
+      "targetRenderer": {
+        "pid": 79493,
+        "baselineRssBytes": 155025408,
+        "peakRssBytes": 632094720,
+        "incrementalRssBytes": 477069312
+      }
+    },
+    "browserCampaign": {
+      "result": "Passed",
+      "counts": {
+        "annotation_types": 4,
+        "evidence_states": 3,
+        "cases": 360,
+        "documents": 2880,
+        "case_evidence": 4320,
+        "evidence_citations": 8640,
+        "annotations": 0
+      },
+      "graphCounts": {
+        "annotation_types": 4,
+        "evidence_states": 3,
+        "cases": 360,
+        "documents": 2880,
+        "case_evidence": 4320,
+        "evidence_citations": 8640,
+        "annotations": 0
+      },
+      "checkpointShapes": [
+        "annotation_types",
+        "annotations",
+        "case_evidence",
+        "cases",
+        "documents",
+        "evidence_citations",
+        "evidence_states"
+      ],
+      "generation": 4,
+      "runtime": {
+        "crossOriginIsolated": false,
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36"
+      },
+      "heap": {
+        "baseline": {
+          "totalBytes": 9357711,
+          "usedBytes": 7248779
+        },
+        "peak": {
+          "totalBytes": 211254637,
+          "usedBytes": 204968993
+        },
+        "deltaBytes": 197720214,
+        "peakStage": "projector-ready",
+        "stages": {
+          "baseline": {
+            "totalBytes": 9357711,
+            "usedBytes": 7248779
+          },
+          "pglite-opening": {
+            "totalBytes": 23584431,
+            "usedBytes": 18053035
+          },
+          "pglite-open": {
+            "totalBytes": 203444388,
+            "usedBytes": 193349744
+          },
+          "schema-ready": {
+            "totalBytes": 205717281,
+            "usedBytes": 198333949
+          },
+          "graph-ready": {
+            "totalBytes": 205866778,
+            "usedBytes": 199244794
+          },
+          "projector-ready": {
+            "totalBytes": 212635638,
+            "usedBytes": 201881394
+          },
+          "revision-1": {
+            "totalBytes": 161423762,
+            "usedBytes": 143575410
+          },
+          "materialized": {
+            "totalBytes": 161685906,
+            "usedBytes": 143587290
+          },
+          "final": {
+            "totalBytes": 163415852,
+            "usedBytes": 118163708
+          }
+        }
+      },
+      "checks": {
+        "completeCheckpoint": true,
+        "graphParity": true,
+        "heapAvailable": true,
+        "heapWithinBudget": true,
+        "sqlParity": true
+      }
+    }
+  },
+  "materializer_runs": [
+    {
+      "phase": "memory",
+      "exit_code": 1,
+      "stdout": "\n RUN  v3.2.7 /Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web\n\n \u276f src/shared/sync/replica-mounted.integration.test.ts (3 tests | 1 failed | 2 skipped) 1379ms\n   \u00d7 mounted RA11c SQL materialization > materializes the representative browser baseline within its memory budget 1378ms\n     \u2192 expected 1035812864 to be less than or equal to 536870912\n   \u2193 mounted RA11c SQL materialization > commits the initial graph and rolls back a captured revision before process restart\n   \u2193 mounted RA11c SQL materialization > reopens durable SQL in a new process and fences owner disposal through replacement\n\n Test Files  1 failed (1)\n      Tests  1 failed | 2 skipped (3)\n   Start at  08:26:02\n   Duration  2.02s (transform 105ms, setup 0ms, collect 156ms, tests 1.38s, environment 0ms, prepare 232ms)\n\n",
+      "stderr": "\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  src/shared/sync/replica-mounted.integration.test.ts > mounted RA11c SQL materialization > materializes the representative browser baseline within its memory budget\nAssertionError: expected 1035812864 to be less than or equal to 536870912\n \u276f expectMemoryBudget src/shared/sync/replica-mounted-runtime.ts:346:32\n    344| \n    345| export function expectMemoryBudget(memory: ProcessMemoryReport): void {\n    346|   expect(memory.rssDeltaBytes).toBeLessThanOrEqual(512 * 1024 * 1024);\n       |                                ^\n    347|   expect(memory.heapDeltaBytes).toBeLessThanOrEqual(256 * 1024 * 1024);\n    348| }\n \u276f src/shared/sync/replica-mounted.integration.test.ts:81:5\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n"
+    },
+    {
+      "phase": "initial",
+      "exit_code": 0,
+      "stdout": "\n RUN  v3.2.7 /Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web\n\n \u2713 src/shared/sync/replica-mounted.integration.test.ts (3 tests | 2 skipped) 3011ms\n   \u2713 mounted RA11c SQL materialization > commits the initial graph and rolls back a captured revision before process restart  3011ms\n\n Test Files  1 passed (1)\n      Tests  1 passed | 2 skipped (3)\n   Start at  08:26:04\n   Duration  3.47s (transform 96ms, setup 0ms, collect 135ms, tests 3.01s, environment 0ms, prepare 70ms)\n\n",
+      "stderr": ""
+    },
+    {
+      "phase": "continuation",
+      "exit_code": 0,
+      "stdout": "\n RUN  v3.2.7 /Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/web\n\n \u2713 src/shared/sync/replica-mounted.integration.test.ts (3 tests | 2 skipped) 2519ms\n   \u2713 mounted RA11c SQL materialization > reopens durable SQL in a new process and fences owner disposal through replacement  2519ms\n\n Test Files  1 passed (1)\n      Tests  1 passed | 2 skipped (3)\n   Start at  08:26:09\n   Duration  3.01s (transform 99ms, setup 0ms, collect 137ms, tests 2.52s, environment 0ms, prepare 67ms)\n\n",
+      "stderr": ""
+    }
+  ],
+  "materializer_exit_code": 0,
+  "materializer": {
+    "result": "Failed",
+    "counts": {
+      "annotation_types": 4,
+      "evidence_states": 3,
+      "cases": 360,
+      "documents": 2880,
+      "case_evidence": 4320,
+      "evidence_citations": 8639,
+      "annotations": 0
+    },
+    "evidenceStates": [
+      "gap",
+      "met",
+      "void"
+    ],
+    "checkpointShapes": [
+      "annotation_types",
+      "annotations",
+      "case_evidence",
+      "cases",
+      "documents",
+      "evidence_citations",
+      "evidence_states"
+    ],
+    "generation": 7,
+    "checks": {
+      "initialSqlGraphParity": true,
+      "completeShapeCheckpoint": true,
+      "gateSummaryUpdatedInSqlAndGraph": true,
+      "evidenceStateReferenceIdentitiesPreserved": true,
+      "coldCrashLeftNoPartialBatch": true,
+      "crashRolledBackRowAndCheckpoint": true,
+      "restartResumedWithoutSkip": true,
+      "deleteForcedReplacement": true,
+      "disposedOwnerFencedPendingRevision": true,
+      "replacementOwnerAppliedPendingRevision": true,
+      "authorityFailureEventPublishedAndFenced": true
+    },
+    "memory": {
+      "browserMemoryBaseline": {
+        "baseline": {
+          "heapUsedBytes": 16165560,
+          "rssBytes": 91422720
+        },
+        "peak": {
+          "heapUsedBytes": 96392848,
+          "rssBytes": 1127235584
+        },
+        "rssDeltaBytes": 1035812864,
+        "heapDeltaBytes": 80227288,
+        "stages": {
+          "baseline": {
+            "heapUsedBytes": 16165560,
+            "rssBytes": 91422720
+          },
+          "open-memory-runtime": {
+            "heapUsedBytes": 16171992,
+            "rssBytes": 91422720
+          },
+          "pglite-open": {
+            "heapUsedBytes": 43486168,
+            "rssBytes": 656424960
+          },
+          "schema-ready": {
+            "heapUsedBytes": 33185424,
+            "rssBytes": 938262528
+          },
+          "graph-ready": {
+            "heapUsedBytes": 33829128,
+            "rssBytes": 959905792
+          },
+          "projector-ready": {
+            "heapUsedBytes": 34035096,
+            "rssBytes": 971800576
+          },
+          "cold-fold": {
+            "heapUsedBytes": 34048424,
+            "rssBytes": 975093760
+          },
+          "cold-fold-complete": {
+            "heapUsedBytes": 38453496,
+            "rssBytes": 562839552
+          },
+          "sql-checkpoint-graph": {
+            "heapUsedBytes": 38454504,
+            "rssBytes": 562839552
+          },
+          "revision-published": {
+            "heapUsedBytes": 95171088,
+            "rssBytes": 675135488
+          },
+          "final": {
+            "heapUsedBytes": 96392848,
+            "rssBytes": 676102144
+          }
+        },
+        "peakStage": "cold-fold"
+      },
+      "durableInitialProcess": {
+        "baseline": {
+          "heapUsedBytes": 16217448,
+          "rssBytes": 90750976
+        },
+        "peak": {
+          "heapUsedBytes": 88379280,
+          "rssBytes": 1091665920
+        },
+        "rssDeltaBytes": 1000914944,
+        "heapDeltaBytes": 72161832,
+        "stages": {
+          "baseline": {
+            "heapUsedBytes": 16217448,
+            "rssBytes": 90750976
+          },
+          "open-runtime": {
+            "heapUsedBytes": 16223880,
+            "rssBytes": 90750976
+          },
+          "initial-sync": {
+            "heapUsedBytes": 85889088,
+            "rssBytes": 666599424
+          },
+          "capture-revision": {
+            "heapUsedBytes": 88177312,
+            "rssBytes": 666746880
+          },
+          "crash-rollback": {
+            "heapUsedBytes": 49903032,
+            "rssBytes": 664944640
+          },
+          "final": {
+            "heapUsedBytes": 49885032,
+            "rssBytes": 664944640
+          }
+        },
+        "peakStage": "open-runtime"
+      },
+      "durableContinuationProcess": {
+        "baseline": {
+          "heapUsedBytes": 16183432,
+          "rssBytes": 91176960
+        },
+        "peak": {
+          "heapUsedBytes": 136100744,
+          "rssBytes": 962920448
+        },
+        "rssDeltaBytes": 871743488,
+        "heapDeltaBytes": 119917312,
+        "stages": {
+          "baseline": {
+            "heapUsedBytes": 16183432,
+            "rssBytes": 91176960
+          },
+          "restart-update": {
+            "heapUsedBytes": 72958208,
+            "rssBytes": 943079424
+          },
+          "delete-replacement": {
+            "heapUsedBytes": 135166488,
+            "rssBytes": 513605632
+          },
+          "replacement-owner": {
+            "heapUsedBytes": 120356048,
+            "rssBytes": 521060352
+          },
+          "final": {
+            "heapUsedBytes": 120357424,
+            "rssBytes": 521060352
+          }
+        },
+        "peakStage": "restart-update"
+      }
+    }
+  },
+  "failure": "AssertionError: mounted_materializer_passed",
+  "remaining_relational_rows": {
+    "cases": 0,
+    "case_evidence": 0,
+    "documents": 0,
+    "evidence_citations": 0,
+    "patients": 0,
+    "users": 0,
+    "practices": 0,
+    "policy_criteria": 0,
+    "policies": 0,
+    "policy_types": 0,
+    "document_types": 0,
+    "payers": 0
+  },
+  "role_state": {
+    "post": {
+      "bypassRls": false,
+      "canLogin": true,
+      "createDb": false,
+      "createRole": false,
+      "inherit": true,
+      "memberships": [
+        "aso_authority_event_reader"
+      ],
+      "replication": false,
+      "superuser": false
+    },
+    "pre": {
+      "bypassRls": false,
+      "canLogin": true,
+      "createDb": false,
+      "createRole": false,
+      "inherit": true,
+      "memberships": [
+        "aso_authority_event_reader"
+      ],
+      "replication": false,
+      "superuser": false
+    },
+    "restored": true
+  },
+  "service_state": {
+    "managed": [
+      "db",
+      "electric",
+      "flint-gate",
+      "flint-gate-init",
+      "iggy-server",
+      "kratos",
+      "kratos-migrate",
+      "realtime-fabric",
+      "redis"
+    ],
+    "preExisting": [
+      "db",
+      "electric",
+      "flint-gate",
+      "flint-gate-init",
+      "iggy-server",
+      "kratos",
+      "kratos-migrate",
+      "realtime-fabric",
+      "redis"
+    ],
+    "preRunning": [
+      "db",
+      "electric",
+      "flint-gate",
+      "iggy-server",
+      "kratos",
+      "realtime-fabric",
+      "redis"
+    ],
+    "preContainers": {
+      "db": {
+        "configHash": "71024bd8a4842bd8338381850243e2f5576471e6445bce9c934bb192164cdbf1",
+        "containerId": "a5057fb060f931113ebb43f61cd85a9492210396def763268d2da4366707b767",
+        "image": "aso-prior-auth-db",
+        "imageDigest": "sha256:259ae7e1210e94d2bbe2ce31294d418fb9da7f71a5b8fa6ee23624376bb705a2",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/bootstrap,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docs/design/schema,aso-prior-auth_db_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "electric": {
+        "configHash": "d60cb6ff8b1bd5260add277927b5aa3d941d8305591ee08d56d4870e8820bda7",
+        "containerId": "acc8b14d3b6a995571a6076cd09e89997a9b83c9b09f63152aeb70e01c801396",
+        "image": "electricsql/electric:1.8.0",
+        "imageDigest": "sha256:9644bb77f2476f827e393d50d472615f82479edd44593b7edfe71e6b4e0433bd",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "flint-gate": {
+        "configHash": "da4702acb811331d841af5d054d16f528bcf2914b6eaaaa4c991c1bacaaafdb0",
+        "containerId": "35ec3843950a99b32e56c9e545b32a008d482114ac523992546f7316f399cf92",
+        "image": "aso-prior-auth-flint-gate",
+        "imageDigest": "sha256:5ad074b3c4861b99411997e8e1731980f6e9b2da85068ec3a313f1d7aeea4f50",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml",
+        "networks": "aso-prior-auth_ra05-backend,aso-prior-auth_ra05-client",
+        "state": "running"
+      },
+      "flint-gate-init": {
+        "configHash": "6fcb990e3fe55f7e784d8ecb7408fa44a4a3d77dfdd312a91f55a130ff027365",
+        "containerId": "dd9a772eb093ee5b8810b5aa935442e1cfea73c60cf1696b4d4d66849a504e70",
+        "image": "aso-prior-auth-flint-gate-init",
+        "imageDigest": "sha256:565e7065581ea6dbf4541e1f2949976e36d5234806d3b1735c658bb013d6d8e9",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml,92ce6cd5919a7252dbc8b077f4e0818edcae130278b2e33a6c44ae531ea2ac5f",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "iggy-server": {
+        "configHash": "1d22f5e5430f49f6c068461421480c5209ae09f3364cd26fa9d5fc40ec522e5b",
+        "containerId": "3935f5dc9884c1d76a462ecfecac489a01dc3bfc2a9310377311792a088f5c88",
+        "image": "iggyrs/iggy@sha256:68a314c1380be5a792a134f3bd346ded42bd49d9f7114c86f70b48fc85bc5272",
+        "imageDigest": "sha256:f7c54e3042254f26665400b6e62a4f8317d90671b5750f8a281bee52f0b16978",
+        "mounts": "aso-prior-auth_iggy_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos": {
+        "configHash": "5dc669aa48d19b70c18f8f21c4ae1f669d442b8cc0c6cae5ea6393831ed70637",
+        "containerId": "38a654cc623d5d448a728c55c4bc86d89154c755322a9789d4d50090fff07012",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/kratos,1df237fbb2898958c7e1d1a8514ccd3b70dae427f207616ac40293db6af290aa,ce597b8bbf4de5eaabe9494d19e77869a572677cbae8edaa1b12e5f4ee486750",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos-migrate": {
+        "configHash": "6b8c7662f7f0ab711311bed097e55d91c234f5454c912a9fd22745584dadb4cb",
+        "containerId": "86500451cbf55720eed5e2e353131e8745f56ae4682048e2fb703a53d5fc2767",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "7af22d63ebf7d088083c40d1b8a2563b521b211e5dcff719ec2f495eb78b1715,acf23160aad4dbc661cad1e0e1227dcb6bcc2983b4248bd4f77b05d3f70d18d9",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "realtime-fabric": {
+        "configHash": "22e4c9bf35e31c039cd958e8fcbd8f57ab50a8a9848ec5ebf6c8f831a3353bc1",
+        "containerId": "87be1687862e68733ae7e67bada09ad83a9226cb0ac1ed36d573f36f9786aa2a",
+        "image": "aso-prior-auth-realtime-fabric",
+        "imageDigest": "sha256:b362432ea841b468c87348a8be75426a523834bd525d2bcaa8a36683f78385a6",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/frf/shape-catalog.json",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "redis": {
+        "configHash": "add989d567706c819b26efe4d3c28d70cac1c8bd686619cdafeed9558b774e39",
+        "containerId": "2e7beec436b3a70869050290bb9685945514d11fe517c4b4d5a4ecbf0eeeb2bc",
+        "image": "redis@sha256:becdda6c7f4b3fb42e42fd7f120bbf5c54c4caaaf16f26da24e4563d2c1f0576",
+        "imageDigest": "sha256:59c08762bdbcf53fa132aa0bae464a57a1309dc3fff8a034bb3e16d7a0b30ec5",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      }
+    },
+    "postContainers": {
+      "db": {
+        "configHash": "71024bd8a4842bd8338381850243e2f5576471e6445bce9c934bb192164cdbf1",
+        "containerId": "a5057fb060f931113ebb43f61cd85a9492210396def763268d2da4366707b767",
+        "image": "aso-prior-auth-db",
+        "imageDigest": "sha256:259ae7e1210e94d2bbe2ce31294d418fb9da7f71a5b8fa6ee23624376bb705a2",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/bootstrap,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docs/design/schema,aso-prior-auth_db_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "electric": {
+        "configHash": "d60cb6ff8b1bd5260add277927b5aa3d941d8305591ee08d56d4870e8820bda7",
+        "containerId": "acc8b14d3b6a995571a6076cd09e89997a9b83c9b09f63152aeb70e01c801396",
+        "image": "electricsql/electric:1.8.0",
+        "imageDigest": "sha256:9644bb77f2476f827e393d50d472615f82479edd44593b7edfe71e6b4e0433bd",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "flint-gate": {
+        "configHash": "da4702acb811331d841af5d054d16f528bcf2914b6eaaaa4c991c1bacaaafdb0",
+        "containerId": "35ec3843950a99b32e56c9e545b32a008d482114ac523992546f7316f399cf92",
+        "image": "aso-prior-auth-flint-gate",
+        "imageDigest": "sha256:5ad074b3c4861b99411997e8e1731980f6e9b2da85068ec3a313f1d7aeea4f50",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml",
+        "networks": "aso-prior-auth_ra05-backend,aso-prior-auth_ra05-client",
+        "state": "running"
+      },
+      "flint-gate-init": {
+        "configHash": "6fcb990e3fe55f7e784d8ecb7408fa44a4a3d77dfdd312a91f55a130ff027365",
+        "containerId": "dd9a772eb093ee5b8810b5aa935442e1cfea73c60cf1696b4d4d66849a504e70",
+        "image": "aso-prior-auth-flint-gate-init",
+        "imageDigest": "sha256:565e7065581ea6dbf4541e1f2949976e36d5234806d3b1735c658bb013d6d8e9",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/.runtime/ra05/keys,/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/flint-gate/config.ra05.yaml,92ce6cd5919a7252dbc8b077f4e0818edcae130278b2e33a6c44ae531ea2ac5f",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "iggy-server": {
+        "configHash": "1d22f5e5430f49f6c068461421480c5209ae09f3364cd26fa9d5fc40ec522e5b",
+        "containerId": "3935f5dc9884c1d76a462ecfecac489a01dc3bfc2a9310377311792a088f5c88",
+        "image": "iggyrs/iggy@sha256:68a314c1380be5a792a134f3bd346ded42bd49d9f7114c86f70b48fc85bc5272",
+        "imageDigest": "sha256:f7c54e3042254f26665400b6e62a4f8317d90671b5750f8a281bee52f0b16978",
+        "mounts": "aso-prior-auth_iggy_data",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos": {
+        "configHash": "5dc669aa48d19b70c18f8f21c4ae1f669d442b8cc0c6cae5ea6393831ed70637",
+        "containerId": "38a654cc623d5d448a728c55c4bc86d89154c755322a9789d4d50090fff07012",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/kratos,1df237fbb2898958c7e1d1a8514ccd3b70dae427f207616ac40293db6af290aa,ce597b8bbf4de5eaabe9494d19e77869a572677cbae8edaa1b12e5f4ee486750",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "kratos-migrate": {
+        "configHash": "6b8c7662f7f0ab711311bed097e55d91c234f5454c912a9fd22745584dadb4cb",
+        "containerId": "86500451cbf55720eed5e2e353131e8745f56ae4682048e2fb703a53d5fc2767",
+        "image": "oryd/kratos:v26.2.0",
+        "imageDigest": "sha256:d3bcd1220437665c83513fec53d99b7f43c4cac9fe995c8e71da5a1d13bc0f2b",
+        "mounts": "7af22d63ebf7d088083c40d1b8a2563b521b211e5dcff719ec2f495eb78b1715,acf23160aad4dbc661cad1e0e1227dcb6bcc2983b4248bd4f77b05d3f70d18d9",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "exited"
+      },
+      "realtime-fabric": {
+        "configHash": "22e4c9bf35e31c039cd958e8fcbd8f57ab50a8a9848ec5ebf6c8f831a3353bc1",
+        "containerId": "87be1687862e68733ae7e67bada09ad83a9226cb0ac1ed36d573f36f9786aa2a",
+        "image": "aso-prior-auth-realtime-fabric",
+        "imageDigest": "sha256:b362432ea841b468c87348a8be75426a523834bd525d2bcaa8a36683f78385a6",
+        "mounts": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth/docker/frf/shape-catalog.json",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      },
+      "redis": {
+        "configHash": "add989d567706c819b26efe4d3c28d70cac1c8bd686619cdafeed9558b774e39",
+        "containerId": "2e7beec436b3a70869050290bb9685945514d11fe517c4b4d5a4ecbf0eeeb2bc",
+        "image": "redis@sha256:becdda6c7f4b3fb42e42fd7f120bbf5c54c4caaaf16f26da24e4563d2c1f0576",
+        "imageDigest": "sha256:59c08762bdbcf53fa132aa0bae464a57a1309dc3fff8a034bb3e16d7a0b30ec5",
+        "mounts": "",
+        "networks": "aso-prior-auth_ra05-backend",
+        "state": "running"
+      }
+    },
+    "postExisting": [
+      "db",
+      "electric",
+      "flint-gate",
+      "flint-gate-init",
+      "iggy-server",
+      "kratos",
+      "kratos-migrate",
+      "realtime-fabric",
+      "redis"
+    ],
+    "postRunning": [
+      "db",
+      "electric",
+      "flint-gate",
+      "iggy-server",
+      "kratos",
+      "realtime-fabric",
+      "redis"
+    ],
+    "removed": [],
+    "restarted": [
+      "flint-gate",
+      "realtime-fabric"
+    ],
+    "restored": true,
+    "stopped": []
+  }
+}

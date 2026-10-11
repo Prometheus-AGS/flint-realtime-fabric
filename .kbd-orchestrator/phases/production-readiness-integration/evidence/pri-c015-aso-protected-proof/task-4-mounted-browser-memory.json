@@ -1,0 +1,761 @@
+{
+  "result": "Failed",
+  "runtime": {
+    "browser": "Google Chrome 152.0.7977.84",
+    "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "page": "/ra11c-browser-memory.html"
+  },
+  "measurement": {
+    "rssMethod": "RSS growth of the isolated Chromium renderer with the greatest campaign-time growth, sampled from macOS ps",
+    "heapMethod": "Chromium performance.memory.usedJSHeapSize with --enable-precise-memory-info",
+    "baselineRssBytes": 1362968576,
+    "peakRssBytes": 1963802624,
+    "incrementalRssBytes": 591396864,
+    "aggregateIncrementalRssBytes": 600834048,
+    "incrementalHeapBytes": 201469282,
+    "rssLimitBytes": 536870912,
+    "heapLimitBytes": 268435456,
+    "rssWithinBudget": false,
+    "targetRendererRssWithinBudget": false,
+    "aggregateRssWithinBudget": false,
+    "heapWithinBudget": true,
+    "peakStage": "complete",
+    "stagePeakRssBytes": {
+      "baseline": 1362968576,
+      "pglite-opening": 1371553792,
+      "live-body-interruption": 1790001152,
+      "cold-fold": 1773502464,
+      "complete": 1963802624
+    },
+    "baselineSamplesBytes": [
+      1356677120,
+      1358462976,
+      1360658432,
+      1360887808,
+      1362968576
+    ],
+    "baselineProcessTree": {
+      "processCount": 10,
+      "rssBytes": 1362968576,
+      "processes": [
+        {
+          "pid": 74361,
+          "parentPid": 74336,
+          "rssBytes": 241270784,
+          "kind": "browser"
+        },
+        {
+          "pid": 74367,
+          "parentPid": 74361,
+          "rssBytes": 140967936,
+          "kind": "gpu"
+        },
+        {
+          "pid": 74368,
+          "parentPid": 74361,
+          "rssBytes": 108363776,
+          "kind": "utility"
+        },
+        {
+          "pid": 74369,
+          "parentPid": 74361,
+          "rssBytes": 83247104,
+          "kind": "utility"
+        },
+        {
+          "pid": 74370,
+          "parentPid": 74361,
+          "rssBytes": 91422720,
+          "kind": "utility"
+        },
+        {
+          "pid": 74374,
+          "parentPid": 74361,
+          "rssBytes": 181813248,
+          "kind": "renderer"
+        },
+        {
+          "pid": 74376,
+          "parentPid": 74361,
+          "rssBytes": 167657472,
+          "kind": "renderer"
+        },
+        {
+          "pid": 74377,
+          "parentPid": 74361,
+          "rssBytes": 102219776,
+          "kind": "renderer"
+        },
+        {
+          "pid": 74378,
+          "parentPid": 74361,
+          "rssBytes": 125861888,
+          "kind": "renderer"
+        },
+        {
+          "pid": 74379,
+          "parentPid": 74361,
+          "rssBytes": 120143872,
+          "kind": "renderer"
+        }
+      ]
+    },
+    "peakProcessTree": {
+      "processCount": 10,
+      "rssBytes": 1963802624,
+      "processes": [
+        {
+          "pid": 74361,
+          "parentPid": 74336,
+          "rssBytes": 245972992,
+          "kind": "browser"
+        },
+        {
+          "pid": 74367,
+          "parentPid": 74361,
+          "rssBytes": 145096704,
+          "kind": "gpu"
+        },
+        {
+          "pid": 74368,
+          "parentPid": 74361,
+          "rssBytes": 108937216,
+          "kind": "utility"
+        },
+        {
+          "pid": 74369,
+          "parentPid": 74361,
+          "rssBytes": 83247104,
+          "kind": "utility"
+        },
+        {
+          "pid": 74370,
+          "parentPid": 74361,
+          "rssBytes": 91422720,
+          "kind": "utility"
+        },
+        {
+          "pid": 74374,
+          "parentPid": 74361,
+          "rssBytes": 181829632,
+          "kind": "renderer"
+        },
+        {
+          "pid": 74376,
+          "parentPid": 74361,
+          "rssBytes": 759054336,
+          "kind": "renderer"
+        },
+        {
+          "pid": 74377,
+          "parentPid": 74361,
+          "rssBytes": 102219776,
+          "kind": "renderer"
+        },
+        {
+          "pid": 74378,
+          "parentPid": 74361,
+          "rssBytes": 125878272,
+          "kind": "renderer"
+        },
+        {
+          "pid": 74379,
+          "parentPid": 74361,
+          "rssBytes": 120143872,
+          "kind": "renderer"
+        }
+      ]
+    },
+    "rendererDeltas": [
+      {
+        "pid": 74374,
+        "baselineRssBytes": 181813248,
+        "peakRssBytes": 181895168,
+        "incrementalRssBytes": 81920
+      },
+      {
+        "pid": 74376,
+        "baselineRssBytes": 167657472,
+        "peakRssBytes": 759054336,
+        "incrementalRssBytes": 591396864
+      },
+      {
+        "pid": 74377,
+        "baselineRssBytes": 102219776,
+        "peakRssBytes": 102219776,
+        "incrementalRssBytes": 0
+      },
+      {
+        "pid": 74378,
+        "baselineRssBytes": 125861888,
+        "peakRssBytes": 125878272,
+        "incrementalRssBytes": 16384
+      },
+      {
+        "pid": 74379,
+        "baselineRssBytes": 120143872,
+        "peakRssBytes": 120143872,
+        "incrementalRssBytes": 0
+      }
+    ],
+    "targetRenderer": {
+      "pid": 74376,
+      "baselineRssBytes": 167657472,
+      "peakRssBytes": 759054336,
+      "incrementalRssBytes": 591396864
+    },
+    "targetRendererStageRssBytes": {
+      "baseline": 167657472,
+      "pglite-opening": 168050688,
+      "live-body-interruption": 585515008,
+      "cold-fold": 566591488,
+      "complete": 759054336
+    }
+  },
+  "networkBoundary": {
+    "directAccess": {
+      "electric": null,
+      "fabric": null
+    },
+    "directIsolationPassed": true,
+    "liveBodyInterruption": {
+      "bytes": 256,
+      "injected": true,
+      "upstreamStatus": 200
+    },
+    "liveBodyInterruptionPassed": true,
+    "genericWriterRequests": [],
+    "shapeRequestCount": 36,
+    "shapeRequests": [
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:3000/v1/shape?table=aso.cases&offset=-1"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=annotation_types"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_states"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=cases"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=documents"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=case_evidence"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_citations"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=annotations"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=annotation_types"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_states&handle=38411087-1789663188708088&offset=0_0"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=cases"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=documents"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=case_evidence"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_citations"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=annotations"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=annotation_types&handle=67895273-1789663188714565&offset=0_0"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=cases&handle=50713411-1789709052823033&offset=0_0"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=documents&handle=110683836-1789709052913088&offset=0_0"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=case_evidence&handle=15151955-1789709062005303&offset=0_0"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_citations&handle=13777309-1789709062004669&offset=0_0"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=annotations&handle=43538728-1789709062016384&offset=0_0"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=annotation_types"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_states"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=cases"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=documents"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=case_evidence"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_citations"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=annotations"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=annotation_types&handle=67895273-1789663188714565&offset=0_0"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_states&handle=38411087-1789663188708088&offset=0_0"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=cases&handle=50713411-1789709052823033&offset=0_0"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=documents&handle=110683836-1789709052913088&offset=0_0"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=case_evidence&handle=15151955-1789709062005303&offset=0_0"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_citations&handle=13777309-1789709062004669&offset=0_0"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=annotations&handle=43538728-1789709062016384&offset=0_0"
+      },
+      {
+        "method": "GET",
+        "resourceType": "fetch",
+        "url": "http://127.0.0.1:61862/v1/shape?shape=cases"
+      }
+    ],
+    "soleShapeWriterPassed": true
+  },
+  "browserCampaign": {
+    "result": "Passed",
+    "counts": {
+      "annotation_types": 4,
+      "evidence_states": 3,
+      "cases": 360,
+      "documents": 2880,
+      "case_evidence": 4320,
+      "evidence_citations": 8640,
+      "annotations": 0
+    },
+    "graphCounts": {
+      "annotation_types": 4,
+      "evidence_states": 3,
+      "cases": 360,
+      "documents": 2880,
+      "case_evidence": 4320,
+      "evidence_citations": 8640,
+      "annotations": 0
+    },
+    "checkpointShapes": [
+      "annotation_types",
+      "annotations",
+      "case_evidence",
+      "cases",
+      "documents",
+      "evidence_citations",
+      "evidence_states"
+    ],
+    "generation": 4,
+    "liveBodyInterruption": {
+      "bytes": 256,
+      "injected": true,
+      "upstreamStatus": 200
+    },
+    "runtime": {
+      "crossOriginIsolated": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36"
+    },
+    "heap": {
+      "baseline": {
+        "totalBytes": 9122180,
+        "usedBytes": 7404676
+      },
+      "peak": {
+        "totalBytes": 219822082,
+        "usedBytes": 208873958
+      },
+      "deltaBytes": 201469282,
+      "peakStage": "cold-fold",
+      "stages": {
+        "baseline": {
+          "totalBytes": 9122180,
+          "usedBytes": 7404676
+        },
+        "pglite-opening": {
+          "totalBytes": 23611044,
+          "usedBytes": 18813652
+        },
+        "pglite-open": {
+          "totalBytes": 204981220,
+          "usedBytes": 197953776
+        },
+        "schema-ready": {
+          "totalBytes": 207028027,
+          "usedBytes": 198325579
+        },
+        "graph-ready": {
+          "totalBytes": 207177524,
+          "usedBytes": 198804572
+        },
+        "projector-ready": {
+          "totalBytes": 207178515,
+          "usedBytes": 198932283
+        },
+        "live-body-interruption": {
+          "totalBytes": 207179843,
+          "usedBytes": 199026403
+        },
+        "cold-fold": {
+          "totalBytes": 221729702,
+          "usedBytes": 207662514
+        },
+        "cold-fold-complete": {
+          "totalBytes": 221729702,
+          "usedBytes": 207679994
+        },
+        "sql-checkpoint-graph": {
+          "totalBytes": 221729702,
+          "usedBytes": 207680310
+        },
+        "revision-1": {
+          "totalBytes": 187335869,
+          "usedBytes": 148273937
+        },
+        "materialized": {
+          "totalBytes": 187335869,
+          "usedBytes": 148275789
+        },
+        "final": {
+          "totalBytes": 180752347,
+          "usedBytes": 142502695
+        }
+      }
+    },
+    "checks": {
+      "authorizedColdRetryCompleted": true,
+      "completeCheckpoint": true,
+      "graphParity": true,
+      "heapAvailable": true,
+      "heapWithinBudget": true,
+      "interruptedBodyLeftCheckpointEmpty": true,
+      "interruptedBodyLeftGraphEmpty": true,
+      "interruptedBodyLeftSqlEmpty": true,
+      "interruptedBodyRejected": true,
+      "sqlParity": true
+    },
+    "mountedLifecycle": {
+      "result": "Passed",
+      "checks": {
+        "logoutClosedImmediately": true,
+        "noPostLogoutShapePublication": true,
+        "noPostSwitchShapePublication": true,
+        "oldGraphAbsent": true,
+        "primaryGraphPopulated": true,
+        "realSessionRevoked": true,
+        "replacementGraphPopulated": true,
+        "replacementOpenedAfterFence": true,
+        "switchClosedImmediately": true
+      },
+      "primary": {
+        "counts": {
+          "annotation_types": 4,
+          "evidence_states": 3,
+          "cases": 360,
+          "documents": 2880,
+          "case_evidence": 4320,
+          "evidence_citations": 8640,
+          "annotations": 0
+        },
+        "key": "aso:local-unconfigured:g4:user:fa47d18a-8af4-4e03-9c33-f8bd10be2399:a46229df-7ec7-44a3-8cdb-e0116413dce2:22a2a371-f38e-46ba-9305-e060f6a62a0d:membership%3Ara05-composition"
+      },
+      "replacement": {
+        "counts": {
+          "annotation_types": 4,
+          "evidence_states": 3,
+          "cases": 360,
+          "documents": 2880,
+          "case_evidence": 4320,
+          "evidence_citations": 8640,
+          "annotations": 0
+        },
+        "key": "aso:local-unconfigured:g4:user:e016f96f-ccae-4579-94cf-1a1285afb235:93857130-916e-4294-91b0-bfdef3117eb5:bb0add3c-28a8-4e92-a514-b0851f9bd717:membership%3Ara05-composition"
+      },
+      "timing": {
+        "primaryReady": 1999.4000000003725,
+        "switchFenced": 2002.6000000000931,
+        "replacementReady": 2002.9000000003725,
+        "logoutFenced": 2003.3000000002794,
+        "logoutSettled": 2077.4000000003725
+      },
+      "network": [
+        {
+          "label": "primary",
+          "phase": "started",
+          "time": 1192.7000000001863,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=annotation_types"
+        },
+        {
+          "label": "primary",
+          "phase": "started",
+          "time": 1193.1000000000931,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_states"
+        },
+        {
+          "label": "primary",
+          "phase": "started",
+          "time": 1193.2000000001863,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=cases"
+        },
+        {
+          "label": "primary",
+          "phase": "started",
+          "time": 1193.2000000001863,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=documents"
+        },
+        {
+          "label": "primary",
+          "phase": "started",
+          "time": 1193.3000000002794,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=case_evidence"
+        },
+        {
+          "label": "primary",
+          "phase": "started",
+          "time": 1193.3000000002794,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_citations"
+        },
+        {
+          "label": "primary",
+          "phase": "started",
+          "time": 1193.4000000003725,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=annotations"
+        },
+        {
+          "label": "primary",
+          "phase": "completed",
+          "status": 200,
+          "time": 1211.4000000003725,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=cases"
+        },
+        {
+          "label": "primary",
+          "phase": "completed",
+          "status": 200,
+          "time": 1212,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_states"
+        },
+        {
+          "label": "primary",
+          "phase": "completed",
+          "status": 200,
+          "time": 1212.5,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=annotation_types"
+        },
+        {
+          "label": "primary",
+          "phase": "completed",
+          "status": 200,
+          "time": 1221.6000000000931,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=documents"
+        },
+        {
+          "label": "primary",
+          "phase": "completed",
+          "status": 200,
+          "time": 1229.6000000000931,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=case_evidence"
+        },
+        {
+          "label": "primary",
+          "phase": "completed",
+          "status": 200,
+          "time": 1241.1000000000931,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_citations"
+        },
+        {
+          "label": "primary",
+          "phase": "completed",
+          "status": 200,
+          "time": 1271.2000000001863,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=annotations"
+        },
+        {
+          "label": "primary",
+          "phase": "started",
+          "time": 1271.7000000001863,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=annotation_types&handle=67895273-1789663188714565&offset=0_0"
+        },
+        {
+          "label": "primary",
+          "phase": "started",
+          "time": 1271.8000000002794,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_states&handle=38411087-1789663188708088&offset=0_0"
+        },
+        {
+          "label": "primary",
+          "phase": "started",
+          "time": 1271.9000000003725,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=cases&handle=50713411-1789709052823033&offset=0_0"
+        },
+        {
+          "label": "primary",
+          "phase": "started",
+          "time": 1271.9000000003725,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=documents&handle=110683836-1789709052913088&offset=0_0"
+        },
+        {
+          "label": "primary",
+          "phase": "started",
+          "time": 1272,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=case_evidence&handle=15151955-1789709062005303&offset=0_0"
+        },
+        {
+          "label": "primary",
+          "phase": "started",
+          "time": 1272.1000000000931,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_citations&handle=13777309-1789709062004669&offset=0_0"
+        },
+        {
+          "label": "primary",
+          "phase": "started",
+          "time": 1272.1000000000931,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=annotations&handle=43538728-1789709062016384&offset=0_0"
+        },
+        {
+          "label": "primary",
+          "phase": "completed",
+          "status": 200,
+          "time": 1289.6000000000931,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=case_evidence&handle=15151955-1789709062005303&offset=0_0"
+        },
+        {
+          "label": "primary",
+          "phase": "completed",
+          "status": 200,
+          "time": 1289.8000000002794,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=documents&handle=110683836-1789709052913088&offset=0_0"
+        },
+        {
+          "label": "primary",
+          "phase": "completed",
+          "status": 200,
+          "time": 1290,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=annotation_types&handle=67895273-1789663188714565&offset=0_0"
+        },
+        {
+          "label": "primary",
+          "phase": "completed",
+          "status": 200,
+          "time": 1290.3000000002794,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_states&handle=38411087-1789663188708088&offset=0_0"
+        },
+        {
+          "label": "primary",
+          "phase": "completed",
+          "status": 200,
+          "time": 1333,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=cases&handle=50713411-1789709052823033&offset=0_0"
+        },
+        {
+          "label": "primary",
+          "phase": "completed",
+          "status": 200,
+          "time": 1338.7000000001863,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=evidence_citations&handle=13777309-1789709062004669&offset=0_0"
+        },
+        {
+          "label": "primary",
+          "phase": "completed",
+          "status": 200,
+          "time": 1338.8000000002794,
+          "url": "http://127.0.0.1:61862/v1/shape?shape=annotations&handle=43538728-1789709062016384&offset=0_0"
+        }
+      ],
+      "revokedProbeStatus": 401
+    }
+  }
+}

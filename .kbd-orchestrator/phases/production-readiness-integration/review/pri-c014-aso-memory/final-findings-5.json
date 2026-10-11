@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "scripts/test-ra11c-browser-memory.py",
+      "line": 20,
+      "claim": "The browser-memory campaign is hardcoded to one macOS Chrome install path, so the required acceptance proof fails on otherwise valid machines without that exact application path.",
+      "evidence": "The new script sets `CHROME = Path(\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\")` and immediately errors when it does not exist (`if not CHROME.exists(): raise RuntimeError(...)`), while task 5 requires applicable local verification to be runnable for the change.",
+      "suggested_fix": "Accept a `--chrome` argument or `CHROME`/`RA11C_CHROME` environment variable, and fall back to Playwright's installed Chromium executable when no explicit path is provided."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

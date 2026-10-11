@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "change": "pri-c014-aso-memory",
+  "observedAt": "2026-09-17T14:19:26.468558+00:00",
+  "result": "Passed",
+  "commands": [
+    {
+      "name": "aso-typecheck",
+      "command": "pnpm --dir web typecheck",
+      "cwd": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "$ tsc --noEmit\n"
+    },
+    {
+      "name": "aso-lint",
+      "command": "pnpm --dir web lint",
+      "cwd": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "$ oxlint\n"
+    },
+    {
+      "name": "aso-build",
+      "command": "pnpm --dir web build",
+      "cwd": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth",
+      "exitCode": 0,
+      "stdout": "vite v7.1.5 building for production...\ntransforming...\n\u2713 2351 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                                                 0.46 kB \u2502 gzip:     0.30 kB\ndist/assets/geist-cyrillic-ext-wght-normal-DjL33-gN.woff2       7.42 kB\ndist/assets/geist-vietnamese-wght-normal-6IgcOCM7.woff2         8.00 kB\ndist/assets/geist-cyrillic-wght-normal-BEAKL7Jp.woff2          15.08 kB\ndist/assets/geist-latin-ext-wght-normal-DC-KSUi6.woff2         16.51 kB\ndist/assets/geist-latin-wght-normal-BgDaEnEv.woff2             29.40 kB\ndist/assets/initdb-DwLcS450.wasm                              395.24 kB \u2502 gzip:   147.20 kB\ndist/assets/pglite-n8RDJ3Sw.data                            6,295.32 kB\ndist/assets/pglite-DgipwPsY.wasm                           10,088.16 kB \u2502 gzip: 3,443.92 kB\ndist/assets/index-SjNwl_k5.css                                253.57 kB \u2502 gzip:    37.52 kB\ndist/assets/__vite-browser-external-BIHI7g3E.js                 0.03 kB \u2502 gzip:     0.05 kB\ndist/assets/settings-profile-route-Bqnw8GNQ.js                  0.21 kB \u2502 gzip:     0.18 kB\ndist/assets/case-queue-route-5PgyrTjg.js                        0.21 kB \u2502 gzip:     0.18 kB\ndist/assets/settings-integrations-route-D39PVKW_.js             0.22 kB \u2502 gzip:     0.20 kB\ndist/assets/surgeon-gate-route-CtJykJvk.js                      0.23 kB \u2502 gzip:     0.19 kB\ndist/assets/peer-to-peer-route-DR6Gumy4.js                      0.23 kB \u2502 gzip:     0.19 kB\ndist/assets/admin-console-route-poQEGwHT.js                     0.23 kB \u2502 gzip:     0.20 kB\ndist/assets/policy-panel-route-DpdXwZOQ.js                      0.23 kB \u2502 gzip:     0.20 kB\ndist/assets/submission-packet-route-DCEeBqj5.js                 0.23 kB \u2502 gzip:     0.20 kB\ndist/assets/pathway-comparison-route-xIpQqFsy.js                0.23 kB \u2502 gzip:     0.20 kB\ndist/assets/receipt-verification-route-vPy9PdAN.js              0.24 kB \u2502 gzip:     0.20 kB\ndist/assets/nodefs-CFu3GUBS.js                                  0.42 kB \u2502 gzip:     0.29 kB\ndist/assets/route-placeholder-CV5yCuuX.js                       0.51 kB \u2502 gzip:     0.32 kB\ndist/assets/textarea-Sz4JQIOi.js                                0.70 kB \u2502 gzip:     0.38 kB\ndist/assets/use-scoped-view-store-BcK6_CDM.js                   1.40 kB \u2502 gzip:     0.70 kB\ndist/assets/badge-CtzOOG-h.js                                   1.43 kB \u2502 gzip:     0.66 kB\ndist/assets/intake-checklist-route-DhjPhiu8.js                  4.74 kB \u2502 gzip:     2.03 kB\ndist/assets/letter-composer-route-q33Nwp8c.js                   9.73 kB \u2502 gzip:     3.43 kB\ndist/assets/opfs-ahp-DeeLu6NQ.js                               10.02 kB \u2502 gzip:     3.06 kB\ndist/assets/case-detail-route-D1zt5ibX.js                      18.08 kB \u2502 gzip:     5.27 kB\ndist/assets/case-queue-DJq6fNCl.js                             20.79 kB \u2502 gzip:     6.47 kB\ndist/assets/evidence-timeline-route-C702Wf7K.js               105.70 kB \u2502 gzip:    34.45 kB\ndist/assets/index-9WExih_1.js                               1,062.04 kB \u2502 gzip:   291.34 kB\n\u2713 built in 3.16s\n",
+      "stderr": "$ tsc -b && vite build\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js (1:227): \"resolve\" is not exported by \"__vite-browser-external\", imported by \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js\".\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js (1:240): \"existsSync\" is not exported by \"__vite-browser-external\", imported by \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js\".\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js (1:253): \"join\" is not exported by \"__vite-browser-external\", imported by \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js\".\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js (1:276): \"mkdirSync\" is not exported by \"__vite-browser-external\", imported by \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/fs/nodefs.js\".\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/chunk-DDJLRBDX.js (1:26769): Use of eval in \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/chunk-DDJLRBDX.js\" is strongly discouraged as it poses security risks and may cause issues with minification.\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/chunk-DDJLRBDX.js (1:27247): Use of eval in \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/chunk-DDJLRBDX.js\" is strongly discouraged as it poses security risks and may cause issues with minification.\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/index.js (1:89303): Use of eval in \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/index.js\" is strongly discouraged as it poses security risks and may cause issues with minification.\nnode_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/index.js (1:89781): Use of eval in \"node_modules/.pnpm/@electric-sql+pglite@0.5.8/node_modules/@electric-sql/pglite/dist/index.js\" is strongly discouraged as it poses security risks and may cause issues with minification.\n\n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n"
+    },
+    {
+      "name": "aso-architecture-audit",
+      "command": "bash scripts/audit.sh",
+      "cwd": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth",
+      "exitCode": 0,
+      "stdout": "\u2500\u2500 1. React filenames are kebab-case \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  \u2713 all filenames kebab-case\n\u2500\u2500 2. No query cache \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nquery-cache audit: Passed (manifest and transitive pnpm lock graph)\n  \u2713 no direct or transitive query cache dependency\n\u2500\u2500 3. Components do not call the network directly \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  \u2713 no direct network calls in components\n\u2500\u2500 4. The host crate names no shell \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  \u2713 aso-host is host-neutral\n\u2500\u2500 5. Generated theme files are not hand-edited \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  \u2713 generated files carry their banner\n\u2500\u2500 6. Three evidence states, never two \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  \u2713 the void state survives on both surfaces\n\naudit: PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "python-compile",
+      "command": "python3 -m py_compile scripts/test-ra11c-browser-memory.py scripts/test-ra11c-materialization.py",
+      "cwd": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "openspec-strict",
+      "command": "openspec validate pri-c014-aso-memory --strict --no-interactive",
+      "cwd": "/Users/gqadonis/Projects/prometheus/flint-realtime-fabric",
+      "exitCode": 0,
+      "stdout": "Change 'pri-c014-aso-memory' is valid\n",
+      "stderr": ""
+    }
+  ]
+}

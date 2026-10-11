@@ -1,0 +1,34 @@
+{
+  "result": "Passed",
+  "observedAt": "2026-09-17T15:14:51.625200+00:00",
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "frf-app",
+    "--test",
+    "shape_revocation",
+    "--test",
+    "shape_lease_timing",
+    "--",
+    "--nocapture"
+  ],
+  "exitCode": 0,
+  "sourceBefore": {
+    "crates/frf-app/tests/shape_revocation.rs": "c5fce6dcbd54cd4d32b007cb2367daf304ddae7b6cb1add0de609280469a5b4e",
+    "crates/frf-app/tests/shape_lease_timing.rs": "1020fc28c07bc186ff69f6f565824e90f2676f5b5c571c19d86c4da7233f2d07",
+    "crates/frf-app/tests/support/shape_timing.rs": "78892490d364fa05ecc82c4c87f3e78ffb58c6c0e6bfca944fa28c7251f90075",
+    "crates/frf-app/src/shape/mod.rs": "e78c5db24a4164d8273ec9c5fabfeb35ec64c1cb78bc5c2c2843afcd1f4f934d"
+  },
+  "sourceAfter": {
+    "crates/frf-app/tests/shape_revocation.rs": "c5fce6dcbd54cd4d32b007cb2367daf304ddae7b6cb1add0de609280469a5b4e",
+    "crates/frf-app/tests/shape_lease_timing.rs": "1020fc28c07bc186ff69f6f565824e90f2676f5b5c571c19d86c4da7233f2d07",
+    "crates/frf-app/tests/support/shape_timing.rs": "78892490d364fa05ecc82c4c87f3e78ffb58c6c0e6bfca944fa28c7251f90075",
+    "crates/frf-app/src/shape/mod.rs": "e78c5db24a4164d8273ec9c5fabfeb35ec64c1cb78bc5c2c2843afcd1f4f934d"
+  },
+  "sourceUnchanged": true,
+  "acceptedBoundMs": 5000,
+  "currentContractMaximumMs": 1500,
+  "stdout": "\nrunning 6 tests\ntest authority_unavailability_cancels_at_the_first_revalidation ... ok\ntest authority_timeout_cancels_at_revalidation_plus_timeout ... ok\ntest upstream_stall_cancels_at_the_monotonic_deadline_without_client_polling ... ok\ntest consumer_drop_cancels_upstream_at_the_observed_drop_time ... ok\ntest normal_completion_records_ordered_frame_and_final_frame_times ... ok\ntest client_backpressure_cancels_at_the_deadline_and_discards_buffered_frames ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 4 tests\ntest observed_direct_kratos_revocation_drops_the_gate_owned_consumer ... ok\ntest grant_expiry_interrupts_a_nonempty_throttled_body ... ok\ntest logout_interrupts_a_nonempty_throttled_body ... ok\ntest membership_change_interrupts_a_nonempty_throttled_body ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+  "stderr": "   Compiling frf-app v0.1.0 (/Users/gqadonis/Projects/prometheus/flint-realtime-fabric/crates/frf-app)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 32s\n     Running tests/shape_lease_timing.rs (/Volumes/my-passport/cargo-build/25/5c2ebd31dad868/debug/deps/shape_lease_timing-7518e2f3326d4db4)\nauthority-unavailable: [TimedEvent { kind: AuthorityCheck(0), elapsed: 0ns }, TimedEvent { kind: AuthorityCheck(1), elapsed: 0ns }, TimedEvent { kind: UpstreamPending, elapsed: 0ns }, TimedEvent { kind: AuthorityCheck(2), elapsed: 750ms }, TimedEvent { kind: UpstreamDrop, elapsed: 750ms }, TimedEvent { kind: CancellationObserved, elapsed: 750ms }]\nauthority-timeout: [TimedEvent { kind: AuthorityCheck(0), elapsed: 0ns }, TimedEvent { kind: AuthorityCheck(1), elapsed: 0ns }, TimedEvent { kind: UpstreamPending, elapsed: 0ns }, TimedEvent { kind: AuthorityCheck(2), elapsed: 750ms }, TimedEvent { kind: UpstreamDrop, elapsed: 1.5s }, TimedEvent { kind: CancellationObserved, elapsed: 1.5s }]\nupstream-stall: [TimedEvent { kind: AuthorityCheck(0), elapsed: 0ns }, TimedEvent { kind: AuthorityCheck(1), elapsed: 0ns }, TimedEvent { kind: UpstreamPending, elapsed: 0ns }, TimedEvent { kind: UpstreamDrop, elapsed: 1s }, TimedEvent { kind: CancellationObserved, elapsed: 1s }]\nconsumer-drop: [TimedEvent { kind: AuthorityCheck(0), elapsed: 0ns }, TimedEvent { kind: AuthorityCheck(1), elapsed: 0ns }, TimedEvent { kind: UpstreamPending, elapsed: 0ns }, TimedEvent { kind: ConsumerDrop, elapsed: 125ms }, TimedEvent { kind: UpstreamDrop, elapsed: 125ms }]\nnormal-completion: [TimedEvent { kind: AuthorityCheck(0), elapsed: 0ns }, TimedEvent { kind: AuthorityCheck(1), elapsed: 0ns }, TimedEvent { kind: UpstreamFrame(1), elapsed: 0ns }, TimedEvent { kind: UpstreamFrame(2), elapsed: 0ns }, TimedEvent { kind: ConsumerFrame(1), elapsed: 0ns }, TimedEvent { kind: UpstreamFrame(3), elapsed: 100ms }, TimedEvent { kind: ConsumerFrame(2), elapsed: 100ms }, TimedEvent { kind: UpstreamComplete, elapsed: 200ms }, TimedEvent { kind: ConsumerFrame(3), elapsed: 200ms }, TimedEvent { kind: UpstreamDrop, elapsed: 200ms }, TimedEvent { kind: NormalComplete, elapsed: 200ms }, TimedEvent { kind: AuthorityCheck(2), elapsed: 200ms }, TimedEvent { kind: AuthorityCheck(3), elapsed: 200ms }]\nclient-backpressure: [TimedEvent { kind: AuthorityCheck(0), elapsed: 0ns }, TimedEvent { kind: AuthorityCheck(1), elapsed: 0ns }, TimedEvent { kind: UpstreamFrame(1), elapsed: 0ns }, TimedEvent { kind: UpstreamFrame(2), elapsed: 0ns }, TimedEvent { kind: UpstreamDrop, elapsed: 1s }, TimedEvent { kind: CancellationObserved, elapsed: 1s }]\n     Running tests/shape_revocation.rs (/Volumes/my-passport/cargo-build/25/5c2ebd31dad868/debug/deps/shape_revocation-9f8ee4522cec8c73)\n"
+}

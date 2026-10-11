@@ -26,7 +26,7 @@ pub struct VerifiedClaims {
 }
 
 pub const ASO_REPLICA_SCOPE: &str = "aso.replica.read";
-pub const ASO_PROJECTION_REVISION: u32 = 3;
+pub const ASO_PROJECTION_REVISION: u32 = 6;
 
 impl VerifiedClaims {
     /// Validate the dedicated ASO replica claim contract and return its

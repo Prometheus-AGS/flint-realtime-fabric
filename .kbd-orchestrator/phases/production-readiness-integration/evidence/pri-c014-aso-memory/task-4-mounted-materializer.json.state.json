@@ -1,0 +1,79 @@
+{
+  "caseId": "01734a35-8877-cc0d-7cc8-f03a549d32e8",
+  "checkpoint": {
+    "generation": 6,
+    "shapes": {
+      "annotation_types": {
+        "handle": "67895273-1789648408535618",
+        "offset": "0_inf"
+      },
+      "evidence_states": {
+        "handle": "38411087-1789648408505886",
+        "offset": "0_inf"
+      },
+      "cases": {
+        "handle": "49174470-1789654682786963",
+        "offset": "6719893688_8"
+      },
+      "documents": {
+        "handle": "91123554-1789654682792270",
+        "offset": "0_inf"
+      },
+      "case_evidence": {
+        "handle": "98322885-1789654682789035",
+        "offset": "0_inf"
+      },
+      "evidence_citations": {
+        "handle": "100608405-1789654682784915",
+        "offset": "0_inf"
+      },
+      "annotations": {
+        "handle": "102876867-1789654682812823",
+        "offset": "0_inf"
+      }
+    }
+  },
+  "initialMemory": {
+    "baseline": {
+      "heapUsedBytes": 16377776,
+      "rssBytes": 99385344
+    },
+    "peak": {
+      "heapUsedBytes": 83624992,
+      "rssBytes": 531283968
+    },
+    "rssDeltaBytes": 431898624,
+    "heapDeltaBytes": 67247216,
+    "stages": {
+      "baseline": {
+        "heapUsedBytes": 16377776,
+        "rssBytes": 99385344
+      },
+      "open-runtime": {
+        "heapUsedBytes": 16384368,
+        "rssBytes": 99385344
+      },
+      "initial-sync": {
+        "heapUsedBytes": 81129456,
+        "rssBytes": 508575744
+      },
+      "capture-revision": {
+        "heapUsedBytes": 83455648,
+        "rssBytes": 474447872
+      },
+      "crash-rollback": {
+        "heapUsedBytes": 49221928,
+        "rssBytes": 472563712
+      },
+      "final": {
+        "heapUsedBytes": 49223848,
+        "rssBytes": 472580096
+      }
+    },
+    "peakStage": "initial-sync"
+  },
+  "parityObservedBeforeReadiness": true,
+  "coldCrashLeftNoPartialBatch": true,
+  "crashRolledBackRowAndCheckpoint": true,
+  "sqlAndCheckpointCommittedBeforePublication": true
+}

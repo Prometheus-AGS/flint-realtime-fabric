@@ -1,0 +1,29 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": ".kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c014-aso-memory/",
+      "claim": "The diff does not add the required source-bound receipt under the mandated evidence directory or show the required OpenSpec validation artifact.",
+      "evidence": "Acceptance criterion task 5 is unchecked and requires: \"Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c014-aso-memory/`; run applicable local quality checks and `openspec validate pri-c014-aso-memory --strict --no-interactive`.\" The provided diff only modifies `web/src/shared/sync/replica-mounted.integration.test.ts` and adds `web/src/shared/sync/replica-mounted-runtime.ts`; it contains no `.kbd-orchestrator/.../evidence/pri-c014-aso-memory/` file and no OpenSpec validation receipt.",
+      "suggested_fix": "Commit the source-bound receipt files under the required evidence directory, including the exact validation command output for `openspec validate pri-c014-aso-memory --strict --no-interactive` and applicable local checks."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "web/src/shared/sync/replica-mounted.integration.test.ts",
+      "claim": "Acceptance A is not source-bound to the final reviewed source because the passing receipt hashes do not match the final modified file hashes.",
+      "evidence": "cross_repo_evidence.acceptance_a.source.files reports `web/src/shared/sync/replica-mounted.integration.test.ts` as `d6aa7976b720a2e224b425856bd24deee744258a97477ed9743a9ac43f65c4d3` and `replica-mounted-runtime.ts` as `2af21ab2f5067cf68fbac0d13e3429a65b431d25ebf26475b60b9c14f4e2129f`, while cross_repo_evidence.source_manifest.files and allocation_analysis.source.files report the final files as `273f5f36c4c1d8a8e356edb392fbca05f5ab0c2d946dea8ac313e29904e14c3a` and `7a2aa9be22ae49a4ffe1cb06aaad756da0556a1b87de5d0e8f9daf651feabd65`; acceptance criterion 3 requires establishing Acceptance A for this change's same-fixture campaign.",
+      "suggested_fix": "Rerun and record Acceptance A against the exact final source hashes, or update the final source/receipt set so all source-bound evidence references the same reviewed revisions."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

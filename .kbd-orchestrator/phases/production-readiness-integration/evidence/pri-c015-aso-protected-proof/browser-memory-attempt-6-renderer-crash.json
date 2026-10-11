@@ -1,0 +1,4 @@
+{
+  "result": "Failed",
+  "failure": "TargetClosedError: Page.evaluate: Target page, context or browser has been closed"
+}

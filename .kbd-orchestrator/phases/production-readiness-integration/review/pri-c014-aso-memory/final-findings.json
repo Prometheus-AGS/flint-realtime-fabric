@@ -1,0 +1,25 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "gpt-6-astra",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-ports/src/identity.rs",
+      "claim": "The change touches Rust code but the provided task-5 quality evidence does not include the required Rust workspace checks.",
+      "evidence": "Diff changes Rust files (`crates/frf-ports/src/identity.rs` and `crates/frf-gateway/tests/shape_projection_grant.rs`); constraints require Rust code changes to satisfy R1 `cargo check --workspace`, R2 `cargo clippy --workspace ...`, and R4 `cargo fmt --check --all`; `cross_repo_evidence.quality_checks.commands` only lists ASO pnpm checks, python compile, architecture audit, and `openspec validate`.",
+      "suggested_fix": "Run and record `cargo fmt --check --all`, `cargo check --workspace`, and the required clippy invocations for this Rust change, then add their receipts before closure."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "crates/frf-ports/src/identity.rs",
+      "line": 29,
+      "claim": "The public port contract revision was changed without any documented semver impact decision.",
+      "evidence": "Diff changes `pub const ASO_PROJECTION_REVISION: u32 = 3;` to `pub const ASO_PROJECTION_REVISION: u32 = 4;`; acceptance execution notes state `Public type/port edits require semver impact`; no Cargo version or semver-impact documentation is added anywhere in the diff.",
+      "suggested_fix": "Add the required semver-impact decision for the public `frf-ports` contract change, or avoid changing the public port constant in this change."
+    }
+  ]
+}

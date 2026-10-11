@@ -2,25 +2,25 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 310,
-  "derivedRevision": 310,
+  "sourceRevision": 351,
+  "derivedRevision": 351,
   "frontier": {
-    "573067f0-69c9-40fc-a33c-3aed7a5a839f": 310
+    "573067f0-69c9-40fc-a33c-3aed7a5a839f": 351
   },
   "conflictCount": 0,
   "phase": "production-readiness-integration",
   "phaseId": "production-readiness-integration",
   "parentPhase": null,
-  "last_updated": "2026-09-17T03:05:37.202781Z",
+  "last_updated": "2026-09-17T15:19:34.814553Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 23,
-  "changes_completed": 13,
+  "changes_completed": 14,
   "implementation_total": 23,
-  "implementation_completed": 13,
+  "implementation_completed": 14,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 13,
+      "completed": 14,
       "total": 23,
       "status": "IN_PROGRESS"
     },
@@ -187,23 +187,23 @@
     {
       "id": "pri-c014-aso-memory",
       "title": "Diagnose and reduce the existing ASO replica memory cost",
-      "status": "PENDING",
-      "implementation_status": "PENDING",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
       "tasks_total": 5,
-      "tasks_done": 0,
-      "last_task_completed": null,
-      "next_task_pending": "1. Inspect the affected paths listed in design.md, record their source/dirty-diff baseline and verify dependency receipts: pri-c002-local-fixtures, pri-c003-scope-research-contract.",
+      "tasks_done": 5,
+      "last_task_completed": "5. Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c014-aso-memory/`; run applicable local quality checks and `openspec validate pri-c014-aso-memory --strict --no-interactive`. Resolve required review findings before archive.",
+      "next_task_pending": null,
       "blockers": []
     },
     {
       "id": "pri-c015-aso-protected-proof",
       "title": "Qualify the protected shape-to-SQL-to-PEM path",
-      "status": "PENDING",
-      "implementation_status": "PENDING",
+      "status": "IN_PROGRESS",
+      "implementation_status": "IN_PROGRESS",
       "tasks_total": 5,
-      "tasks_done": 0,
-      "last_task_completed": null,
-      "next_task_pending": "1. Inspect the affected paths listed in design.md, record their source/dirty-diff baseline and verify dependency receipts: pri-c005-authority-lifetime, pri-c014-aso-memory.",
+      "tasks_done": 4,
+      "last_task_completed": "4. Establish and record acceptance B: Interrupted shape bodies, expiry/refetch, revocation timing, direct-backend isolation and forbidden/local-only field egress pass for each selected topology; no competing generic-watch writer handles the same clinical rows. Inspect the owning ASO repository rules before edits; any modified file must be at most 500 lines, splitting replica-runtime.ts if that file is touched and preserving its owner fences. Untouched oversized files remain explicitly tracked.",
+      "next_task_pending": "5. Save a source-bound receipt under `.kbd-orchestrator/phases/production-readiness-integration/evidence/pri-c015-aso-protected-proof/`; run applicable local quality checks and `openspec validate pri-c015-aso-protected-proof --strict --no-interactive`. Resolve required review findings before archive.",
       "blockers": []
     },
     {

@@ -1,0 +1,448 @@
+{
+  "schemaVersion": 3,
+  "repository": "/Users/gqadonis/Projects/TribeHealth/kevin/prior-auth",
+  "branch": "main",
+  "head": "d95242542060d1e19a6efe9143f57c015d6162f4",
+  "observedAt": "2026-09-17T14:18:18.911268+00:00",
+  "dirtyState": {
+    "porcelainSha256": "014739aae732d739c64c96eb6797bc7c510f545c5cd4a10711c34794f8565685",
+    "trackedDiffSha256": "be33f9e6c264ee8395f4e17a37e51b355afa006939cb24b74873c5fcd4b32443",
+    "untrackedPathsSha256": "620b1417fb5e72142af84123821349a0aeb4b4c8af32ece9b6b2ea20181a14ed"
+  },
+  "files": {
+    "docker-compose.ra05.yaml": {
+      "sha256": "1815b800b226a0b356d903062f172d9377108194fa5bbf9f1b18cdd9687a50bc",
+      "bytes": 6131,
+      "lines": 201
+    },
+    "docker-compose.yaml": {
+      "sha256": "6f642f9f561b78a46fae7f1f3863dcdcd633c9dd2730954a58ee87b1bbda7e8b",
+      "bytes": 9907,
+      "lines": 193
+    },
+    "docker/flint-gate/config.ra05.yaml": {
+      "sha256": "347d3dd0d30f2221fbbe39237f967b0511e703ab5ecee8e327a87b78ff3dafa1",
+      "bytes": 2843,
+      "lines": 107
+    },
+    "docker/frf/shape-catalog.json": {
+      "sha256": "7c50cc69ff87cfd5db56fc847c17ac035f97bd900ae71a7eee286fca286ce453",
+      "bytes": 2460,
+      "lines": 114
+    },
+    "scripts/ra05-stack.sh": {
+      "sha256": "824377cc9561e71474da079219527a4b1846a02592653e5a5ec430a2fc7cf2f4",
+      "bytes": 922,
+      "lines": 28
+    },
+    "scripts/ra06c_campaign_config.py": {
+      "sha256": "cd99908ae918fb7a4d1eff48500aad329ac923ad477bb1f2bfb77e8706fa9b4e",
+      "bytes": 4379,
+      "lines": 130
+    },
+    "scripts/test-authorized-shape-composition.py": {
+      "sha256": "bbac93420ab50c53624c3c06c9c27d61ef94ca2fa28dfeb4031cbe09346f09d7",
+      "bytes": 16064,
+      "lines": 418
+    },
+    "scripts/test-ra11a-sync-conformance.py": {
+      "sha256": "b21d01815058e7307f30989b11ce35c3954e3910e50f47a2bc05158e6915261a",
+      "bytes": 33272,
+      "lines": 816
+    },
+    "scripts/test-ra11c-browser-memory.py": {
+      "sha256": "10e3c049d5c4299e34bb1024377d06912a4fb5ff05b5f4de3ea4860fc1b24205",
+      "bytes": 13301,
+      "lines": 346
+    },
+    "scripts/test-ra11c-materialization.py": {
+      "sha256": "be8af39283fe56e1fac1c384a755986df5e10712770f96ca02962730f2b9bdf1",
+      "bytes": 10019,
+      "lines": 259
+    },
+    "web/package.json": {
+      "sha256": "c8c7a697a514ddc18246f35e2c12db5eaa07bfa2f63ab131034b42c1c8be6641",
+      "bytes": 1928,
+      "lines": 63
+    },
+    "web/pnpm-lock.yaml": {
+      "sha256": "fbe014d8cde45225e4c8884edd5193ddcd387295f065fbbb27690fd0269c2547",
+      "bytes": 315803,
+      "lines": 8481
+    },
+    "web/public/pglite-base.tgz": {
+      "sha256": "f4818a049c2e017209433b00518760dbd8694d20c88fdc59b3bc2aea299f635f",
+      "bytes": 4529203,
+      "lines": 27674
+    },
+    "web/ra11c-browser-memory.html": {
+      "sha256": "4a26bd7963b6efb023a4a5f152170a9e350e9737a18f982b97b449e17662dd72",
+      "bytes": 366,
+      "lines": 12
+    },
+    "web/src/shared/session-revocation-events.ts": {
+      "sha256": "e6c691d5b611aa9e8add31d3995d60529aa274b132e3ef67d357a93580ca6850",
+      "bytes": 1035,
+      "lines": 30
+    },
+    "web/src/shared/sync/chunk-writer.ts": {
+      "sha256": "e3b25011f44d25b969759599c0abd90664ea873cc0996da454572f6c4815826e",
+      "bytes": 9375,
+      "lines": 234
+    },
+    "web/src/shared/sync/electric-shapes.ts": {
+      "sha256": "830e2540b6e03d5356243a390c622b467fde5e637ecdceb5030afc492be9944c",
+      "bytes": 4440,
+      "lines": 101
+    },
+    "web/src/shared/sync/frf-shape-transport.ts": {
+      "sha256": "49751868d6d78da375c1750e6093e2c27e39403b48152f3de1d62fc1ed9e176c",
+      "bytes": 11521,
+      "lines": 301
+    },
+    "web/src/shared/sync/migration-ledger.ts": {
+      "sha256": "206d0e3ce46181653db0b1b5d2c675c7a7018ae8e773c1d4c0c7d9da95567bc4",
+      "bytes": 10722,
+      "lines": 311
+    },
+    "web/src/shared/sync/pglite-bootstrap.ts": {
+      "sha256": "5d7cf6b33bfae8c0c6e74287950575c10741c2aa3e07dddca2b69045a799b0c6",
+      "bytes": 1513,
+      "lines": 45
+    },
+    "web/src/shared/sync/pglite-schema.ts": {
+      "sha256": "7754586386bbfd29144e7cb47f9f188a41bd8c6f17aa688dce48d6f4a0bf433e",
+      "bytes": 10640,
+      "lines": 299
+    },
+    "web/src/shared/sync/replica-browser-memory.ts": {
+      "sha256": "a8d17a9a591b08cce218f843621b35cf9b9788320b241a0eb98bb4f6e56a2208",
+      "bytes": 10469,
+      "lines": 341
+    },
+    "web/src/shared/sync/replica-mounted-runtime.ts": {
+      "sha256": "7caaaa829f37e7f393bd3f56f9de015ef6503acdd5536cbca4e9f2f9d37756c0",
+      "bytes": 11193,
+      "lines": 355
+    },
+    "web/src/shared/sync/replica-mounted.integration.test.ts": {
+      "sha256": "5e394e3e505b7f6cb9daf32ba8dd8c61a4398e94457325f18f42c52470c93849",
+      "bytes": 20873,
+      "lines": 449
+    },
+    "web/src/shared/sync/replica-owner.ts": {
+      "sha256": "4352138b06c24f55e6cfad5a0ada89ba04636e0e9657c3ccb494d14af39ab670",
+      "bytes": 6973,
+      "lines": 199
+    },
+    "web/src/shared/sync/replica-rebuild.ts": {
+      "sha256": "fe79cfc4573d9af144c20293e08e8dcb3e490a1c1ecd2988abd2d17273cdb76a",
+      "bytes": 4300,
+      "lines": 102
+    },
+    "web/src/shared/sync/replica-runtime.ts": {
+      "sha256": "97a8180893f0039ecb2e23ca2a1b86ca5d3d6a2432d50f5ae0d430d808a5e5fb",
+      "bytes": 17374,
+      "lines": 524
+    },
+    "web/src/shared/sync/replica-wiring.ts": {
+      "sha256": "ce52c79d4e2c113084913e9df34e1b2502b5c20838a0df748c22f1382e45484b",
+      "bytes": 5040,
+      "lines": 129
+    },
+    "web/src/shared/sync/replica-worker-owner.ts": {
+      "sha256": "616a71b27e461954efb701dc18f686dce81e818edd5ef0ff2f23076f96063f5b",
+      "bytes": 15889,
+      "lines": 494
+    },
+    "web/src/shared/sync/storage-policy.ts": {
+      "sha256": "74ebfba4eb1ad96efc032de39f3f3715ad5f861a0a776af3a6b2ed8b78bd58a0",
+      "bytes": 3705,
+      "lines": 93
+    },
+    "web/vite.config.ts": {
+      "sha256": "89da9c620bb5d18f0b8eaf8d4fba7805bac56dcd23ffc87e0cce2e17ad01d8fd",
+      "bytes": 1991,
+      "lines": 57
+    }
+  },
+  "executedInputFingerprints": {
+    "before": {
+      "aggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd",
+      "files": {
+        "docker-compose.ra05.yaml": {
+          "bytes": 6131,
+          "sha256": "1815b800b226a0b356d903062f172d9377108194fa5bbf9f1b18cdd9687a50bc"
+        },
+        "docker-compose.yaml": {
+          "bytes": 9907,
+          "sha256": "6f642f9f561b78a46fae7f1f3863dcdcd633c9dd2730954a58ee87b1bbda7e8b"
+        },
+        "docker/flint-gate/config.ra05.yaml": {
+          "bytes": 2843,
+          "sha256": "347d3dd0d30f2221fbbe39237f967b0511e703ab5ecee8e327a87b78ff3dafa1"
+        },
+        "docker/frf/shape-catalog.json": {
+          "bytes": 2460,
+          "sha256": "7c50cc69ff87cfd5db56fc847c17ac035f97bd900ae71a7eee286fca286ce453"
+        },
+        "scripts/ra05-stack.sh": {
+          "bytes": 922,
+          "sha256": "824377cc9561e71474da079219527a4b1846a02592653e5a5ec430a2fc7cf2f4"
+        },
+        "scripts/ra06c_campaign_config.py": {
+          "bytes": 4379,
+          "sha256": "cd99908ae918fb7a4d1eff48500aad329ac923ad477bb1f2bfb77e8706fa9b4e"
+        },
+        "scripts/test-authorized-shape-composition.py": {
+          "bytes": 16064,
+          "sha256": "bbac93420ab50c53624c3c06c9c27d61ef94ca2fa28dfeb4031cbe09346f09d7"
+        },
+        "scripts/test-ra11a-sync-conformance.py": {
+          "bytes": 33272,
+          "sha256": "b21d01815058e7307f30989b11ce35c3954e3910e50f47a2bc05158e6915261a"
+        },
+        "scripts/test-ra11c-browser-memory.py": {
+          "bytes": 13301,
+          "sha256": "10e3c049d5c4299e34bb1024377d06912a4fb5ff05b5f4de3ea4860fc1b24205"
+        },
+        "scripts/test-ra11c-materialization.py": {
+          "bytes": 10019,
+          "sha256": "be8af39283fe56e1fac1c384a755986df5e10712770f96ca02962730f2b9bdf1"
+        },
+        "web/package.json": {
+          "bytes": 1928,
+          "sha256": "c8c7a697a514ddc18246f35e2c12db5eaa07bfa2f63ab131034b42c1c8be6641"
+        },
+        "web/pnpm-lock.yaml": {
+          "bytes": 315803,
+          "sha256": "fbe014d8cde45225e4c8884edd5193ddcd387295f065fbbb27690fd0269c2547"
+        },
+        "web/public/pglite-base.tgz": {
+          "bytes": 4529203,
+          "sha256": "f4818a049c2e017209433b00518760dbd8694d20c88fdc59b3bc2aea299f635f"
+        },
+        "web/ra11c-browser-memory.html": {
+          "bytes": 366,
+          "sha256": "4a26bd7963b6efb023a4a5f152170a9e350e9737a18f982b97b449e17662dd72"
+        },
+        "web/src/shared/session-revocation-events.ts": {
+          "bytes": 1035,
+          "sha256": "e6c691d5b611aa9e8add31d3995d60529aa274b132e3ef67d357a93580ca6850"
+        },
+        "web/src/shared/sync/chunk-writer.ts": {
+          "bytes": 9375,
+          "sha256": "e3b25011f44d25b969759599c0abd90664ea873cc0996da454572f6c4815826e"
+        },
+        "web/src/shared/sync/electric-shapes.ts": {
+          "bytes": 4440,
+          "sha256": "830e2540b6e03d5356243a390c622b467fde5e637ecdceb5030afc492be9944c"
+        },
+        "web/src/shared/sync/frf-shape-transport.ts": {
+          "bytes": 11521,
+          "sha256": "49751868d6d78da375c1750e6093e2c27e39403b48152f3de1d62fc1ed9e176c"
+        },
+        "web/src/shared/sync/migration-ledger.ts": {
+          "bytes": 10722,
+          "sha256": "206d0e3ce46181653db0b1b5d2c675c7a7018ae8e773c1d4c0c7d9da95567bc4"
+        },
+        "web/src/shared/sync/pglite-bootstrap.ts": {
+          "bytes": 1513,
+          "sha256": "5d7cf6b33bfae8c0c6e74287950575c10741c2aa3e07dddca2b69045a799b0c6"
+        },
+        "web/src/shared/sync/pglite-schema.ts": {
+          "bytes": 10640,
+          "sha256": "7754586386bbfd29144e7cb47f9f188a41bd8c6f17aa688dce48d6f4a0bf433e"
+        },
+        "web/src/shared/sync/replica-browser-memory.ts": {
+          "bytes": 10469,
+          "sha256": "a8d17a9a591b08cce218f843621b35cf9b9788320b241a0eb98bb4f6e56a2208"
+        },
+        "web/src/shared/sync/replica-mounted-runtime.ts": {
+          "bytes": 11193,
+          "sha256": "7caaaa829f37e7f393bd3f56f9de015ef6503acdd5536cbca4e9f2f9d37756c0"
+        },
+        "web/src/shared/sync/replica-mounted.integration.test.ts": {
+          "bytes": 20873,
+          "sha256": "5e394e3e505b7f6cb9daf32ba8dd8c61a4398e94457325f18f42c52470c93849"
+        },
+        "web/src/shared/sync/replica-owner.ts": {
+          "bytes": 6973,
+          "sha256": "4352138b06c24f55e6cfad5a0ada89ba04636e0e9657c3ccb494d14af39ab670"
+        },
+        "web/src/shared/sync/replica-rebuild.ts": {
+          "bytes": 4300,
+          "sha256": "fe79cfc4573d9af144c20293e08e8dcb3e490a1c1ecd2988abd2d17273cdb76a"
+        },
+        "web/src/shared/sync/replica-runtime.ts": {
+          "bytes": 17374,
+          "sha256": "97a8180893f0039ecb2e23ca2a1b86ca5d3d6a2432d50f5ae0d430d808a5e5fb"
+        },
+        "web/src/shared/sync/replica-wiring.ts": {
+          "bytes": 5040,
+          "sha256": "ce52c79d4e2c113084913e9df34e1b2502b5c20838a0df748c22f1382e45484b"
+        },
+        "web/src/shared/sync/replica-worker-owner.ts": {
+          "bytes": 15889,
+          "sha256": "616a71b27e461954efb701dc18f686dce81e818edd5ef0ff2f23076f96063f5b"
+        },
+        "web/src/shared/sync/storage-policy.ts": {
+          "bytes": 3705,
+          "sha256": "74ebfba4eb1ad96efc032de39f3f3715ad5f861a0a776af3a6b2ed8b78bd58a0"
+        },
+        "web/vite.config.ts": {
+          "bytes": 1991,
+          "sha256": "89da9c620bb5d18f0b8eaf8d4fba7805bac56dcd23ffc87e0cce2e17ad01d8fd"
+        }
+      }
+    },
+    "after": {
+      "aggregateSha256": "b71fc53df00686138ea1472cbff2ed01fa91d592b0d1761b6ae8e272dd70c3dd",
+      "files": {
+        "docker-compose.ra05.yaml": {
+          "bytes": 6131,
+          "sha256": "1815b800b226a0b356d903062f172d9377108194fa5bbf9f1b18cdd9687a50bc"
+        },
+        "docker-compose.yaml": {
+          "bytes": 9907,
+          "sha256": "6f642f9f561b78a46fae7f1f3863dcdcd633c9dd2730954a58ee87b1bbda7e8b"
+        },
+        "docker/flint-gate/config.ra05.yaml": {
+          "bytes": 2843,
+          "sha256": "347d3dd0d30f2221fbbe39237f967b0511e703ab5ecee8e327a87b78ff3dafa1"
+        },
+        "docker/frf/shape-catalog.json": {
+          "bytes": 2460,
+          "sha256": "7c50cc69ff87cfd5db56fc847c17ac035f97bd900ae71a7eee286fca286ce453"
+        },
+        "scripts/ra05-stack.sh": {
+          "bytes": 922,
+          "sha256": "824377cc9561e71474da079219527a4b1846a02592653e5a5ec430a2fc7cf2f4"
+        },
+        "scripts/ra06c_campaign_config.py": {
+          "bytes": 4379,
+          "sha256": "cd99908ae918fb7a4d1eff48500aad329ac923ad477bb1f2bfb77e8706fa9b4e"
+        },
+        "scripts/test-authorized-shape-composition.py": {
+          "bytes": 16064,
+          "sha256": "bbac93420ab50c53624c3c06c9c27d61ef94ca2fa28dfeb4031cbe09346f09d7"
+        },
+        "scripts/test-ra11a-sync-conformance.py": {
+          "bytes": 33272,
+          "sha256": "b21d01815058e7307f30989b11ce35c3954e3910e50f47a2bc05158e6915261a"
+        },
+        "scripts/test-ra11c-browser-memory.py": {
+          "bytes": 13301,
+          "sha256": "10e3c049d5c4299e34bb1024377d06912a4fb5ff05b5f4de3ea4860fc1b24205"
+        },
+        "scripts/test-ra11c-materialization.py": {
+          "bytes": 10019,
+          "sha256": "be8af39283fe56e1fac1c384a755986df5e10712770f96ca02962730f2b9bdf1"
+        },
+        "web/package.json": {
+          "bytes": 1928,
+          "sha256": "c8c7a697a514ddc18246f35e2c12db5eaa07bfa2f63ab131034b42c1c8be6641"
+        },
+        "web/pnpm-lock.yaml": {
+          "bytes": 315803,
+          "sha256": "fbe014d8cde45225e4c8884edd5193ddcd387295f065fbbb27690fd0269c2547"
+        },
+        "web/public/pglite-base.tgz": {
+          "bytes": 4529203,
+          "sha256": "f4818a049c2e017209433b00518760dbd8694d20c88fdc59b3bc2aea299f635f"
+        },
+        "web/ra11c-browser-memory.html": {
+          "bytes": 366,
+          "sha256": "4a26bd7963b6efb023a4a5f152170a9e350e9737a18f982b97b449e17662dd72"
+        },
+        "web/src/shared/session-revocation-events.ts": {
+          "bytes": 1035,
+          "sha256": "e6c691d5b611aa9e8add31d3995d60529aa274b132e3ef67d357a93580ca6850"
+        },
+        "web/src/shared/sync/chunk-writer.ts": {
+          "bytes": 9375,
+          "sha256": "e3b25011f44d25b969759599c0abd90664ea873cc0996da454572f6c4815826e"
+        },
+        "web/src/shared/sync/electric-shapes.ts": {
+          "bytes": 4440,
+          "sha256": "830e2540b6e03d5356243a390c622b467fde5e637ecdceb5030afc492be9944c"
+        },
+        "web/src/shared/sync/frf-shape-transport.ts": {
+          "bytes": 11521,
+          "sha256": "49751868d6d78da375c1750e6093e2c27e39403b48152f3de1d62fc1ed9e176c"
+        },
+        "web/src/shared/sync/migration-ledger.ts": {
+          "bytes": 10722,
+          "sha256": "206d0e3ce46181653db0b1b5d2c675c7a7018ae8e773c1d4c0c7d9da95567bc4"
+        },
+        "web/src/shared/sync/pglite-bootstrap.ts": {
+          "bytes": 1513,
+          "sha256": "5d7cf6b33bfae8c0c6e74287950575c10741c2aa3e07dddca2b69045a799b0c6"
+        },
+        "web/src/shared/sync/pglite-schema.ts": {
+          "bytes": 10640,
+          "sha256": "7754586386bbfd29144e7cb47f9f188a41bd8c6f17aa688dce48d6f4a0bf433e"
+        },
+        "web/src/shared/sync/replica-browser-memory.ts": {
+          "bytes": 10469,
+          "sha256": "a8d17a9a591b08cce218f843621b35cf9b9788320b241a0eb98bb4f6e56a2208"
+        },
+        "web/src/shared/sync/replica-mounted-runtime.ts": {
+          "bytes": 11193,
+          "sha256": "7caaaa829f37e7f393bd3f56f9de015ef6503acdd5536cbca4e9f2f9d37756c0"
+        },
+        "web/src/shared/sync/replica-mounted.integration.test.ts": {
+          "bytes": 20873,
+          "sha256": "5e394e3e505b7f6cb9daf32ba8dd8c61a4398e94457325f18f42c52470c93849"
+        },
+        "web/src/shared/sync/replica-owner.ts": {
+          "bytes": 6973,
+          "sha256": "4352138b06c24f55e6cfad5a0ada89ba04636e0e9657c3ccb494d14af39ab670"
+        },
+        "web/src/shared/sync/replica-rebuild.ts": {
+          "bytes": 4300,
+          "sha256": "fe79cfc4573d9af144c20293e08e8dcb3e490a1c1ecd2988abd2d17273cdb76a"
+        },
+        "web/src/shared/sync/replica-runtime.ts": {
+          "bytes": 17374,
+          "sha256": "97a8180893f0039ecb2e23ca2a1b86ca5d3d6a2432d50f5ae0d430d808a5e5fb"
+        },
+        "web/src/shared/sync/replica-wiring.ts": {
+          "bytes": 5040,
+          "sha256": "ce52c79d4e2c113084913e9df34e1b2502b5c20838a0df748c22f1382e45484b"
+        },
+        "web/src/shared/sync/replica-worker-owner.ts": {
+          "bytes": 15889,
+          "sha256": "616a71b27e461954efb701dc18f686dce81e818edd5ef0ff2f23076f96063f5b"
+        },
+        "web/src/shared/sync/storage-policy.ts": {
+          "bytes": 3705,
+          "sha256": "74ebfba4eb1ad96efc032de39f3f3715ad5f861a0a776af3a6b2ed8b78bd58a0"
+        },
+        "web/vite.config.ts": {
+          "bytes": 1991,
+          "sha256": "89da9c620bb5d18f0b8eaf8d4fba7805bac56dcd23ffc87e0cce2e17ad01d8fd"
+        }
+      }
+    }
+  },
+  "modifiedFileLines": {
+    "web/ra11c-browser-memory.html": 12,
+    "web/src/shared/sync/replica-browser-memory.ts": 341,
+    "web/src/shared/sync/replica-mounted.integration.test.ts": 449,
+    "web/src/shared/sync/replica-mounted-runtime.ts": 355,
+    "web/src/shared/sync/pglite-bootstrap.ts": 45,
+    "scripts/test-ra11c-browser-memory.py": 346,
+    "scripts/test-ra11c-materialization.py": 259
+  },
+  "untouchedOversizedFiles": {
+    "web/src/shared/sync/replica-runtime.ts": 524,
+    "web/src/shared/sync/replica-runtime.test.ts": 659
+  },
+  "adoptedDelta": {
+    "originalScenarioSha256": "6aaa3a9c35b42b80cacecc11f26e3326fa05a25fa0acec76c4105ed32dea8005",
+    "pgliteBootstrapBeforeOptimizationSha256": "baf3de1af7911e37c6d6e35d52467d671fd762db4a78479521db3fa4d5a5f128",
+    "patch": "source-delta.patch",
+    "patchSha256": "fc7caadd22b9c03a9e248a0e99cd99e2ab0285a1dd37d35bb358c652916be41e"
+  }
+}

@@ -107,7 +107,7 @@ mod tests {
             "originating_session_id": Uuid::from_u128(4).to_string(),
             "authorization_revision": "membership:synthetic",
             "projection_revision": ASO_PROJECTION_REVISION,
-            "projection_ids": ["annotation_types", "annotations", "cases", "case_evidence", "evidence_states", "evidence_citations", "documents"],
+            "projection_ids": ["annotation_types", "annotations", "cases", "case_evidence", "evidence_states", "evidence_citations", "document_statuses", "document_task_statuses"],
             "aud": "frf-gateway",
             "exp": 9_999_999_999_u64
         }))
@@ -128,7 +128,7 @@ mod tests {
                 "scope" => claims.scope = Some("all".to_owned()),
                 "revision" => claims.projection_revision = Some(99),
                 "session" => claims.originating_session_id = None,
-                "projection" => claims.projection_ids = Some(vec!["cases".to_owned()]),
+                "projection" => claims.projection_ids = Some(Vec::new()),
                 _ => unreachable!(),
             }
             assert!(
