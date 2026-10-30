@@ -24,6 +24,7 @@ manager · **Dev-only** = must NOT be set in production.
 | `GATEWAY_JWKS_URL` | ✅ | | — | flint-gate JWKS endpoint used to verify inbound JWTs. |
 | `JWT_AUDIENCE` | ✅ | | — | Expected JWT `aud`. |
 | `JWT_ISSUER` | ✅ (prod) | | _(dev builds only: unset → not validated)_ | Expected JWT `iss`. **Required in production:** a production (non-`dev-endpoints`) binary **fails to boot** with a config-validation error if this is unset — without it the `iss` claim is unvalidated and any JWKS-valid token from any issuer is accepted. In `dev-endpoints` builds it is relaxed to a startup warning (p16-c004, enforced p17-c002). |
+| `TOPIC_CHANNEL_NAMESPACE` | | | _(unset)_ | UUID namespace for `topics`-claim tokens (browser tickets). A subscription carrying `topics` is allowed only when the requested channel id equals UUIDv5(namespace, path) for a listed path. Unset → every token with a `topics` claim is refused (403). Must equal the namespace publishers use to derive channel ids. |
 | `KETO_BASE_URL` | ✅ | | — | Ory Keto read/write API base URL. |
 | `KETO_NAMESPACE` | | | `default` | Keto namespace for relation tuples. |
 | `POLICY_ENGINE` | | | `none` | Action policy engine: `none` (allow-all, logged) or `cedar`. |

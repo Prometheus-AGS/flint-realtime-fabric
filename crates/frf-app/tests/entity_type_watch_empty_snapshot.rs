@@ -109,6 +109,9 @@ impl IdentityVerifier for Identity {
             projection_revision: None,
             projection_ids: Vec::new(),
             expires_at: 9_999_999_999,
+            token_id: None,
+            issued_at: None,
+            topics: None,
         })
     }
 }

@@ -28,6 +28,10 @@ pub struct FrfClaims {
     pub aud: serde_json::Value,
     /// Expiry timestamp (Unix seconds). Validated by `jsonwebtoken`.
     pub exp: u64,
+    /// Issued-at timestamp (Unix seconds). Required on single-use tickets.
+    pub iat: Option<u64>,
+    /// Topic paths a ticket may read (flint-gate `topics` claim).
+    pub topics: Option<Vec<String>>,
 }
 
 /// Convert raw JWT claims into the port-level `VerifiedClaims`.
@@ -49,6 +53,7 @@ pub fn to_verified_claims(claims: FrfClaims) -> Result<VerifiedClaims, IdentityE
         || claims.authorization_revision.is_some()
         || claims.projection_revision.is_some()
         || claims.projection_ids.is_some();
+    let token_id = claims.jti.clone();
     let session_id = match claims
         .jti
         .as_deref()
@@ -89,6 +94,9 @@ pub fn to_verified_claims(claims: FrfClaims) -> Result<VerifiedClaims, IdentityE
         projection_revision: claims.projection_revision,
         projection_ids: claims.projection_ids.unwrap_or_default(),
         expires_at: claims.exp,
+        token_id,
+        issued_at: claims.iat,
+        topics: claims.topics,
     })
 }
 
@@ -151,6 +159,27 @@ mod tests {
         let mut claims = replica_claims();
         claims.originating_session_id = Some("not-a-uuid".to_owned());
         assert!(to_verified_claims(claims).is_err());
+    }
+
+    #[test]
+    fn ticket_claims_carry_jti_iat_and_topics() {
+        let claims: FrfClaims = serde_json::from_value(json!({
+            "sub": Uuid::from_u128(1).to_string(),
+            "tenant_id": Uuid::from_u128(2).to_string(),
+            "jti": "ticket-1",
+            "iat": 1_000_u64,
+            "topics": ["t/tenant/u/user/roster"],
+            "aud": "fabric",
+            "exp": 1_060_u64
+        }))
+        .unwrap();
+        let verified = to_verified_claims(claims).unwrap();
+        assert_eq!(verified.token_id.as_deref(), Some("ticket-1"));
+        assert_eq!(verified.issued_at, Some(1_000));
+        assert_eq!(
+            verified.topics,
+            Some(vec!["t/tenant/u/user/roster".to_owned()])
+        );
     }
 
     #[test]

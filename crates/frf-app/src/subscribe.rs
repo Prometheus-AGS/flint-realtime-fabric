@@ -1,15 +1,18 @@
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use frf_domain::{ChannelId, EventEnvelope, Offset, TenantId};
+use frf_domain::{ChannelId, EventEnvelope, Offset, SessionId, TenantId};
 use frf_ports::{
     AuthzProvider, EventStream, IdentityVerifier, LogBroker, PortError, RelationTuple,
 };
 use futures_util::{StreamExt, stream};
 use tokio::time::Instant;
 use tracing::instrument;
+use uuid::Uuid;
 
 use crate::error::AppError;
+use crate::presence::PresenceTracker;
+use crate::subscribe_ticket::{CredentialKind, TicketReplayGuard, admit_ticket, match_topic};
 
 pub struct SubscribeRequest {
     pub channel_id: ChannelId,
@@ -17,10 +20,70 @@ pub struct SubscribeRequest {
     pub from: Offset,
 }
 
+/// What a verified subscriber may read on one channel, and until when.
+///
+/// Produced by [`SubscribePipeline::authorize`]; the credential is verified
+/// (and a ticket consumed) once, so a resync can reopen the stream without it.
+#[derive(Debug, Clone)]
+pub struct SubscriptionGrant {
+    pub channel_id: ChannelId,
+    pub tenant_id: TenantId,
+    /// Verified `sub` of the credential.
+    pub subject: String,
+    pub session_id: SessionId,
+    /// The topic path matched from the `topics` claim. `None` when the
+    /// subscription was authorized by relation tuples.
+    pub topic: Option<String>,
+    deadline: Instant,
+    authority: StreamAuthority,
+}
+
+impl SubscriptionGrant {
+    /// The channel path this grant publishes presence under: the matched topic,
+    /// or the channel id when no topic was matched.
+    #[must_use]
+    pub fn path(&self) -> String {
+        self.topic
+            .clone()
+            .unwrap_or_else(|| self.channel_id.to_string())
+    }
+}
+
+#[derive(Debug, Clone)]
+enum StreamAuthority {
+    /// Keto `subscribe` on the channel and `view` on every event.
+    Relations { subscribe_tuple: RelationTuple },
+    /// Every delivered event's `channel.path` must equal the granted topic.
+    Topic { path: String },
+}
+
+/// The client asked for an offset the broker no longer retains.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Resync {
+    /// Inclusive high-water offset when the stream was reopened, `None` when
+    /// the channel is empty. The reopened stream starts after it.
+    pub head: Option<Offset>,
+}
+
+/// An authorized event stream, and the resync that preceded it, if any.
+pub struct OpenedStream {
+    pub stream: EventStream,
+    pub resync: Option<Resync>,
+}
+
+/// `true` when `error` is the broker's "offset no longer retained" signal.
+#[must_use]
+pub fn is_resnapshot_required(error: &PortError) -> bool {
+    matches!(error, PortError::NotFound(message) if message.starts_with("resnapshot_required:"))
+}
+
 pub struct SubscribePipeline<L, A, I> {
     broker: Arc<L>,
     authz: Arc<A>,
     identity: Arc<I>,
+    topic_namespace: Option<Uuid>,
+    replay: TicketReplayGuard,
+    presence: Arc<PresenceTracker<L>>,
 }
 
 impl<L, A, I> SubscribePipeline<L, A, I>
@@ -31,10 +94,27 @@ where
 {
     pub fn new(broker: Arc<L>, authz: Arc<A>, identity: Arc<I>) -> Self {
         Self {
+            presence: Arc::new(PresenceTracker::new(Arc::clone(&broker))),
             broker,
             authz,
             identity,
+            topic_namespace: None,
+            replay: TicketReplayGuard::default(),
         }
+    }
+
+    /// Set the `UUIDv5` namespace that maps a `topics` claim path to its channel
+    /// id. Without it, a token carrying `topics` is refused.
+    #[must_use]
+    pub fn with_topic_namespace(mut self, namespace: Option<Uuid>) -> Self {
+        self.topic_namespace = namespace;
+        self
+    }
+
+    /// Presence heartbeats and expiry for this pipeline's broker.
+    #[must_use]
+    pub fn presence(&self) -> &Arc<PresenceTracker<L>> {
+        &self.presence
     }
 
     /// Execute the subscribe pipeline.
@@ -46,69 +126,196 @@ where
     /// Returns [`AppError::Broker`] if the broker subscription fails.
     #[instrument(name = "app::subscribe", skip(self, req), fields(channel_id = %req.channel_id))]
     pub async fn execute(&self, req: SubscribeRequest) -> Result<EventStream, AppError> {
-        let claims = self
-            .identity
-            .verify(&req.bearer_token)
-            .await
-            .map_err(AppError::Identity)?;
-        let deadline = token_deadline(claims.expires_at)?;
-
-        let subscribe_tuple = RelationTuple {
-            tenant_id: claims.tenant_id,
-            subject: claims.subject.clone(),
-            relation: "subscribe".to_owned(),
-            object: req.channel_id.to_string(),
-        };
-
-        let allowed = self
-            .authz
-            .check(&subscribe_tuple)
-            .await
-            .map_err(AppError::Broker)?;
-
-        if !allowed {
-            return Err(AppError::Forbidden(format!(
-                "subject {} may not subscribe to channel {}",
-                claims.subject, req.channel_id
-            )));
-        }
-
-        let consumer_id = claims.session_id.to_string();
+        let grant = self
+            .authorize(req.channel_id, &req.bearer_token, CredentialKind::Bearer)
+            .await?;
         let raw_stream = self
             .broker
-            .subscribe(req.channel_id, consumer_id, req.from)
+            .subscribe(req.channel_id, grant.session_id.to_string(), req.from)
             .await?;
+        Ok(self.authorized(raw_stream, grant))
+    }
 
+    /// Verify a credential and decide what it may read on `channel_id`.
+    ///
+    /// A token with a `topics` claim is authorized by the claim alone; one
+    /// without is authorized by the `subscribe` relation tuple. A
+    /// [`CredentialKind::Ticket`] must also carry `jti` and `iat`, live at most
+    /// 60 seconds, and is consumed: a second use is refused.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AppError::Identity`] for an invalid, expired, replayed or
+    /// over-long credential, and [`AppError::Forbidden`] when it does not
+    /// cover the channel.
+    #[instrument(name = "app::subscribe::authorize", skip(self, token), fields(channel_id = %channel_id))]
+    pub async fn authorize(
+        &self,
+        channel_id: ChannelId,
+        token: &str,
+        credential: CredentialKind,
+    ) -> Result<SubscriptionGrant, AppError> {
+        let claims = self
+            .identity
+            .verify(token)
+            .await
+            .map_err(AppError::Identity)?;
+        if credential == CredentialKind::Ticket {
+            admit_ticket(&claims, &self.replay, unix_now()?)?;
+        }
+        let deadline = token_deadline(claims.expires_at)?;
+
+        let (topic, authority) = if let Some(topics) = &claims.topics {
+            let path = match_topic(topics, self.topic_namespace, channel_id)?;
+            (Some(path.clone()), StreamAuthority::Topic { path })
+        } else {
+            let subscribe_tuple = RelationTuple {
+                tenant_id: claims.tenant_id,
+                subject: claims.subject.clone(),
+                relation: "subscribe".to_owned(),
+                object: channel_id.to_string(),
+            };
+            let allowed = self
+                .authz
+                .check(&subscribe_tuple)
+                .await
+                .map_err(AppError::Broker)?;
+            if !allowed {
+                return Err(AppError::Forbidden(format!(
+                    "subject {} may not subscribe to channel {}",
+                    claims.subject, channel_id
+                )));
+            }
+            (None, StreamAuthority::Relations { subscribe_tuple })
+        };
+
+        Ok(SubscriptionGrant {
+            channel_id,
+            tenant_id: claims.tenant_id,
+            subject: claims.subject,
+            session_id: claims.session_id,
+            topic,
+            deadline,
+            authority,
+        })
+    }
+
+    /// Open the granted channel from `from` (inclusive).
+    ///
+    /// When the broker no longer retains `from`, the stream is reopened after
+    /// the current head and the returned [`OpenedStream::resync`] says so.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AppError::Broker`] if the broker subscription fails.
+    #[instrument(name = "app::subscribe::open", skip(self, grant), fields(channel_id = %grant.channel_id))]
+    pub async fn open(
+        &self,
+        grant: &SubscriptionGrant,
+        from: Offset,
+    ) -> Result<OpenedStream, AppError> {
+        let consumer_id = grant.session_id.to_string();
+        match self
+            .broker
+            .subscribe(grant.channel_id, consumer_id, from)
+            .await
+        {
+            Ok(raw_stream) => Ok(OpenedStream {
+                stream: self.authorized(raw_stream, grant.clone()),
+                resync: None,
+            }),
+            Err(error) if is_resnapshot_required(&error) => self.open_at_head(grant).await,
+            Err(error) => Err(AppError::Broker(error)),
+        }
+    }
+
+    /// Reopen the granted channel after its current head, for a client whose
+    /// offset is no longer retained.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AppError::Broker`] if the head cannot be read or the broker
+    /// subscription fails.
+    pub async fn open_at_head(&self, grant: &SubscriptionGrant) -> Result<OpenedStream, AppError> {
+        let head = self.broker.head_offset(grant.channel_id).await?;
+        let start = head.map_or(Offset::BEGINNING, Offset::next);
+        let raw_stream = self
+            .broker
+            .subscribe(grant.channel_id, grant.session_id.to_string(), start)
+            .await?;
+        Ok(OpenedStream {
+            stream: self.authorized(raw_stream, grant.clone()),
+            resync: Some(Resync { head }),
+        })
+    }
+
+    /// The live presence records on the granted channel, for a subscriber that
+    /// has just opened.
+    ///
+    /// Each record passes the same authority as a delivered event: same
+    /// tenant, and the granted topic path or the `subscribe` and `view` tuples.
+    /// The envelopes were never published; their `offset` is a placeholder and
+    /// must not be sent to a client as a broker position.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AppError::Broker`] when a record cannot be serialized, or when
+    /// the authority check fails or is withdrawn.
+    #[instrument(name = "app::subscribe::presence_snapshot", skip(self, grant), fields(channel_id = %grant.channel_id))]
+    pub async fn presence_snapshot(
+        &self,
+        grant: &SubscriptionGrant,
+    ) -> Result<Vec<EventEnvelope>, AppError> {
+        let records = self
+            .presence
+            .snapshot_at(grant.channel_id, chrono::Utc::now())?;
+        let raw_stream: EventStream = Box::pin(stream::iter(records.into_iter().map(Ok)));
+        let mut authorized = self.authorized(raw_stream, grant.clone());
+        let mut snapshot = Vec::new();
+        while let Some(item) = authorized.next().await {
+            snapshot.push(item.map_err(AppError::Broker)?);
+        }
+        Ok(snapshot)
+    }
+
+    fn authorized(&self, raw_stream: EventStream, grant: SubscriptionGrant) -> EventStream {
         let state = AuthorizedStream {
             raw_stream,
             authz: Arc::clone(&self.authz),
-            subscribe_tuple,
-            tenant_id: claims.tenant_id,
-            subject: claims.subject,
-            deadline,
+            authority: grant.authority,
+            tenant_id: grant.tenant_id,
+            subject: grant.subject,
+            deadline: grant.deadline,
             terminated: false,
         };
-
-        Ok(Box::pin(stream::unfold(state, next_authorized::<A>)))
+        Box::pin(stream::unfold(state, next_authorized::<A>))
     }
 }
 
 struct AuthorizedStream<A> {
     raw_stream: EventStream,
     authz: Arc<A>,
-    subscribe_tuple: RelationTuple,
+    authority: StreamAuthority,
     tenant_id: TenantId,
     subject: String,
     deadline: Instant,
     terminated: bool,
 }
 
-fn token_deadline(expires_at: u64) -> Result<Instant, AppError> {
-    let now = SystemTime::now().duration_since(UNIX_EPOCH).map_err(|_| {
+fn unix_now() -> Result<u64, AppError> {
+    Ok(unix_now_duration()?.as_secs())
+}
+
+fn unix_now_duration() -> Result<Duration, AppError> {
+    SystemTime::now().duration_since(UNIX_EPOCH).map_err(|_| {
         AppError::Identity(PortError::PermissionDenied(
             "system clock is before the Unix epoch".to_owned(),
         ))
-    })?;
+    })
+}
+
+fn token_deadline(expires_at: u64) -> Result<Instant, AppError> {
+    let now = unix_now_duration()?;
     let lifetime = Duration::from_secs(expires_at)
         .checked_sub(now)
         .filter(|duration| !duration.is_zero())
@@ -145,7 +352,17 @@ where
             continue;
         }
 
-        match check_before_deadline(&*state.authz, &state.subscribe_tuple, state.deadline).await {
+        let subscribe_tuple = match &state.authority {
+            StreamAuthority::Topic { path } => {
+                if envelope.channel.path == *path && Instant::now() < state.deadline {
+                    return Some((Ok(envelope), state));
+                }
+                continue;
+            }
+            StreamAuthority::Relations { subscribe_tuple } => subscribe_tuple,
+        };
+
+        match check_before_deadline(&*state.authz, subscribe_tuple, state.deadline).await {
             Ok(true) => {}
             Ok(false) => {
                 return Some(terminal(

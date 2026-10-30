@@ -142,6 +142,9 @@ fn claims(scope: &str, projection_revision: u32) -> VerifiedClaims {
             "evidence_states".to_owned(),
         ],
         expires_at: 9_999_999_999,
+        token_id: None,
+        issued_at: None,
+        topics: None,
     }
 }
 

@@ -23,6 +23,13 @@ pub struct VerifiedClaims {
     pub projection_revision: Option<u32>,
     pub projection_ids: Vec<String>,
     pub expires_at: u64,
+    /// Raw `jti` claim. Single-use tickets are tracked by this value.
+    pub token_id: Option<String>,
+    /// `iat` claim (Unix seconds), when the issuer set one.
+    pub issued_at: Option<u64>,
+    /// `topics` claim: the topic paths this token may read. When present it
+    /// replaces relation-tuple authorization for a subscription.
+    pub topics: Option<Vec<String>>,
 }
 
 pub const ASO_REPLICA_SCOPE: &str = "aso.replica.read";

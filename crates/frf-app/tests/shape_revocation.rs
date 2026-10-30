@@ -199,6 +199,9 @@ fn claims(expires_at: u64) -> VerifiedClaims {
             "evidence_states".to_owned(),
         ],
         expires_at,
+        token_id: None,
+        issued_at: None,
+        topics: None,
     }
 }
 

@@ -129,6 +129,9 @@ fn claims(subject: &str, token: u128) -> VerifiedClaims {
             "evidence_states".to_owned(),
         ],
         expires_at: 2_000,
+        token_id: None,
+        issued_at: None,
+        topics: None,
     }
 }
 

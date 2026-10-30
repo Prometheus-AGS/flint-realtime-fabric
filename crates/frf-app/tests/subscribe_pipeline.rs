@@ -79,6 +79,9 @@ fn test_claims() -> VerifiedClaims {
         projection_revision: None,
         projection_ids: vec![],
         expires_at: 9_999_999_999,
+        token_id: None,
+        issued_at: None,
+        topics: None,
     }
 }
 
@@ -422,4 +425,51 @@ async fn authority_loss_terminates_without_emitting_the_protected_event() {
         Some(Err(PortError::Transport(message))) if message == "authority unavailable"
     ));
     assert!(stream.next().await.is_none());
+}
+
+#[tokio::test]
+async fn topics_claim_without_a_configured_namespace_is_forbidden() {
+    let mut identity = MockIdentity::new();
+    identity.expect_verify().returning(|_| {
+        let mut claims = test_claims();
+        claims.topics = Some(vec!["t/a/u/b/roster".to_owned()]);
+        Ok(claims)
+    });
+    // No authz expectation: the topics claim replaces the tuple check.
+    let pipeline = SubscribePipeline::new(
+        Arc::new(MockBroker::new()),
+        Arc::new(MockAuthz::new()),
+        Arc::new(identity),
+    );
+    let result = pipeline
+        .authorize(ChannelId::new(), "tok", frf_app::CredentialKind::Bearer)
+        .await;
+    assert!(matches!(result, Err(AppError::Forbidden(_))));
+}
+
+#[tokio::test]
+async fn topics_claim_grants_the_matching_channel_without_a_tuple_check() {
+    let namespace = Uuid::from_u128(7);
+    let topic = "t/a/u/b/roster";
+    let mut identity = MockIdentity::new();
+    identity.expect_verify().returning(move |_| {
+        let mut claims = test_claims();
+        claims.topics = Some(vec![topic.to_owned()]);
+        Ok(claims)
+    });
+    let pipeline = SubscribePipeline::new(
+        Arc::new(MockBroker::new()),
+        Arc::new(MockAuthz::new()),
+        Arc::new(identity),
+    )
+    .with_topic_namespace(Some(namespace));
+    let channel_id = frf_app::topic_channel_id(namespace, topic);
+    // A bearer credential is not single-use: the same token authorizes twice.
+    for _ in 0..2 {
+        let grant = pipeline
+            .authorize(channel_id, "tok", frf_app::CredentialKind::Bearer)
+            .await
+            .expect("topic grant");
+        assert_eq!(grant.topic.as_deref(), Some(topic));
+    }
 }

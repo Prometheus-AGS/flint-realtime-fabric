@@ -160,6 +160,9 @@ fn claims() -> VerifiedClaims {
             "evidence_states".to_owned(),
         ],
         expires_at: NOW_EPOCH_SECONDS + 300,
+        token_id: None,
+        issued_at: None,
+        topics: None,
     }
 }
 
