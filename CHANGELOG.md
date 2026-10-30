@@ -7,6 +7,26 @@ the stable interface).
 
 ## [Unreleased]
 
+### Browser realtime on `/ws/v1/subscribe`
+
+- **Resume from an offset:** optional `from=<u64>` query parameter (inclusive; absent = beginning;
+  non-numeric = 400). An offset the broker no longer retains yields one
+  `{"type":"resync","channel":"<uuid>","head":<u64|null>}` text frame, then events after the head.
+- **Single-use browser tickets:** a JWT passed as `?ticket=<jwt>` or as the subprotocol
+  `ticket.<jwt>` (offered with `frf.v1`, which the server echoes). Verified like a bearer token,
+  plus: `jti` and `iat` required, `exp - iat <= 60`, and a `jti` is accepted once (process-local
+  memory until `exp`). A `topics` claim, when present on any token, replaces the relation-tuple
+  checks: the channel id must be UUIDv5(`TOPIC_CHANNEL_NAMESPACE`, path) of a listed path, and only
+  events whose `channel.path` equals that path are delivered. The subscribe span records the
+  channel only; the query string is never logged.
+- **Presence:** a subscriber sends `{"type":"presence.heartbeat","status"?:"online|away|busy"}`
+  on its socket. One record per (channel, verified `sub`); the first heartbeat or a status change
+  publishes an `EventKind::Presence` envelope; a record with no heartbeat for 45 s is published
+  `offline` by a 1 s sweep and removed.
+- **Close codes:** 4000 subscription ended (credential expired), 4403 authority withdrawn,
+  1011 broker failure.
+
+
 ### Phase 36 — sovereign SFU: ICE solved on Linux; media path outstanding
 
 Fixed the phase-35 ICE stall: str0m was not running **ICE-lite**. With that corrected, **ICE

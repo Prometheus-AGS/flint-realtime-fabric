@@ -32,6 +32,10 @@ pub struct GatewayConfig {
     /// missing/mismatched issuer are rejected. Optional for backward compatibility,
     /// but SHOULD be set in production.
     pub jwt_issuer: Option<String>,
+    /// `UUIDv5` namespace mapping a `topics` claim path to its channel id.
+    /// Env: `TOPIC_CHANNEL_NAMESPACE`. When unset, tokens carrying `topics`
+    /// are refused on subscribe.
+    pub topic_channel_namespace: Option<Uuid>,
     /// Electric origin and catalog are an all-or-none pair owned exclusively by
     /// the restricted `shape-only` profile.
     pub shape_electric_url: Option<String>,
@@ -155,6 +159,7 @@ impl GatewayConfig {
             // Set so `test_default` models a valid *production* config: validate()
             // requires JWT_ISSUER in non-`dev-endpoints` builds (tests build that way).
             jwt_issuer: Some("https://issuer.test".to_owned()),
+            topic_channel_namespace: None,
             shape_electric_url: None,
             shape_catalog_path: None,
             cdc_enabled: false,
@@ -264,6 +269,12 @@ impl GatewayConfig {
         // Optional but recommended in production. When unset, issuer is not
         // validated and a warning is logged at startup (see main.rs).
         let jwt_issuer = std::env::var("JWT_ISSUER").ok().filter(|s| !s.is_empty());
+        let topic_channel_namespace = std::env::var("TOPIC_CHANNEL_NAMESPACE")
+            .ok()
+            .filter(|s| !s.trim().is_empty())
+            .map(|s| Uuid::parse_str(s.trim()))
+            .transpose()
+            .context("TOPIC_CHANNEL_NAMESPACE must be a UUID")?;
         let shape_electric_url = std::env::var("SHAPE_ELECTRIC_URL")
             .ok()
             .filter(|s| !s.trim().is_empty());
@@ -331,6 +342,7 @@ impl GatewayConfig {
             gateway_jwks_url,
             jwt_audience,
             jwt_issuer,
+            topic_channel_namespace,
             shape_electric_url,
             shape_catalog_path,
             cdc_enabled,

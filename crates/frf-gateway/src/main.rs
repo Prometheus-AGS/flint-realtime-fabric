@@ -59,11 +59,8 @@ async fn main() -> Result<()> {
         OryIdentityVerifier::new(&config.gateway_jwks_url, &config.jwt_audience)
     });
 
-    let subscribe_pipeline = Arc::new(SubscribePipeline::new(
-        Arc::clone(&broker),
-        Arc::clone(&authz),
-        Arc::clone(&identity),
-    ));
+    let (subscribe_pipeline, presence_sweeper) =
+        build_subscribe_pipeline(&config, &broker, &authz, &identity);
     let publish_usecase = Arc::new(PublishUseCase::new(
         Arc::clone(&broker),
         Arc::clone(&authz),
@@ -149,6 +146,7 @@ async fn main() -> Result<()> {
         .with_graceful_shutdown(frf_gateway::shutdown_signal())
         .await?;
     tracing::info!("HTTP server drained; shutting down background tasks");
+    presence_sweeper.abort();
 
     drain_background_tasks(
         &shutdown_tx,
@@ -160,6 +158,25 @@ async fn main() -> Result<()> {
     .await;
 
     Ok(())
+}
+
+type GatewaySubscribePipeline =
+    SubscribePipeline<ConfiguredLogBroker, ConfiguredAuthzProvider, OryIdentityVerifier>;
+
+/// Build the subscribe pipeline and start its presence-expiry sweeper.
+fn build_subscribe_pipeline(
+    config: &GatewayConfig,
+    broker: &Arc<ConfiguredLogBroker>,
+    authz: &Arc<ConfiguredAuthzProvider>,
+    identity: &Arc<OryIdentityVerifier>,
+) -> (Arc<GatewaySubscribePipeline>, tokio::task::JoinHandle<()>) {
+    let pipeline = Arc::new(
+        SubscribePipeline::new(Arc::clone(broker), Arc::clone(authz), Arc::clone(identity))
+            .with_topic_namespace(config.topic_channel_namespace),
+    );
+    let sweeper =
+        frf_gateway::routes::subscribe::spawn_presence_sweeper(Arc::clone(pipeline.presence()));
+    (pipeline, sweeper)
 }
 
 async fn build_broker(config: &GatewayConfig) -> Result<Arc<ConfiguredLogBroker>> {
