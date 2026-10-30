@@ -1,14 +1,16 @@
 #![allow(clippy::expect_used, clippy::unwrap_used)]
 //! Browser realtime contract on `/ws/v1/subscribe`: single-use tickets with a
 //! `topics` claim (F2), resume from a client offset with resync (F1), and
-//! presence heartbeats with expiry (F3). Runs against an in-memory broker.
+//! presence heartbeats with expiry (F3), and the presence snapshot sent on
+//! subscribe. Runs against an in-memory broker.
 
 #[path = "support/realtime.rs"]
 mod realtime;
 
 use std::time::Duration;
 
-use frf_domain::{EventEnvelope, EventKind, Presence, PresenceStatus};
+use frf_app::{CredentialKind, SubscriptionGrant};
+use frf_domain::{Channel, EventEnvelope, EventKind, Presence, PresenceStatus};
 use frf_ports::LogBroker as _;
 use futures_util::{SinkExt as _, StreamExt as _};
 use realtime::{Fixture, channel_for, envelope, spawn, ticket_claims};
@@ -283,4 +285,159 @@ async fn heartbeat_shows_online_to_members_and_expiry_shows_offline() {
     let presence: Presence = serde_json::from_value(offline.payload).unwrap();
     assert_eq!(presence.user_id, "user-1");
     assert_eq!(presence.status, PresenceStatus::Offline);
+}
+
+/// Authorize `subject` on `channel` with a fresh ticket, as the socket would.
+async fn grant(fixture: &Fixture, channel: &Channel, subject: &str) -> SubscriptionGrant {
+    let token = ticket(fixture, subject, &[PRESENCE]);
+    fixture
+        .pipeline
+        .authorize(channel.id, &token, CredentialKind::Ticket)
+        .await
+        .expect("grant")
+}
+
+/// The presence record carried by a snapshot frame, after checking the frame
+/// is a presence envelope with no broker offset.
+fn snapshot_presence(frame: &Value) -> Presence {
+    assert!(frame["offset"].is_null(), "snapshot has no offset: {frame}");
+    assert_eq!(frame["kind"], "presence");
+    assert_eq!(frame["channel"]["path"], PRESENCE);
+    serde_json::from_value(frame["payload"].clone()).expect("Presence payload")
+}
+
+async fn assert_quiet(socket: &mut Socket) {
+    let next = tokio::time::timeout(Duration::from_millis(300), socket.next()).await;
+    assert!(next.is_err(), "no further frame: {next:?}");
+}
+
+fn presence_published(fixture: &Fixture) -> usize {
+    fixture
+        .broker
+        .published()
+        .into_iter()
+        .filter(|e| e.kind == EventKind::Presence)
+        .count()
+}
+
+#[tokio::test]
+async fn late_subscriber_receives_snapshot_of_an_already_online_member() {
+    let fixture = spawn().await;
+    let channel = channel_for(PRESENCE);
+    let member_ticket = ticket(&fixture, "user-1", &[PRESENCE]);
+    let mut member = connect(&url(
+        &fixture,
+        &channel.id.to_string(),
+        &format!("&ticket={member_ticket}"),
+    ))
+    .await
+    .expect("member opens");
+    member
+        .send(Message::text(r#"{"type":"presence.heartbeat"}"#))
+        .await
+        .unwrap();
+    let announced = next_envelope(&mut member).await;
+    assert_eq!(announced.kind, EventKind::Presence);
+
+    // A renewal that resumes after the last change: the log holds nothing new.
+    let late_ticket = ticket(&fixture, "user-2", &[PRESENCE]);
+    let from = announced.offset.0 + 1;
+    let mut late = connect(&url(
+        &fixture,
+        &channel.id.to_string(),
+        &format!("&ticket={late_ticket}&from={from}"),
+    ))
+    .await
+    .expect("late subscriber opens");
+
+    let presence = snapshot_presence(&next_json(&mut late).await);
+    assert_eq!(presence.user_id, "user-1");
+    assert_eq!(presence.status, PresenceStatus::Online);
+    assert_eq!(presence.channel_id, channel.id);
+    assert_quiet(&mut late).await;
+    assert_quiet(&mut member).await;
+    assert_eq!(
+        presence_published(&fixture),
+        1,
+        "a snapshot is not published"
+    );
+}
+
+#[tokio::test]
+async fn snapshot_excludes_expired_members() {
+    let fixture = spawn().await;
+    let channel = channel_for(PRESENCE);
+    let presence = fixture.pipeline.presence();
+    let now = chrono::Utc::now();
+    // Expired 15 s ago but not yet swept.
+    let stale = grant(&fixture, &channel, "user-1").await;
+    presence
+        .heartbeat_at(
+            &stale,
+            PresenceStatus::Online,
+            now - chrono::TimeDelta::seconds(60),
+        )
+        .await
+        .unwrap();
+    let live = grant(&fixture, &channel, "user-3").await;
+    presence
+        .heartbeat_at(&live, PresenceStatus::Busy, now)
+        .await
+        .unwrap();
+
+    let token = ticket(&fixture, "user-2", &[PRESENCE]);
+    let mut late = connect(&url(
+        &fixture,
+        &channel.id.to_string(),
+        &format!("&ticket={token}&from=2"),
+    ))
+    .await
+    .expect("late subscriber opens");
+    let presence = snapshot_presence(&next_json(&mut late).await);
+    assert_eq!(presence.user_id, "user-3");
+    assert_eq!(presence.status, PresenceStatus::Busy);
+    assert_quiet(&mut late).await;
+}
+
+#[tokio::test]
+async fn snapshot_follows_resync_and_does_not_move_the_resume_offset() {
+    let fixture = spawn().await;
+    let channel = channel_for(PRESENCE);
+    let member = grant(&fixture, &channel, "user-1").await;
+    fixture
+        .pipeline
+        .presence()
+        .heartbeat(&member, PresenceStatus::Online)
+        .await
+        .unwrap();
+    for n in 1..5 {
+        fixture.broker.publish(envelope(&channel, n)).await.unwrap();
+    }
+    fixture.broker.expire_before(3);
+    let published = fixture.broker.published().len();
+
+    let token = ticket(&fixture, "user-2", &[PRESENCE]);
+    let mut late = connect(&url(
+        &fixture,
+        &channel.id.to_string(),
+        &format!("&ticket={token}&from=1"),
+    ))
+    .await
+    .expect("stale offset still opens");
+    let resync = next_json(&mut late).await;
+    assert_eq!(resync["type"], "resync");
+    assert_eq!(resync["head"], 4);
+    let presence = snapshot_presence(&next_json(&mut late).await);
+    assert_eq!(presence.user_id, "user-1");
+    assert_eq!(
+        fixture.broker.published().len(),
+        published,
+        "the snapshot took no broker offset"
+    );
+
+    // The next event is head + 1: resuming from the resync head stays contiguous.
+    fixture.broker.publish(envelope(&channel, 5)).await.unwrap();
+    let live = next_envelope(&mut late).await;
+    assert_eq!(live.offset.0, 5);
+    assert_eq!(live.payload["n"], 5);
 }

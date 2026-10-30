@@ -249,6 +249,35 @@ where
         })
     }
 
+    /// The live presence records on the granted channel, for a subscriber that
+    /// has just opened.
+    ///
+    /// Each record passes the same authority as a delivered event: same
+    /// tenant, and the granted topic path or the `subscribe` and `view` tuples.
+    /// The envelopes were never published; their `offset` is a placeholder and
+    /// must not be sent to a client as a broker position.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AppError::Broker`] when a record cannot be serialized, or when
+    /// the authority check fails or is withdrawn.
+    #[instrument(name = "app::subscribe::presence_snapshot", skip(self, grant), fields(channel_id = %grant.channel_id))]
+    pub async fn presence_snapshot(
+        &self,
+        grant: &SubscriptionGrant,
+    ) -> Result<Vec<EventEnvelope>, AppError> {
+        let records = self
+            .presence
+            .snapshot_at(grant.channel_id, chrono::Utc::now())?;
+        let raw_stream: EventStream = Box::pin(stream::iter(records.into_iter().map(Ok)));
+        let mut authorized = self.authorized(raw_stream, grant.clone());
+        let mut snapshot = Vec::new();
+        while let Some(item) = authorized.next().await {
+            snapshot.push(item.map_err(AppError::Broker)?);
+        }
+        Ok(snapshot)
+    }
+
     fn authorized(&self, raw_stream: EventStream, grant: SubscriptionGrant) -> EventStream {
         let state = AuthorizedStream {
             raw_stream,

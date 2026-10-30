@@ -102,6 +102,10 @@ fn credential(params: &SubscribeQuery, headers: &HeaderMap) -> Option<(String, C
 /// from after the head. Accepts `{"type":"presence.heartbeat","status"?:...}`
 /// text frames from the client.
 ///
+/// Once open, and again after every resync frame, the subscriber alone is sent
+/// one presence snapshot frame per live member of the channel (see
+/// [`presence_snapshot_frame`]) before any broker event.
+///
 /// The credential is a ticket (`?ticket=<jwt>` or subprotocol
 /// `ticket.<jwt>` offered with `frf.v1`) or `Authorization: Bearer <jwt>`. The
 /// query string is never recorded on the span.
@@ -208,6 +212,53 @@ fn resync_frame(channel_id: ChannelId, resync: Resync) -> String {
     .to_string()
 }
 
+/// A presence snapshot frame: the JSON of a [`frf_app::PresenceTracker`]
+/// `kind: "presence"` [`frf_domain::EventEnvelope`], identical in shape to a
+/// published presence event except that `offset` is `null`.
+///
+/// The frame is sent only to the subscriber that opened, never published, and
+/// has no broker position. `offset: null` is the sole marker: a client must
+/// apply its payload as current presence and must not read, store or compare
+/// it as a resume offset. `id` is fresh per frame and `timestamp` is the
+/// snapshot time; `payload.last_seen` and `payload.expires_at` are the record's.
+fn presence_snapshot_frame(envelope: &frf_domain::EventEnvelope) -> Option<String> {
+    let mut frame = serde_json::to_value(envelope).ok()?;
+    *frame.get_mut("offset")? = serde_json::Value::Null;
+    Some(frame.to_string())
+}
+
+/// Send the grant holder the channel's live presence. Returns `false` when the
+/// socket is gone. A snapshot that cannot be read is logged and skipped; the
+/// stream still delivers every later change.
+async fn send_presence_snapshot<L, A, I>(
+    socket: &mut WebSocket,
+    pipeline: &SubscribePipeline<L, A, I>,
+    grant: &SubscriptionGrant,
+) -> bool
+where
+    L: LogBroker + Send + Sync + 'static,
+    A: AuthzProvider + Send + Sync + 'static,
+    I: IdentityVerifier + Send + Sync + 'static,
+{
+    let snapshot = match pipeline.presence_snapshot(grant).await {
+        Ok(snapshot) => snapshot,
+        Err(error) => {
+            tracing::warn!(%error, "presence snapshot could not be read");
+            return true;
+        }
+    };
+    for envelope in &snapshot {
+        let Some(frame) = presence_snapshot_frame(envelope) else {
+            tracing::warn!("presence snapshot frame could not be serialized");
+            continue;
+        };
+        if socket.send(Message::Text(frame.into())).await.is_err() {
+            return false;
+        }
+    }
+    true
+}
+
 fn close_for(error: &PortError) -> (u16, &'static str) {
     match error {
         PortError::PermissionDenied(reason) if reason == "token expired" => {
@@ -245,6 +296,9 @@ async fn handle_socket<L, A, I>(
             .await
             .is_err()
     {
+        return;
+    }
+    if !send_presence_snapshot(&mut socket, &pipeline, &grant).await {
         return;
     }
     let mut delivered = false;
@@ -309,10 +363,11 @@ where
         Ok(OpenedStream { stream, resync }) => {
             let resync = resync.unwrap_or(Resync { head: None });
             let frame = resync_frame(grant.channel_id, resync);
-            socket
-                .send(Message::Text(frame.into()))
+            if socket.send(Message::Text(frame.into())).await.is_err() {
+                return None;
+            }
+            send_presence_snapshot(socket, pipeline, grant)
                 .await
-                .is_ok()
                 .then_some(stream)
         }
         Err(error) => {

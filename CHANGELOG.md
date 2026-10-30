@@ -23,6 +23,14 @@ the stable interface).
   on its socket. One record per (channel, verified `sub`); the first heartbeat or a status change
   publishes an `EventKind::Presence` envelope; a record with no heartbeat for 45 s is published
   `offline` by a 1 s sweep and removed.
+- **Presence snapshot on subscribe:** when a subscription opens, after any resync frame (and
+  again after a resync raised on first delivery), the subscriber alone receives one frame per live
+  member of the channel (`expires_at` after now), ordered by `user_id`, before any broker event.
+  Each frame is a `kind: "presence"` `EventEnvelope` exactly like a published presence event except
+  `"offset": null`: it is never published, has no broker position, and must not move a client's
+  resume offset. Records pass the subscription's own authority (tenant, then topic path or
+  `subscribe`/`view` tuples). The tracker is in-memory, so a snapshot covers only the members
+  heartbeating on the replica that serves the subscription.
 - **Close codes:** 4000 subscription ended (credential expired), 4403 authority withdrawn,
   1011 broker failure.
 

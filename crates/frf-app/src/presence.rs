@@ -7,8 +7,12 @@
 //! record with no heartbeat for [`PRESENCE_TTL`] is removed by
 //! [`PresenceTracker::sweep_at`] and published once more as `offline`.
 //!
+//! [`PresenceTracker::snapshot_at`] reads the live records of a channel, so a
+//! subscriber that opens after the last change still learns who is online.
+//!
 //! State is process-local: with several gateway replicas, each publishes the
-//! presence of the subscribers connected to it.
+//! presence of the subscribers connected to it, and a snapshot covers only the
+//! records held by the replica serving the subscription.
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, PoisonError};
@@ -154,19 +158,36 @@ where
         first_error.map_or(Ok(published), Err)
     }
 
+    /// The records on `channel_id` whose `expires_at` is after `now`, as
+    /// [`EventKind::Presence`] envelopes ordered by `user_id`.
+    ///
+    /// The envelopes are not published and carry no broker position: their
+    /// `offset` is [`Offset::BEGINNING`] as a placeholder only.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AppError::Broker`] when a record cannot be serialized.
+    pub fn snapshot_at(
+        &self,
+        channel_id: ChannelId,
+        now: DateTime<Utc>,
+    ) -> Result<Vec<EventEnvelope>, AppError> {
+        let mut live: Vec<(Presence, String)> = self
+            .lock()
+            .iter()
+            .filter(|((channel, _), record)| {
+                *channel == channel_id && record.presence.expires_at > now
+            })
+            .map(|(_, record)| (record.presence.clone(), record.path.clone()))
+            .collect();
+        live.sort_by(|(a, _), (b, _)| a.user_id.cmp(&b.user_id));
+        live.into_iter()
+            .map(|(presence, path)| presence_envelope(&presence, path))
+            .collect()
+    }
+
     async fn publish(&self, presence: Presence, path: String) -> Result<(), AppError> {
-        let payload = serde_json::to_value(&presence)
-            .map_err(|error| AppError::Broker(PortError::Serialization(error.to_string())))?;
-        let envelope = EventEnvelope::new(
-            Channel {
-                id: presence.channel_id,
-                tenant_id: presence.tenant_id,
-                path,
-            },
-            Offset::BEGINNING,
-            EventKind::Presence,
-            payload,
-        );
+        let envelope = presence_envelope(&presence, path)?;
         self.broker.publish(envelope).await?;
         Ok(())
     }
@@ -174,6 +195,21 @@ where
     fn lock(&self) -> std::sync::MutexGuard<'_, HashMap<PresenceKey, Record>> {
         self.records.lock().unwrap_or_else(PoisonError::into_inner)
     }
+}
+
+fn presence_envelope(presence: &Presence, path: String) -> Result<EventEnvelope, AppError> {
+    let payload = serde_json::to_value(presence)
+        .map_err(|error| AppError::Broker(PortError::Serialization(error.to_string())))?;
+    Ok(EventEnvelope::new(
+        Channel {
+            id: presence.channel_id,
+            tenant_id: presence.tenant_id,
+            path,
+        },
+        Offset::BEGINNING,
+        EventKind::Presence,
+        payload,
+    ))
 }
 
 fn ttl() -> chrono::TimeDelta {
