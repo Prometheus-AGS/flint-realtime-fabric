@@ -60,13 +60,13 @@ jobs:
         run: cargo clippy --workspace --tests -- -D warnings -W clippy::pedantic
 
   msrv:
-    name: MSRV check (Rust 1.94)
+    name: MSRV check (Rust 1.95)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.94"
+          toolchain: "1.95"
           components: rustfmt, clippy
       - name: Install protoc
         uses: arduino/setup-protoc@v3
